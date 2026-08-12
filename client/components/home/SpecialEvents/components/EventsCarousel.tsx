@@ -3,15 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import type { DragEvent, MouseEvent, PointerEvent } from "react";
 
-import StarCard from "@/components/home/FeaturedStars/components/StarCard";
-import styles from "@/components/home/FeaturedStars/FeaturedStars.module.scss";
-import type { FeaturedStar } from "@/components/home/FeaturedStars/mockData";
+import EventCard from "@/components/home/SpecialEvents/components/EventCard";
+import styles from "@/components/home/SpecialEvents/SpecialEvents.module.scss";
+import type { SpecialEvent } from "@/components/home/SpecialEvents/mockData";
 
-type StarsCarouselProps = {
-  items: FeaturedStar[];
+type EventsCarouselProps = {
+  items: SpecialEvent[];
 };
 
-const CARD_STEP = 166;
+const CARD_STEP = 278;
 const DRAG_THRESHOLD = 5;
 
 function ArrowIcon() {
@@ -22,16 +22,13 @@ function ArrowIcon() {
   );
 }
 
-export default function StarsCarousel({ items }: StarsCarouselProps) {
+export default function EventsCarousel({ items }: EventsCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const drag = useRef({ moved: false, startScrollLeft: 0, startX: 0 });
   const [isDragging, setIsDragging] = useState(false);
 
   const scroll = (direction: "next" | "previous") => {
-    scrollRef.current?.scrollBy({
-      behavior: "smooth",
-      left: direction === "next" ? CARD_STEP : -CARD_STEP,
-    });
+    scrollRef.current?.scrollBy({ behavior: "smooth", left: direction === "next" ? CARD_STEP : -CARD_STEP });
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -42,14 +39,12 @@ export default function StarsCarousel({ items }: StarsCarouselProps) {
     setIsDragging(true);
   };
 
-  // Nghe trên window để kéo tiếp được khi con trỏ ra ngoài container.
   useEffect(() => {
     if (!isDragging) return;
 
     const handleMove = (event: globalThis.PointerEvent) => {
       const container = scrollRef.current;
       if (!container) return;
-
       const distance = event.clientX - drag.current.startX;
       if (Math.abs(distance) > DRAG_THRESHOLD) drag.current.moved = true;
       container.scrollLeft = drag.current.startScrollLeft - distance;
@@ -59,7 +54,6 @@ export default function StarsCarousel({ items }: StarsCarouselProps) {
     window.addEventListener("pointermove", handleMove);
     window.addEventListener("pointerup", stopDragging);
     window.addEventListener("pointercancel", stopDragging);
-
     return () => {
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", stopDragging);
@@ -67,19 +61,14 @@ export default function StarsCarousel({ items }: StarsCarouselProps) {
     };
   }, [isDragging]);
 
-  // Sau khi kéo, chặn click để không mở link của card vừa đi qua.
   const handleClickCapture = (event: MouseEvent<HTMLDivElement>) => {
     if (!drag.current.moved) return;
-
     event.preventDefault();
     event.stopPropagation();
     drag.current.moved = false;
   };
 
-  // Chặn native drag của <a>/<img> vì nó cắt ngang thao tác kéo.
-  const handleDragStart = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-  };
+  const handleDragStart = (event: DragEvent<HTMLDivElement>) => event.preventDefault();
 
   return (
     <div className="relative">
@@ -90,14 +79,12 @@ export default function StarsCarousel({ items }: StarsCarouselProps) {
         onPointerDown={handlePointerDown}
         ref={scrollRef}
       >
-        {items.map((item) => (
-          <StarCard item={item} key={item.id} />
-        ))}
+        {items.map((item) => <EventCard item={item} key={item.id} />)}
       </div>
-      <button aria-label="Ngôi sao trước" className="absolute left-0 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-r bg-black/50 text-white opacity-60 transition-opacity hover:opacity-90" onClick={() => scroll("previous")} type="button">
+      <button aria-label="Sự kiện trước" className="absolute left-0 top-1/2 hidden h-11 w-8 items-center justify-center rounded-r-md bg-black/50 text-white sm:flex" onClick={() => scroll("previous")} type="button">
         <ArrowIcon />
       </button>
-      <button aria-label="Ngôi sao tiếp theo" className="absolute right-0 top-1/2 flex size-8 -translate-y-1/2 rotate-180 items-center justify-center rounded-r bg-black/50 text-white opacity-60 transition-opacity hover:opacity-90" onClick={() => scroll("next")} type="button">
+      <button aria-label="Sự kiện tiếp theo" className="absolute right-0 top-1/2 hidden h-11 w-8 rotate-180 items-center justify-center rounded-r-md bg-black/50 text-white sm:flex" onClick={() => scroll("next")} type="button">
         <ArrowIcon />
       </button>
     </div>

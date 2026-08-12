@@ -1,0 +1,131 @@
+.section {
+  position: relative;
+  display: flex;
+  min-height: 252px;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+  margin: 3.5rem 0;
+  padding: 1.5rem 0;
+  border-radius: 12px;
+}
+
+.backgroundImage {
+  position: absolute;
+  z-index: 0;
+  bottom: 0;
+  left: 0;
+  width: auto;
+  height: 80%;
+  max-width: none;
+  object-fit: cover;
+}
+
+.scrollArea {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.brand {
+  display: flex;
+  flex: 0 0 calc(26.3158% - 16px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+}
+
+.brandImage {
+  width: 70%;
+  height: auto;
+}
+
+.eventCard {
+  flex: 0 0 calc(25.641% - 16px);
+  padding: 12px;
+  border-radius: 12px;
+  background: rgb(86 92 106 / 50%);
+  backdrop-filter: blur(25px);
+}
+
+.eventContent {
+  display: flex;
+  min-height: 170px;
+  width: 100%;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.poster {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.eventInfo {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.eventTitle {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 21px;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 21px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.eventDate {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+  color: white;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+}
+
+@media (max-width: 767px) {
+  .section {
+    min-height: 230px;
+    margin: 2.5rem 0;
+  }
+
+  .backgroundImage {
+    left: 50%;
+    height: 100%;
+    transform: translateX(-50%);
+  }
+
+  .brand {
+    flex-basis: 38%;
+  }
+
+  .brandImage {
+    width: 100%;
+  }
+
+  .eventCard {
+    flex-basis: 72vw;
+  }
+}

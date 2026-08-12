@@ -6,7 +6,6 @@ export type FeaturedStar = {
 };
 
 export const featuredStarsMockData = {
-  backgroundImage: "https://salt.tkbcdn.com/ts/ds/9d/b8/1e/8ce13481fedd70d375afce988956d9cc.jpg",
   seeMoreHref: "https://stars.ticketbox.vn/list",
   seeMoreLabel: "Xem thêm",
   title: "Featured Stars",

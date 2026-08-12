@@ -1,0 +1,22 @@
+.scrollArea {
+  margin-left: -1.25rem;
+  padding-left: 1.25rem;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  cursor: grab;
+  user-select: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  > * {
+    scroll-snap-align: start;
+  }
+}
+
+.dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+}

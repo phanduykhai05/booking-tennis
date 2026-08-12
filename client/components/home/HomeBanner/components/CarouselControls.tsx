@@ -43,13 +43,13 @@ export default function CarouselControls({ activeIndex, items, maxIndex, onNavig
         <ArrowIcon direction="right" />
       </button>
       <div className="flex h-5 items-center justify-center gap-[10px]" role="tablist">
-        {items.map((item, index) => (
+        {items.slice(0, maxIndex + 1).map((item, index) => (
           <button
             aria-label={`Hiển thị banner ${index + 1}`}
             aria-selected={index === activeIndex}
             className={`size-2 rounded-full ${index === activeIndex ? "bg-[#2dc275]" : "bg-white"}`}
             key={item.id}
-            onClick={() => onNavigate(Math.min(index, maxIndex))}
+            onClick={() => onNavigate(index)}
             role="tab"
             type="button"
           />
