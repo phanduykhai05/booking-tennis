@@ -18,6 +18,21 @@
   object-position: left center;
 }
 
+// Viền gradient 1px: hai lớp mask exclude nhau nên chỉ chừa lại phần padding,
+// giữ được phần trong trong suốt cho backdrop-blur.
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff 0%, #45ff76 30%, #67fead 50%, rgba(255, 255, 255, 0.5) 100%);
+  mask-image: linear-gradient(#fff 0 0), linear-gradient(#fff 0 0);
+  mask-clip: content-box, border-box;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
 .scrollArea {
   scrollbar-width: none;
   overscroll-behavior-x: contain;

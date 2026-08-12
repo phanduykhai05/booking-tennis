@@ -38,15 +38,15 @@ export default function FooterContact() {
       </a>
 
       <h2 className={`mt-5 ${sectionTitle}`}>Email</h2>
-      <a className={detail} href="mailto:support@ticketbox.vn">
+      <a className={detail} href="mailto:khaiduy@ticketbox.vercel.app">
         <MailIcon />
-        support@ticketbox.vn
+        khaiduy@ticketbox.vercel.app
       </a>
 
       <h2 className={`mt-5 ${sectionTitle}`}>Văn phòng chính</h2>
       <address className={`${detail} not-italic`}>
         <PinIcon />
-        <span>Tầng 12, Tòa nhà Viettel, 285 Cách Mạng Tháng Tám, Phường Hòa Hưng, TP. Hồ Chí Minh</span>
+        <span>Số 11 Nguyễn Đình Chiểu, phường Sài Gòn, Thành phố Hồ Chí Minh.</span>
       </address>
     </section>
   );

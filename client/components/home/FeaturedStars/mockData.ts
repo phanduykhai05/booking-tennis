@@ -6,7 +6,7 @@ export type FeaturedStar = {
 };
 
 export const featuredStarsMockData = {
-  seeMoreHref: "https://stars.ticketbox.vn/list",
+  seeMoreHref: "/stars",
   seeMoreLabel: "Xem thêm",
   title: "Featured Stars",
   items: [
