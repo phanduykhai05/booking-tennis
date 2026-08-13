@@ -1,14 +1,21 @@
-import FooterContact from "@/components/layouts/PublicFooter/components/FooterContact";
-import FooterLinkGroups from "@/components/layouts/PublicFooter/components/FooterLinkGroups";
+import BottomNavigation from "@/components/layouts/PublicFooter/components/BottomNavigation";
+import { bottomNavigationItems, bottomNavigationLabel, publicFooterLabel } from "@/components/layouts/PublicFooter/mockData";
 
-export default function PublicFooter() {
+type PublicFooterProps = {
+  activeItemId?: string;
+};
+
+export default function PublicFooter({ activeItemId = "home" }: PublicFooterProps) {
+  const items = bottomNavigationItems.map((item) => ({
+    ...item,
+    isActive: item.id === activeItemId,
+  }));
+
   return (
-    <footer className="w-full bg-[#3d4658] text-[#b3b3b3]" aria-label="Thông tin Ticketbox">
-      <div className="mx-auto w-full max-w-[1472px] px-6 py-16 lg:px-0">
-        <div className="grid gap-10 md:grid-cols-3 md:gap-x-20">
-          <FooterContact />
-          <FooterLinkGroups />
-        </div>
+    <footer aria-label={publicFooterLabel} className="pointer-events-none fixed inset-x-0 bottom-0 z-[1100]">
+      {/* Safe-area đặt ở lớp bọc: nhét vào trong nav cao cố định sẽ bóp nội dung trên máy có notch. */}
+      <div className="pointer-events-auto w-full bg-white pb-[env(safe-area-inset-bottom)]">
+        <BottomNavigation ariaLabel={bottomNavigationLabel} items={items} />
       </div>
     </footer>
   );

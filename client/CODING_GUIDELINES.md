@@ -1,4 +1,4 @@
-# Quy tắc phát triển Ticketbox
+# Quy tắc phát triển TennisHub – Booking sân tennis
 
 Mọi thành viên cần đọc tài liệu này trước khi bắt đầu một task. Leader chịu trách nhiệm xác nhận phạm vi, cấu trúc và điểm tích hợp; thành viên chỉ triển khai trong phạm vi đã được giao.
 

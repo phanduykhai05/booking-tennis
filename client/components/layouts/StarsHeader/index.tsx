@@ -2,6 +2,7 @@ import LanguageSelector from "@/components/layouts/PublicHeader/components/Langu
 import AccountMenu from "@/components/layouts/StarsHeader/components/AccountMenu";
 import MyTicketsLink from "@/components/layouts/StarsHeader/components/MyTicketsLink";
 import StarsHeaderLogo from "@/components/layouts/StarsHeader/components/StarsHeaderLogo";
+import { starsHeaderMockData } from "@/components/layouts/StarsHeader/mockData";
 
 export default function StarsHeader() {
   return (
@@ -11,7 +12,7 @@ export default function StarsHeader() {
         <nav aria-label="Tiện ích tài khoản" className="flex shrink-0 items-center gap-1 sm:gap-2">
           <MyTicketsLink />
           <AccountMenu />
-          <LanguageSelector />
+          <LanguageSelector label={starsHeaderMockData.languageLabel} />
         </nav>
       </div>
     </header>

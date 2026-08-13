@@ -9,6 +9,7 @@ export const starsHeaderMockData = {
     label: "Tài khoản",
   } satisfies StarsHeaderAccount,
   homeHref: "https://ticketbox.vn",
+  languageLabel: "Tiếng Việt",
   logoLabel: "ticketbox",
   myTicketsHref: "https://ticketbox.vn/my-tickets",
   myTicketsLabel: "Vé của tôi",
