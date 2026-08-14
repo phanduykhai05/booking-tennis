@@ -3,6 +3,11 @@ import bannernghesiHd from '@/components/assets/images/uploads/bannernghesi-hd.w
 import bannermay from '@/components/assets/images/uploads/bannermay.svg';
 import dog from '@/components/assets/images/uploads/dog.png';
 import homeHeader from '@/components/assets/images/uploads/header/home_header.png';
+import fire from '@/components/assets/images/uploads/icons/fire.png';
+import onboarding1 from '@/components/assets/images/uploads/onboarding/onboarding_1.png';
+import onboarding2 from '@/components/assets/images/uploads/onboarding/onboarding_2.png';
+import onboarding3 from '@/components/assets/images/uploads/onboarding/onboarding_3.png';
+import onboarding4 from '@/components/assets/images/uploads/onboarding/onboarding_4.png';
 import athletics from '@/components/assets/images/uploads/sports/athletics.png';
 import badminton from '@/components/assets/images/uploads/sports/badminton.png';
 import basketball from '@/components/assets/images/uploads/sports/basketball.png';
@@ -23,6 +28,10 @@ const images = {
   bannermay,
   dog,
   homeHeader,
+  icons: {
+    fire,
+  },
+  onboarding: [onboarding1, onboarding2, onboarding3, onboarding4],
   sports: {
     athletics,
     badminton,

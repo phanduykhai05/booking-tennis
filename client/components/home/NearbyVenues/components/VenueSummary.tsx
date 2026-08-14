@@ -37,7 +37,7 @@ export default function VenueSummary({ content, venue }: VenueSummaryProps) {
       </div>
 
       <button
-        className="h-9 w-full shrink-0 rounded-md bg-[#f0a01e] px-3.5 text-xs font-bold uppercase tracking-wide text-white shadow-[0_2px_6px_-2px_rgba(240,160,30,0.8)] transition-colors duration-200 hover:bg-[#dd9013] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f0a01e]/50 active:scale-[0.97] @[330px]:w-auto"
+        className="h-8 w-full shrink-0 rounded-md bg-[#f0a01e] px-3.5 text-xs font-bold uppercase tracking-wide text-white transition-colors duration-200 hover:bg-[#dd9013] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f0a01e]/50 active:scale-[0.97] @[330px]:w-auto"
         type="button"
       >
         {content.bookLabel}

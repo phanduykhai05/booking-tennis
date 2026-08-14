@@ -4,6 +4,7 @@ export const nearbyVenuesContent: NearbyVenuesContent = {
   bookLabel: "Đặt lịch",
   favoriteLabel: "Yêu thích",
   matchLabel: "Ghép trận",
+  offerLabel: "Ưu đãi",
   sectionLabel: "Sân gần bạn",
 };
 
@@ -21,6 +22,7 @@ export const nearbyVenues: Venue[] = [
     id: "muse-pickle",
     logo: "pickleball",
     name: "Muse Pickle",
+    offerCount: 1,
     openingLabel: "06:00 - 24:00",
     rating: 5,
   },
@@ -65,6 +67,7 @@ export const nearbyVenues: Venue[] = [
     id: "trung-kinh-arena",
     logo: "football",
     name: "Trung Kính Arena",
+    offerCount: 2,
     openingLabel: "05:30 - 23:30",
     rating: 4.8,
   },

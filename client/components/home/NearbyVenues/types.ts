@@ -18,6 +18,7 @@ export type Venue = {
   id: string;
   logo: VenueLogoKey;
   name: string;
+  offerCount?: number;
   openingLabel: string;
   rating: number | null;
 };
@@ -26,5 +27,6 @@ export type NearbyVenuesContent = {
   bookLabel: string;
   favoriteLabel: string;
   matchLabel: string;
+  offerLabel: string;
   sectionLabel: string;
 };

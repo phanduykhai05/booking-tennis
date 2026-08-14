@@ -2,6 +2,7 @@ import { Heart, Users } from "lucide-react";
 import Image from "next/image";
 
 import images from "@/components/assets/images";
+import PromotionBadge from "@/components/home/NearbyVenues/components/PromotionBadge";
 import { RatingBadge, VenueBadge } from "@/components/home/NearbyVenues/components/VenueBadge";
 import type { NearbyVenuesContent, Venue } from "@/components/home/NearbyVenues/types";
 
@@ -43,13 +44,16 @@ export default function VenueCover({ content, venue }: VenueCoverProps) {
           ))}
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5">
-          <button aria-label={content.favoriteLabel} className={circleButtonClassName} type="button">
-            <Heart aria-hidden="true" className="size-[18px]" strokeWidth={1.8} />
-          </button>
-          <button aria-label={content.matchLabel} className={circleButtonClassName} type="button">
-            <Users aria-hidden="true" className="size-[18px]" strokeWidth={1.8} />
-          </button>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <button aria-label={content.favoriteLabel} className={circleButtonClassName} type="button">
+              <Heart aria-hidden="true" className="size-[18px]" strokeWidth={1.8} />
+            </button>
+            <button aria-label={content.matchLabel} className={circleButtonClassName} type="button">
+              <Users aria-hidden="true" className="size-[18px]" strokeWidth={1.8} />
+            </button>
+          </div>
+          {venue.offerCount ? <PromotionBadge count={venue.offerCount} label={content.offerLabel} /> : null}
         </div>
       </div>
     </div>

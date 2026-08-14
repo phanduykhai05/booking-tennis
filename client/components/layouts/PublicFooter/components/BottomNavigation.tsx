@@ -32,7 +32,7 @@ function PrimaryEntry({ item }: BottomNavigationEntryProps) {
     >
       <span className="relative -mt-9 flex size-[58px] items-center justify-center">
         {/* Đĩa trắng đồng tâm, cùng màu đặc với thanh nav nên hoà vào nhau thành vòm. */}
-        <span aria-hidden="true" className="absolute -inset-[10px] rounded-full bg-white shadow-[0_-5px_14px_-6px_rgba(3,52,32,0.22)]" />
+        <span aria-hidden="true" className="absolute -inset-[10px] rounded-full bg-white" />
         <span className="relative flex size-full items-center justify-center rounded-full border-2 border-[#22c55e] bg-white text-[#22c55e] shadow-[0_4px_14px_-5px_rgba(34,197,94,0.6)] transition-transform duration-200 group-hover:-translate-y-0.5 group-active:scale-95">
           <Icon className="size-7" strokeWidth={1.5} />
         </span>
