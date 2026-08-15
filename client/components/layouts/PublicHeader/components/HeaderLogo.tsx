@@ -2,7 +2,6 @@ import Link from "next/link";
 
 type HeaderLogoProps = {
   brandName: string;
-  href?: string;
 };
 
 function PaddleMark() {
@@ -30,12 +29,12 @@ function PaddleMark() {
   );
 }
 
-export default function HeaderLogo({ brandName, href = "/" }: HeaderLogoProps) {
+export default function HeaderLogo({ brandName }: HeaderLogoProps) {
   return (
     <Link
       aria-label={brandName}
       className="group flex size-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-white to-emerald-50 shadow-[0_6px_16px_-4px_rgba(3,52,32,0.55)] ring-1 ring-white/60 transition-transform duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-95 sm:size-14"
-      href={href}
+      href="/"
     >
       <PaddleMark />
     </Link>
