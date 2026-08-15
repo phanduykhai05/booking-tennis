@@ -1,0 +1,85 @@
+import type { NearbyVenuesContent, Venue } from "@/components/home/NearbyVenues/types";
+
+export const nearbyVenuesContent: NearbyVenuesContent = {
+  bookLabel: "Đặt lịch",
+  favoriteLabel: "Yêu thích",
+  matchLabel: "Ghép trận",
+  offerLabel: "Ưu đãi",
+  sectionLabel: "Sân gần bạn",
+};
+
+const defaultBadges: Venue["badges"] = [
+  { id: "single", label: "Đơn ngày", tone: "single" },
+  { id: "event", label: "Sự kiện", tone: "event" },
+];
+
+export const nearbyVenues: Venue[] = [
+  {
+    address: "198 Phố Ngọc Hà, phường Ba Đình, Hà Nội",
+    badges: defaultBadges,
+    cover: "pickleball",
+    distanceLabel: "118.1m",
+    id: "muse-pickle",
+    logo: "pickleball",
+    name: "Muse Pickle",
+    offerCount: 1,
+    openingLabel: "06:00 - 24:00",
+    rating: 5,
+  },
+  {
+    address: "50 ngách 31 ngõ 135 Đội Cấn",
+    badges: defaultBadges,
+    cover: "pickleball",
+    distanceLabel: "616.9m",
+    id: "nhf-pickleball",
+    logo: "pickleball",
+    name: "NHF Pickleball",
+    openingLabel: "05:30 - 23:00",
+    rating: null,
+  },
+  {
+    address: "20 Đ. Thụy Khuê, Thụy Khuê, Tây Hồ, Hà Nội",
+    badges: defaultBadges,
+    cover: "pickleball",
+    distanceLabel: "631.0m",
+    id: "pickleball-20-thuy-khue",
+    logo: "pickleball",
+    name: "PickleBall 20 Thụy Khuê",
+    openingLabel: "05:00 - 24:00",
+    rating: null,
+  },
+  {
+    address: "Số 6/215 P Lê Lai, Máy Chai, Ngô Quyền, Hải Phòng",
+    badges: defaultBadges,
+    cover: "tennis",
+    distanceLabel: "92.1km",
+    id: "family-pickleball",
+    logo: "tennis",
+    name: "Family Pickleball",
+    openingLabel: "06:00 - 22:00",
+    rating: 5,
+  },
+  {
+    address: "Ngõ 100 Trung Kính, Yên Hòa, Cầu Giấy, Hà Nội",
+    badges: defaultBadges,
+    cover: "football",
+    distanceLabel: "1.4km",
+    id: "trung-kinh-arena",
+    logo: "football",
+    name: "Trung Kính Arena",
+    offerCount: 2,
+    openingLabel: "05:30 - 23:30",
+    rating: 4.8,
+  },
+  {
+    address: "Số 12 Nguyễn Khánh Toàn, Quan Hoa, Cầu Giấy, Hà Nội",
+    badges: defaultBadges,
+    cover: "tennis",
+    distanceLabel: "2.1km",
+    id: "smash-badminton",
+    logo: "badminton",
+    name: "Smash Badminton Center",
+    openingLabel: "06:00 - 23:00",
+    rating: 4.6,
+  },
+];
