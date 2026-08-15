@@ -1,37 +1,36 @@
-# TennisHub – Booking sân tennis
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-TennisHub là ứng dụng web hỗ trợ người chơi tìm sân, xem khung giờ trống và đặt sân tennis trực tuyến.
+## Getting Started
 
-## Công nghệ
-
-- Next.js 16, React 19 và TypeScript
-- Tailwind CSS 4
-- pnpm
-
-## Chạy dự án
-
-Từ thư mục `client`:
+First, run the development server:
 
 ```bash
-pnpm install
+npm run dev
+# or
+yarn dev
+# or
 pnpm dev
+# or
+bun dev
 ```
 
-Mở [http://localhost:3000](http://localhost:3000) để xem ứng dụng.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Kiểm tra chất lượng
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-```bash
-pnpm exec tsc --noEmit
-pnpm lint
-```
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Cấu trúc chính
+## Learn More
 
-```text
-app/                         # Route và layout của Next.js
-components/booking/          # Các feature nghiệp vụ đặt sân
-components/layouts/          # Thành phần layout dùng chung
-```
+To learn more about Next.js, take a look at the following resources:
 
-Dữ liệu nghiệp vụ mẫu được tách riêng khỏi component. Khi có backend, thay thế mock data bằng API adapter mà không cần thay đổi layout.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
