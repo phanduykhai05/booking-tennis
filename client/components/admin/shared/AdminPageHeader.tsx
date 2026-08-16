@@ -1,3 +1,7 @@
+"use client";
+
+import { Flex, Space, Typography } from "antd";
+
 type AdminPageHeaderProps = {
   actions?: React.ReactNode;
   description: string;
@@ -7,13 +11,17 @@ type AdminPageHeaderProps = {
 
 export default function AdminPageHeader({ actions, description, eyebrow, title }: AdminPageHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <Flex align="flex-end" gap="middle" justify="space-between" wrap>
       <div>
-        {eyebrow && <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-600">{eyebrow}</p>}
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{title}</h1>
-        <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">{description}</p>
+        {eyebrow ? (
+          <Typography.Paragraph className="!mb-0 !text-xs !uppercase !tracking-[0.16em]" strong type="success">
+            {eyebrow}
+          </Typography.Paragraph>
+        ) : null}
+        <Typography.Title className="!mb-1 !mt-1" level={3}>{title}</Typography.Title>
+        <Typography.Paragraph className="!mb-0 !max-w-2xl" type="secondary">{description}</Typography.Paragraph>
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
-    </div>
+      {actions ? <Space wrap>{actions}</Space> : null}
+    </Flex>
   );
 }

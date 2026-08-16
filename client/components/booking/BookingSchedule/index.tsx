@@ -1,10 +1,12 @@
 "use client";
 
+import { App, Card } from "antd";
 import { useMemo, useState } from "react";
 
 import { useAdminData } from "@/components/admin/AdminData";
 import AdminPageHeader from "@/components/admin/shared/AdminPageHeader";
 import BookingDateSelector from "@/components/booking/BookingSchedule/components/BookingDateSelector";
+import BookingDaySummary from "@/components/booking/BookingSchedule/components/BookingDaySummary";
 import BookingDetailPanel from "@/components/booking/BookingSchedule/components/BookingDetailPanel";
 import BookingFilters from "@/components/booking/BookingSchedule/components/BookingFilters";
 import BookingList from "@/components/booking/BookingSchedule/components/BookingList";
@@ -22,7 +24,7 @@ import type {
   BookingViewMode,
   CreateBookingInput,
 } from "@/components/booking/BookingSchedule/types";
-import { formatDateLabel, shiftDate } from "@/components/booking/BookingSchedule/utils";
+import { shiftDate } from "@/components/booking/BookingSchedule/utils";
 
 const initialFilters: BookingFilterState = {
   courtId: "all",
@@ -31,11 +33,11 @@ const initialFilters: BookingFilterState = {
 };
 
 export default function BookingSchedule() {
+  const { message } = App.useApp();
   const { bookings, courts, createBooking, customers, updateBookingStatus, venues } = useAdminData();
   const [date, setDate] = useState(bookingScheduleConfig.initialDate);
   const [filters, setFilters] = useState(initialFilters);
   const [selection, setSelection] = useState<BookingSelection | null>(null);
-  const [statusMessage, setStatusMessage] = useState("");
   const [viewMode, setViewMode] = useState<BookingViewMode>("timeline");
 
   const customerMap = useMemo(() => new Map(customers.map((customer) => [customer.id, customer])), [customers]);
@@ -71,10 +73,8 @@ export default function BookingSchedule() {
   const selectedCourtId = selection?.kind === "slot" ? selection.courtId : selectedBooking?.courtId;
   const selectedCourt = courts.find((court) => court.id === selectedCourtId);
   const selectedCustomer = selectedBooking ? customerMap.get(selectedBooking.customerId) : undefined;
-  const dateLabel = formatDateLabel(date);
 
   function handleSlotSelect(courtId: string, startMinute: number, endMinute: number) {
-    setStatusMessage("");
     setSelection({ courtId, date, endMinute, kind: "slot", startMinute });
   }
 
@@ -91,7 +91,7 @@ export default function BookingSchedule() {
       startMinute: selection.startMinute,
     });
     setSelection({ bookingId, kind: "booking" });
-    setStatusMessage(bookingScheduleContent.bookingCreatedMessage);
+    message.success(bookingScheduleContent.bookingCreatedMessage);
   }
 
   function handleStatusChange(status: BookingStatus) {
@@ -109,27 +109,31 @@ export default function BookingSchedule() {
         title={bookingScheduleContent.title}
       />
 
-      <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_8px_24px_-22px_rgba(15,23,42,0.5)] lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center lg:p-4">
-        <BookingDateSelector
-          content={bookingScheduleContent}
-          date={date}
-          dateLabel={dateLabel}
-          onChange={(nextDate) => {
-            if (nextDate) setDate(nextDate);
-          }}
-          onNext={() => setDate((current) => shiftDate(current, 1))}
-          onPrevious={() => setDate((current) => shiftDate(current, -1))}
-        />
-        <BookingFilters
-          content={bookingScheduleContent}
-          courts={courts}
-          filters={filters}
-          onChange={setFilters}
-          statusOptions={bookingStatusOptions}
-        />
-      </div>
+      <Card>
+        <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center">
+          <BookingDateSelector
+            content={bookingScheduleContent}
+            date={date}
+            onChange={setDate}
+            onNext={() => setDate((current) => shiftDate(current, 1))}
+            onPrevious={() => setDate((current) => shiftDate(current, -1))}
+          />
+          <BookingFilters
+            content={bookingScheduleContent}
+            courts={courts}
+            filters={filters}
+            onChange={setFilters}
+            statusOptions={bookingStatusOptions}
+          />
+        </div>
+      </Card>
 
-      <p aria-live="polite" className="sr-only">{statusMessage}</p>
+      <BookingDaySummary
+        bookings={dateBookings}
+        closingMinute={venues[0]?.closingMinute ?? bookingScheduleConfig.endMinute}
+        courts={courts}
+        openingMinute={venues[0]?.openingMinute ?? bookingScheduleConfig.startMinute}
+      />
 
       {viewMode === "timeline" ? (
         <BookingTimeline
@@ -139,12 +143,10 @@ export default function BookingSchedule() {
           courts={visibleCourts}
           customers={customers}
           date={date}
-          onBookingSelect={(bookingId) => {
-            setStatusMessage("");
-            setSelection({ bookingId, kind: "booking" });
-          }}
+          onBookingSelect={(bookingId) => setSelection({ bookingId, kind: "booking" })}
           onSlotSelect={handleSlotSelect}
           occupancyBookings={dateBookings}
+          statusOptions={bookingStatusOptions}
         />
       ) : (
         <BookingList
@@ -156,19 +158,17 @@ export default function BookingSchedule() {
         />
       )}
 
-      {selection && (
-        <BookingDetailPanel
-          booking={selectedBooking}
-          content={bookingScheduleContent}
-          court={selectedCourt}
-          customer={selectedCustomer}
-          key={selection.kind === "booking" ? selection.bookingId : `${selection.courtId}-${selection.date}-${selection.startMinute}`}
-          onClose={() => setSelection(null)}
-          onCreate={handleCreateBooking}
-          onStatusChange={handleStatusChange}
-          selection={selection}
-        />
-      )}
+      <BookingDetailPanel
+        booking={selectedBooking}
+        content={bookingScheduleContent}
+        court={selectedCourt}
+        customer={selectedCustomer}
+        onClose={() => setSelection(null)}
+        onCreate={handleCreateBooking}
+        onStatusChange={handleStatusChange}
+        open={Boolean(selection)}
+        selection={selection}
+      />
     </div>
   );
 }

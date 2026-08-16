@@ -1,33 +1,51 @@
-import type { LucideIcon } from "lucide-react";
+"use client";
+
+import { ArrowDownOutlined, ArrowUpOutlined } from "@ant-design/icons";
+import { Card, Flex, Statistic, Typography } from "antd";
+
+export type MetricTone = "blue" | "emerald" | "orange" | "violet";
+
+export type MetricTrend = {
+  isPositive: boolean;
+  label: string;
+};
 
 type MetricCardProps = {
   change?: string;
-  icon: LucideIcon;
+  icon: React.ReactNode;
   label: string;
-  tone?: "blue" | "emerald" | "orange" | "violet";
+  tone?: MetricTone;
+  trend?: MetricTrend;
   value: string;
 };
 
-const toneClassNames = {
-  blue: "bg-sky-50 text-sky-700 ring-sky-100",
-  emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100",
-  orange: "bg-orange-50 text-orange-700 ring-orange-100",
-  violet: "bg-violet-50 text-violet-700 ring-violet-100",
+// antd không có ô icon màu nhạt sẵn nên phần này vẫn dùng Tailwind.
+const toneClassName: Record<MetricTone, string> = {
+  blue: "bg-sky-50 text-sky-600 ring-sky-100",
+  emerald: "bg-emerald-50 text-emerald-600 ring-emerald-100",
+  orange: "bg-orange-50 text-orange-600 ring-orange-100",
+  violet: "bg-violet-50 text-violet-600 ring-violet-100",
 };
 
-export default function MetricCard({ change, icon: Icon, label, tone = "emerald", value }: MetricCardProps) {
+export default function MetricCard({ change, icon, label, tone = "emerald", trend, value }: MetricCardProps) {
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_-22px_rgba(15,23,42,0.5)] sm:p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold text-slate-500">{label}</p>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-slate-950">{value}</p>
-          {change && <p className="mt-1 text-xs font-medium text-slate-400">{change}</p>}
-        </div>
-        <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ring-1 ${toneClassNames[tone]}`}>
-          <Icon aria-hidden="true" className="size-5" />
+    <Card className="h-full transition-shadow duration-200 hover:shadow-[0_10px_28px_-18px_rgba(15,23,42,0.5)]">
+      <Flex align="flex-start" gap="middle" justify="space-between">
+        <Statistic title={label} value={value} />
+        <span className={`flex size-11 shrink-0 items-center justify-center rounded-xl text-lg ring-1 ${toneClassName[tone]}`}>
+          {icon}
         </span>
-      </div>
-    </article>
+      </Flex>
+
+      <Flex align="center" className="!mt-2" gap="small" wrap>
+        {trend ? (
+          <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${trend.isPositive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
+            {trend.isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+            {trend.label}
+          </span>
+        ) : null}
+        {change ? <Typography.Text className="!text-xs" type="secondary">{change}</Typography.Text> : null}
+      </Flex>
+    </Card>
   );
 }

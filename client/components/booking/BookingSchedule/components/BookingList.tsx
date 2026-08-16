@@ -1,8 +1,20 @@
-import { Eye } from "lucide-react";
+"use client";
+
+import { EyeOutlined } from "@ant-design/icons";
+import { Button, Table, Typography } from "antd";
+import type { TableProps } from "antd";
 
 import AdminTableCard from "@/components/admin/shared/AdminTableCard";
 import StatusBadge from "@/components/admin/shared/StatusBadge";
-import type { BookingCustomer, BookingCourt, BookingScheduleContent, CourtBooking } from "@/components/booking/BookingSchedule/types";
+import type { StatusTone } from "@/components/admin/shared/StatusBadge";
+import type {
+  BookingCourt,
+  BookingCustomer,
+  BookingScheduleContent,
+  BookingStatus,
+  CourtBooking,
+  PaymentStatus,
+} from "@/components/booking/BookingSchedule/types";
 import { formatCurrency, formatDateLabel, formatMinutes } from "@/components/booking/BookingSchedule/utils";
 
 type BookingListProps = {
@@ -13,73 +25,84 @@ type BookingListProps = {
   onSelect: (bookingId: string) => void;
 };
 
-const bookingTone = {
+const bookingTone: Record<BookingStatus, StatusTone> = {
   cancelled: "rose",
   "checked-in": "blue",
   completed: "violet",
   confirmed: "emerald",
   pending: "orange",
-} as const;
+};
 
-const paymentTone = {
+const paymentTone: Record<PaymentStatus, StatusTone> = {
   failed: "rose",
   paid: "emerald",
   partial: "orange",
   refunded: "violet",
   unpaid: "slate",
-} as const;
+};
 
 export default function BookingList({ bookings, content, courts, customers, onSelect }: BookingListProps) {
   const courtMap = new Map(courts.map((court) => [court.id, court]));
   const customerMap = new Map(customers.map((customer) => [customer.id, customer]));
 
+  const columns: TableProps<CourtBooking>["columns"] = [
+    { dataIndex: "code", key: "code", render: (code: string) => <Typography.Text strong>{code}</Typography.Text>, title: "Mã đặt sân" },
+    {
+      key: "customer",
+      render: (_, booking) => {
+        const customer = customerMap.get(booking.customerId);
+        return (
+          <div>
+            <Typography.Paragraph className="!mb-0" strong>{customer?.name ?? "—"}</Typography.Paragraph>
+            <Typography.Text className="!text-xs" type="secondary">{customer?.phone}</Typography.Text>
+          </div>
+        );
+      },
+      title: "Khách hàng",
+    },
+    { key: "court", render: (_, booking) => courtMap.get(booking.courtId)?.name ?? "—", title: "Sân" },
+    {
+      key: "schedule",
+      render: (_, booking) => (
+        <div>
+          <Typography.Paragraph className="!mb-0 capitalize">{formatDateLabel(booking.bookingDate)}</Typography.Paragraph>
+          <Typography.Text className="!text-xs" type="secondary">
+            {formatMinutes(booking.startMinute)} – {formatMinutes(booking.endMinute)}
+          </Typography.Text>
+        </div>
+      ),
+      sorter: (first, second) => first.bookingDate.localeCompare(second.bookingDate) || first.startMinute - second.startMinute,
+      title: "Ngày và giờ",
+    },
+    {
+      dataIndex: "totalPrice",
+      key: "totalPrice",
+      render: (price: number) => <Typography.Text strong>{formatCurrency(price)}</Typography.Text>,
+      sorter: (first, second) => first.totalPrice - second.totalPrice,
+      title: "Số tiền",
+    },
+    { dataIndex: "status", key: "status", render: (status: BookingStatus) => <StatusBadge label={content.bookingStatusLabels[status]} tone={bookingTone[status]} />, title: "Booking" },
+    { dataIndex: "paymentStatus", key: "paymentStatus", render: (status: PaymentStatus) => <StatusBadge label={content.paymentStatusLabels[status]} tone={paymentTone[status]} />, title: "Thanh toán" },
+    {
+      align: "right",
+      key: "actions",
+      render: (_, booking) => (
+        <Button aria-label={`${content.bookingDetailLabel} ${booking.code}`} icon={<EyeOutlined />} onClick={() => onSelect(booking.id)} />
+      ),
+      title: "Thao tác",
+    },
+  ];
+
   return (
     <AdminTableCard description={`${bookings.length} lịch đặt sân phù hợp`} title="Danh sách đặt sân">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[1040px] text-left text-sm">
-          <thead className="bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-            <tr>
-              <th className="px-5 py-3">Mã đặt sân</th>
-              <th className="px-4 py-3">Khách hàng</th>
-              <th className="px-4 py-3">Sân</th>
-              <th className="px-4 py-3">Ngày và giờ</th>
-              <th className="px-4 py-3">Số tiền</th>
-              <th className="px-4 py-3">Booking</th>
-              <th className="px-4 py-3">Thanh toán</th>
-              <th className="px-5 py-3 text-right">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {bookings.map((booking) => {
-              const court = courtMap.get(booking.courtId);
-              const customer = customerMap.get(booking.customerId);
-              return (
-                <tr className="transition-colors hover:bg-slate-50/70" key={booking.id}>
-                  <td className="whitespace-nowrap px-5 py-3.5 font-bold text-slate-800">{booking.code}</td>
-                  <td className="px-4 py-3.5">
-                    <p className="font-semibold text-slate-800">{customer?.name ?? "—"}</p>
-                    <p className="mt-0.5 text-xs text-slate-400">{customer?.phone}</p>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3.5 font-medium text-slate-600">{court?.name ?? "—"}</td>
-                  <td className="whitespace-nowrap px-4 py-3.5">
-                    <p className="font-medium capitalize text-slate-700">{formatDateLabel(booking.bookingDate)}</p>
-                    <p className="mt-0.5 text-xs text-slate-400">{formatMinutes(booking.startMinute)} – {formatMinutes(booking.endMinute)}</p>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3.5 font-bold text-slate-800">{formatCurrency(booking.totalPrice)}</td>
-                  <td className="px-4 py-3.5"><StatusBadge label={content.bookingStatusLabels[booking.status]} tone={bookingTone[booking.status]} /></td>
-                  <td className="px-4 py-3.5"><StatusBadge label={content.paymentStatusLabels[booking.paymentStatus]} tone={paymentTone[booking.paymentStatus]} /></td>
-                  <td className="px-5 py-3.5 text-right">
-                    <button aria-label={`${content.bookingDetailLabel} ${booking.code}`} className="inline-flex size-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700" onClick={() => onSelect(booking.id)} type="button">
-                      <Eye aria-hidden="true" className="size-4" />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      {bookings.length === 0 && <p className="px-5 py-12 text-center text-sm font-medium text-slate-400">{content.emptyBookingsLabel}</p>}
+      <Table<CourtBooking>
+        columns={columns}
+        dataSource={bookings}
+        locale={{ emptyText: content.emptyBookingsLabel }}
+        pagination={{ hideOnSinglePage: true, pageSize: 10 }}
+        rowKey="id"
+        scroll={{ x: 1040 }}
+      />
     </AdminTableCard>
   );
 }

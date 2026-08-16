@@ -1,5 +1,6 @@
 "use client";
 
+import { Drawer, Layout } from "antd";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
@@ -17,27 +18,38 @@ export default function AdminShell({ children }: AdminShellProps) {
   const [isMobileNavigationOpen, setIsMobileNavigationOpen] = useState(false);
 
   return (
-    <div className="flex min-h-dvh bg-[#f5f7f9] text-slate-900">
-      <div className="sticky top-0 hidden h-dvh lg:block">
+    <Layout hasSider style={{ minHeight: "100dvh" }}>
+      {/* Ẩn/hiện bằng class Tailwind thay vì breakpoint JS của Sider: tránh lệch giữa SSR và client. */}
+      <Layout.Sider className="hidden lg:block" style={{ borderInlineEnd: "1px solid #e2e8f0", height: "100dvh", insetBlockStart: 0, position: "sticky" }} theme="light" width={258}>
         <AdminSidebar content={adminShellContent} items={adminNavigationItems} pathname={pathname} />
-      </div>
+      </Layout.Sider>
 
-      {isMobileNavigationOpen && (
-        <div className="fixed inset-0 z-[1300] lg:hidden">
-          <button aria-label="Đóng menu" className="absolute inset-0 bg-slate-950/35 backdrop-blur-[2px]" onClick={() => setIsMobileNavigationOpen(false)} type="button" />
-          <div className="relative h-full w-fit">
-            <AdminSidebar content={adminShellContent} isMobile items={adminNavigationItems} onClose={() => setIsMobileNavigationOpen(false)} pathname={pathname} />
-          </div>
-        </div>
-      )}
+      <Drawer
+        classNames={{ body: "!p-0" }}
+        onClose={() => setIsMobileNavigationOpen(false)}
+        open={isMobileNavigationOpen}
+        placement="left"
+        title={null}
+        width={258}
+      >
+        <AdminSidebar
+          content={adminShellContent}
+          items={adminNavigationItems}
+          onNavigate={() => setIsMobileNavigationOpen(false)}
+          pathname={pathname}
+        />
+      </Drawer>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <AdminTopbar content={adminShellContent} onMenuOpen={() => setIsMobileNavigationOpen(true)} />
-        <main className="min-w-0 flex-1 px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
+      <Layout>
+        <Layout.Header style={{ borderBlockEnd: "1px solid #e2e8f0", insetBlockStart: 0, position: "sticky", zIndex: 40 }}>
+          <AdminTopbar content={adminShellContent} onMenuOpen={() => setIsMobileNavigationOpen(true)} />
+        </Layout.Header>
+
+        <Layout.Content className="!p-4 sm:!p-5 lg:!p-6">
           <AdminBreadcrumbs items={adminNavigationItems} pathname={pathname} />
           {children}
-        </main>
-      </div>
-    </div>
+        </Layout.Content>
+      </Layout>
+    </Layout>
   );
 }

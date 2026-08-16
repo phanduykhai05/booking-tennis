@@ -1,17 +1,24 @@
+"use client";
+
+import { Tag } from "antd";
+
+export type StatusTone = "blue" | "emerald" | "orange" | "rose" | "slate" | "violet";
+
 type StatusBadgeProps = {
   label: string;
-  tone: "blue" | "emerald" | "orange" | "rose" | "slate" | "violet";
+  tone: StatusTone;
 };
 
-const toneClassNames = {
-  blue: "bg-sky-50 text-sky-700 ring-sky-600/15",
-  emerald: "bg-emerald-50 text-emerald-700 ring-emerald-600/15",
-  orange: "bg-amber-50 text-amber-700 ring-amber-600/15",
-  rose: "bg-rose-50 text-rose-700 ring-rose-600/15",
-  slate: "bg-slate-100 text-slate-600 ring-slate-500/15",
-  violet: "bg-violet-50 text-violet-700 ring-violet-600/15",
+// Ánh xạ sang preset color của antd Tag để dùng chung bảng màu với phần còn lại.
+const toneColor: Record<StatusTone, string> = {
+  blue: "blue",
+  emerald: "green",
+  orange: "orange",
+  rose: "red",
+  slate: "default",
+  violet: "purple",
 };
 
 export default function StatusBadge({ label, tone }: StatusBadgeProps) {
-  return <span className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ring-inset ${toneClassNames[tone]}`}>{label}</span>;
+  return <Tag bordered={false} color={toneColor[tone]}>{label}</Tag>;
 }

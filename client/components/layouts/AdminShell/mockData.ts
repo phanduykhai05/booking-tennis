@@ -11,10 +11,13 @@ export const adminShellContent: AdminShellContent = {
   userName: "TennisHub",
 };
 
+export const adminHomeHref = "/admin/dashboard";
+
+// Route thật nằm dưới app/(private)/admin nên mọi href đều phải có tiền tố /admin.
 export const adminNavigationItems: AdminNavigationItem[] = [
-  { href: "/dashboard", icon: "dashboard", id: "dashboard", label: "Tổng quan" },
-  { href: "/bookings", icon: "bookings", id: "bookings", label: "Lịch đặt sân" },
-  { href: "/courts", icon: "courts", id: "courts", label: "Quản lý sân" },
-  { href: "/customers", icon: "customers", id: "customers", label: "Khách hàng" },
-  { href: "/payments", icon: "payments", id: "payments", label: "Thanh toán" },
+  { href: "/admin/dashboard", icon: "dashboard", id: "dashboard", label: "Tổng quan" },
+  { href: "/admin/bookings", icon: "bookings", id: "bookings", label: "Lịch đặt sân" },
+  { href: "/admin/courts", icon: "courts", id: "courts", label: "Quản lý sân" },
+  { href: "/admin/customers", icon: "customers", id: "customers", label: "Khách hàng" },
+  { href: "/admin/payments", icon: "payments", id: "payments", label: "Thanh toán" },
 ];
