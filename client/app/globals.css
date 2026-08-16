@@ -1,3 +1,8 @@
+/* Thứ tự layer phải khai báo trước @import, và phải đặt antd giữa base với components:
+   nằm sau base thì preflight của Tailwind không xoá nền/viền của component antd,
+   nằm trước utilities thì class Tailwind vẫn ghi đè được antd khi cần. */
+@layer theme, base, antd, components, utilities;
+
 @import "tailwindcss";
 
 :root {
