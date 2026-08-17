@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import type { HeaderAction } from "@/components/layouts/PublicHeader/types";
 
 type HeaderActionsProps = {
@@ -15,9 +17,15 @@ export default function HeaderActions({ actions }: HeaderActionsProps) {
   return (
     <div className="flex w-full max-w-[300px] gap-2.5">
       {actions.map((action) => (
-        <button className={`${baseClassName} ${variantClassName[action.id]}`} key={action.id} type="button">
-          {action.label}
-        </button>
+        action.href ? (
+          <Link className={`${baseClassName} ${variantClassName[action.id]} inline-flex items-center justify-center`} href={action.href} key={action.id}>
+            {action.label}
+          </Link>
+        ) : (
+          <button className={`${baseClassName} ${variantClassName[action.id]}`} key={action.id} type="button">
+            {action.label}
+          </button>
+        )
       ))}
     </div>
   );

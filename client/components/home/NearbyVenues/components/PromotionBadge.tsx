@@ -23,14 +23,14 @@ export default function PromotionBadge({ count, label }: PromotionBadgeProps) {
     <div className="relative w-[112px] shrink-0">
       <div className="flex h-[21px] w-full items-center overflow-hidden rounded-md shadow-[0_1px_3px_rgba(15,23,42,0.25)]">
         <div className="w-[54px] shrink-0" />
-        <span className="flex h-full flex-1 items-center whitespace-nowrap bg-[#f3090c] pl-1 text-[10px] font-bold leading-none text-white">
+        <span className="flex h-full flex-1 items-center whitespace-nowrap bg-[#f3090c] pl-1 text-[11px] font-bold leading-none text-white">
           {label}
         </span>
       </div>
       <div className="absolute bottom-0 left-0 h-[29px] w-[54px]">
         <Image alt="" className="object-contain object-bottom" fill src={images.icons.fire} />
       </div>
-      <span className="absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-[#f0a01e] text-[9px] font-bold leading-none text-white ring-2 ring-white">
+      <span className="absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-[#f0a01e] text-[10px] font-bold leading-none text-white ring-2 ring-white">
         {count}
       </span>
     </div>

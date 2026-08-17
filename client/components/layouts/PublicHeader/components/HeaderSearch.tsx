@@ -42,7 +42,7 @@ export default function HeaderSearch({ favoriteLabel, inputLabel, placeholder, s
         <label className="sr-only" htmlFor="header-search">{inputLabel}</label>
         <Search aria-hidden="true" className="size-[18px] shrink-0 text-[#0f9b58]" strokeWidth={2.6} />
         <input
-          className="min-w-0 flex-1 bg-transparent text-[15px] text-slate-800 outline-none placeholder:text-slate-400"
+          className="min-w-0 flex-1 bg-transparent text-[16px] text-slate-800 outline-none placeholder:text-slate-400"
           id="header-search"
           name="search"
           placeholder={placeholder}

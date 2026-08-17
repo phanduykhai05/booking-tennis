@@ -1,7 +1,11 @@
+"use client";
+
 import CategoryPin from "@/components/home/SportCategories/components/CategoryPin";
 import type { SportCategory, SportCategoryIcon } from "@/components/home/SportCategories/types";
 
 type CategoryTileProps = {
+  isActive: boolean;
+  onSelect: () => void;
   category: SportCategory;
 };
 
@@ -19,17 +23,17 @@ const tileTheme: Record<SportCategoryIcon, string> = {
   volleyball: "bg-[#f1ecfd] text-[#8b5cf6]",
 };
 
-export default function CategoryTile({ category }: CategoryTileProps) {
+export default function CategoryTile({ category, isActive, onSelect }: CategoryTileProps) {
   return (
-    <button className="group flex w-[74px] shrink-0 flex-col items-center gap-2 focus-visible:outline-none" type="button">
+    <button aria-pressed={isActive} className="group flex w-[74px] shrink-0 flex-col items-center gap-2 focus-visible:outline-none" onClick={onSelect} type="button">
       <span
-        className={`relative flex size-14 items-center justify-center overflow-hidden rounded-[18px] shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_6px_14px_-6px_rgba(15,23,42,0.28)] group-focus-visible:ring-2 group-focus-visible:ring-[#0f9b58]/50 group-active:scale-95 ${tileTheme[category.icon]}`}
+        className={`relative flex size-14 items-center justify-center overflow-hidden rounded-[18px] shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_6px_14px_-6px_rgba(15,23,42,0.28)] group-focus-visible:ring-2 group-focus-visible:ring-[#0f9b58]/50 group-active:scale-95 ${tileTheme[category.icon]} ${isActive ? "ring-2 ring-[#008447] ring-offset-2" : ""}`}
       >
         {/* Ánh sáng nhẹ từ trên xuống, dùng chung cho mọi màu nên không phải khai báo gradient riêng từng môn. */}
         <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-white/65 to-transparent" />
         <CategoryPin icon={category.icon} />
       </span>
-      <span className="text-center text-xs font-medium leading-4 text-slate-600 transition-colors duration-200 group-hover:text-slate-900">
+      <span className={`text-center text-xs font-medium leading-4 transition-colors duration-200 group-hover:text-slate-900 ${isActive ? "text-[#007b45]" : "text-slate-600"}`}>
         {category.label}
       </span>
     </button>

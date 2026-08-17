@@ -1,12 +1,14 @@
 import { Clock } from "lucide-react";
 import Image from "next/image";
 import type { StaticImageData } from "next/image";
+import Link from "next/link";
 
 import images from "@/components/assets/images";
 import type { NearbyVenuesContent, Venue, VenueLogoKey } from "@/components/home/NearbyVenues/types";
 
 type VenueSummaryProps = {
   content: NearbyVenuesContent;
+  onOpen: () => void;
   venue: Venue;
 };
 
@@ -17,7 +19,7 @@ const logoImages: Record<VenueLogoKey, StaticImageData> = {
   tennis: images.sports.tennis,
 };
 
-export default function VenueSummary({ content, venue }: VenueSummaryProps) {
+export default function VenueSummary({ content, onOpen, venue }: VenueSummaryProps) {
   return (
     // flex-wrap + min-w trên khối chữ: card hẹp thì nút tụt xuống hàng riêng thay vì bóp nát địa chỉ.
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5 px-3 py-3">
@@ -26,7 +28,7 @@ export default function VenueSummary({ content, venue }: VenueSummaryProps) {
       </span>
 
       <div className="min-w-[132px] flex-1">
-        <p className="truncate text-[15px] font-bold leading-5 text-[#12324f]">{venue.name}</p>
+        <button className="block max-w-full truncate text-left text-[16px] font-bold leading-5 text-[#12324f] transition hover:text-[#0f9b58] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f9b58]" onClick={onOpen} type="button">{venue.name}</button>
         <p className="mt-0.5 truncate text-xs leading-4">
           <span className="font-semibold text-[#16a34a]">({venue.distanceLabel})</span> <span className="text-slate-500">{venue.address}</span>
         </p>
@@ -36,12 +38,12 @@ export default function VenueSummary({ content, venue }: VenueSummaryProps) {
         </p>
       </div>
 
-      <button
-        className="h-8 w-full shrink-0 rounded-md bg-[#f0a01e] px-3.5 text-xs font-bold uppercase tracking-wide text-white transition-colors duration-200 hover:bg-[#dd9013] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f0a01e]/50 active:scale-[0.97] @[330px]:w-auto"
-        type="button"
+      <Link
+        className="inline-flex h-8 w-full shrink-0 items-center justify-center rounded-md bg-[#f0a01e] px-3.5 text-xs font-bold uppercase tracking-wide text-white transition-colors duration-200 hover:bg-[#dd9013] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f0a01e]/50 active:scale-[0.97] @[330px]:w-auto"
+        href={venue.productHref}
       >
         {content.bookLabel}
-      </button>
+      </Link>
     </div>
   );
 }

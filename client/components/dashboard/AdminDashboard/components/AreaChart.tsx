@@ -92,7 +92,7 @@ export default function AreaChart({ accent = "emerald", data, formatValue }: Are
         </Tooltip>
       ))}
 
-      <div className="absolute inset-x-0 bottom-0 flex justify-between text-[10px] text-slate-400 sm:text-xs">
+      <div className="absolute inset-x-0 bottom-0 flex justify-between text-[11px] text-slate-400 sm:text-xs">
         {data.map((item) => <span key={item.label}>{item.label}</span>)}
       </div>
     </div>

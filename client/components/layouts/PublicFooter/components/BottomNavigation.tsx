@@ -1,7 +1,7 @@
-import { Flame, House, MapPinned, Newspaper, User } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
+import images from "@/components/assets/images";
 import type { BottomNavigationIcon, BottomNavigationItem } from "@/components/layouts/PublicFooter/types";
 
 type BottomNavigationProps = {
@@ -10,12 +10,12 @@ type BottomNavigationProps = {
 };
 
 // Khớp đúng bộ icon alobo dùng (đối chiếu path trong assets/icons/*.svg của họ).
-const icons: Record<BottomNavigationIcon, LucideIcon> = {
-  account: User,
-  discover: Newspaper,
-  home: House,
-  map: MapPinned,
-  popular: Flame,
+const icons: Record<BottomNavigationIcon, { active?: typeof images.alobo.icons.home; normal: typeof images.alobo.icons.home }> = {
+  account: { active: images.alobo.icons.personActive, normal: images.alobo.icons.person },
+  discover: { normal: images.alobo.icons.sport },
+  home: { active: images.alobo.icons.homeActive, normal: images.alobo.icons.home },
+  map: { active: images.alobo.icons.mapActive, normal: images.alobo.icons.map },
+  popular: { active: images.alobo.icons.hotNewsActive, normal: images.alobo.icons.hotNews },
 };
 
 type BottomNavigationEntryProps = {
@@ -23,7 +23,7 @@ type BottomNavigationEntryProps = {
 };
 
 function PrimaryEntry({ item }: BottomNavigationEntryProps) {
-  const Icon = icons[item.icon];
+  const icon = icons[item.icon].normal;
 
   return (
     <Link
@@ -34,7 +34,7 @@ function PrimaryEntry({ item }: BottomNavigationEntryProps) {
         {/* Đĩa trắng đồng tâm, cùng màu đặc với thanh nav nên hoà vào nhau thành vòm. */}
         <span aria-hidden="true" className="absolute -inset-[10px] rounded-full bg-white" />
         <span className="relative flex size-full items-center justify-center rounded-full border-2 border-[#22c55e] bg-white text-[#22c55e] shadow-[0_4px_14px_-5px_rgba(34,197,94,0.6)] transition-transform duration-200 group-hover:-translate-y-0.5 group-active:scale-95">
-          <Icon className="size-7" strokeWidth={1.5} />
+          <Image alt="" className="size-7 object-contain" src={icon} />
         </span>
       </span>
       <span>{item.label}</span>
@@ -43,7 +43,7 @@ function PrimaryEntry({ item }: BottomNavigationEntryProps) {
 }
 
 function StandardEntry({ item }: BottomNavigationEntryProps) {
-  const Icon = icons[item.icon];
+  const icon = item.isActive ? (icons[item.icon].active ?? icons[item.icon].normal) : icons[item.icon].normal;
 
   return (
     <Link
@@ -51,11 +51,7 @@ function StandardEntry({ item }: BottomNavigationEntryProps) {
       href={item.href}
     >
       <span className="flex h-7 items-center justify-center">
-        <Icon
-          className="size-6 transition-transform duration-200 group-hover:-translate-y-0.5"
-          fill={item.isActive ? "currentColor" : "none"}
-          strokeWidth={1.5}
-        />
+        <Image alt="" className="size-6 object-contain transition-transform duration-200 group-hover:-translate-y-0.5" src={icon} />
       </span>
       <span>{item.label}</span>
     </Link>

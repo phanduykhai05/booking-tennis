@@ -61,15 +61,15 @@ export default function BookingCourtRow({
           </span>
           <div className="min-w-0">
             <Typography.Paragraph className="!mb-0 !text-sm" ellipsis strong>{court.name}</Typography.Paragraph>
-            <Typography.Text className="!text-[11px]" type="secondary">{content.surfaceLabels[court.surface]}</Typography.Text>
+            <Typography.Text className="!text-[12px]" type="secondary">{content.surfaceLabels[court.surface]}</Typography.Text>
           </div>
         </div>
 
         {isUnavailable ? (
-          <Typography.Text className="!text-[10px]" type="secondary">{content.courtStatusLabels[court.status]}</Typography.Text>
+          <Typography.Text className="!text-[11px]" type="secondary">{content.courtStatusLabels[court.status]}</Typography.Text>
         ) : (
           <Progress
-            format={(percent) => <span className="text-[10px] text-slate-500">{percent}%</span>}
+            format={(percent) => <span className="text-[11px] text-slate-500">{percent}%</span>}
             percent={utilization}
             size={{ height: 6 }}
             strokeColor={utilization >= 75 ? "#f43f5e" : "#0f9b58"}

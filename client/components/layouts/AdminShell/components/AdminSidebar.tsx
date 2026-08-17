@@ -45,7 +45,7 @@ export default function AdminSidebar({ content, items, onNavigate, pathname }: A
         <HeaderLogo brandName={content.brandName} href={adminHomeHref} />
         <div className="min-w-0">
           <Typography.Text strong>TennisHub</Typography.Text>
-          <Typography.Paragraph className="!mb-0 !text-[11px] !uppercase !tracking-[0.12em]" type="success">
+          <Typography.Paragraph className="!mb-0 !text-[12px] !uppercase !tracking-[0.12em]" type="success">
             Admin Portal
           </Typography.Paragraph>
         </div>
@@ -62,7 +62,7 @@ export default function AdminSidebar({ content, items, onNavigate, pathname }: A
       <div className="border-t border-slate-200 p-4">
         <div className="rounded-xl bg-slate-50 p-3">
           <Typography.Text className="!text-xs" strong>TennisHub Cầu Giấy</Typography.Text>
-          <Typography.Paragraph className="!mb-0 !mt-1 !text-[11px]" type="secondary">
+          <Typography.Paragraph className="!mb-0 !mt-1 !text-[12px]" type="secondary">
             Dữ liệu đang chạy ở chế độ mô phỏng.
           </Typography.Paragraph>
         </div>

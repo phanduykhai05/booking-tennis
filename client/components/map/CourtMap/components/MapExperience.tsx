@@ -43,7 +43,7 @@ export default function MapExperience({ brandName, content, filters, markers }: 
         onLocate={() => mapRef.current?.locate()}
         onToggleVenueLayer={() => setShowVenueLayer((isVisible) => !isVisible)}
       />
-      <p className="absolute bottom-20 left-3 z-[1001] rounded bg-white/85 px-1.5 py-0.5 text-[10px] text-slate-600">{content.mapAttribution}</p>
+      <p className="absolute bottom-20 left-3 z-[1001] rounded bg-white/85 px-1.5 py-0.5 text-[11px] text-slate-600">{content.mapAttribution}</p>
     </>
   );
 }

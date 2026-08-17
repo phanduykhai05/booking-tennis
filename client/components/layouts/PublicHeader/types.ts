@@ -1,4 +1,5 @@
 export type HeaderAction = {
+  href?: string;
   id: "login" | "register";
   label: string;
 };

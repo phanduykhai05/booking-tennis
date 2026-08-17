@@ -5,6 +5,27 @@ export const nearbyVenuesContent: NearbyVenuesContent = {
   favoriteLabel: "Yêu thích",
   matchLabel: "Ghép trận",
   offerLabel: "Ưu đãi",
+  previewBookLabel: "Đặt lịch",
+  previewCategories: ["Pickleball", "Quần vợt", "Đa năng"],
+  previewOpenLabel: "06:00 - 22:00",
+  previewPhone: "0847968368",
+  previewRatingLabel: "Chưa có đánh giá",
+  previewImages: ["Không gian sân", "Khu vực chờ", "Dụng cụ tại sân"],
+  previewMemberships: [
+    { description: "Ưu đãi giá sân và quyền lợi dành riêng cho hội viên.", id: "standard", title: "Gói hội viên tiêu chuẩn" },
+    { description: "Phù hợp khách chơi thường xuyên, ưu đãi nhiều khung giờ.", id: "premium", title: "Gói hội viên nâng cao" },
+  ],
+  previewServices: [
+    { description: "Dụng cụ được chuẩn bị sẵn tại quầy lễ tân.", id: "equipment", title: "Thuê dụng cụ thể thao" },
+    { description: "Nước uống và khu vực nghỉ ngơi cho người chơi.", id: "refreshments", title: "Tiện ích tại sân" },
+  ],
+  previewTabs: [
+    { id: "information", label: "Thông tin" },
+    { id: "membership", label: "Gói hội viên" },
+    { id: "services", label: "Dịch vụ" },
+    { id: "images", label: "Hình ảnh" },
+  ],
+  previewVenueMark: "ĐTG",
   sectionLabel: "Sân gần bạn",
 };
 
@@ -25,6 +46,8 @@ export const nearbyVenues: Venue[] = [
     offerCount: 1,
     openingLabel: "06:00 - 24:00",
     rating: 5,
+    productHref: "/product/muse-pickle",
+    sport: "pickleball",
   },
   {
     address: "50 ngách 31 ngõ 135 Đội Cấn",
@@ -36,6 +59,8 @@ export const nearbyVenues: Venue[] = [
     name: "NHF Pickleball",
     openingLabel: "05:30 - 23:00",
     rating: null,
+    productHref: "/product/nhf-pickleball",
+    sport: "pickleball",
   },
   {
     address: "20 Đ. Thụy Khuê, Thụy Khuê, Tây Hồ, Hà Nội",
@@ -47,6 +72,8 @@ export const nearbyVenues: Venue[] = [
     name: "PickleBall 20 Thụy Khuê",
     openingLabel: "05:00 - 24:00",
     rating: null,
+    productHref: "/product/pickleball-20-thuy-khue",
+    sport: "pickleball",
   },
   {
     address: "Số 6/215 P Lê Lai, Máy Chai, Ngô Quyền, Hải Phòng",
@@ -58,6 +85,8 @@ export const nearbyVenues: Venue[] = [
     name: "Family Pickleball",
     openingLabel: "06:00 - 22:00",
     rating: 5,
+    productHref: "/product/family-pickleball",
+    sport: "pickleball",
   },
   {
     address: "Ngõ 100 Trung Kính, Yên Hòa, Cầu Giấy, Hà Nội",
@@ -70,6 +99,8 @@ export const nearbyVenues: Venue[] = [
     offerCount: 2,
     openingLabel: "05:30 - 23:30",
     rating: 4.8,
+    productHref: "/product/trung-kinh-arena",
+    sport: "football",
   },
   {
     address: "Số 12 Nguyễn Khánh Toàn, Quan Hoa, Cầu Giấy, Hà Nội",
@@ -81,5 +112,7 @@ export const nearbyVenues: Venue[] = [
     name: "Smash Badminton Center",
     openingLabel: "06:00 - 23:00",
     rating: 4.6,
+    productHref: "/product/smash-badminton",
+    sport: "badminton",
   },
 ];

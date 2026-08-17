@@ -21,6 +21,19 @@ export type Venue = {
   offerCount?: number;
   openingLabel: string;
   rating: number | null;
+  productHref: string;
+  sport: SportCategoryId;
+};
+
+export type VenuePreviewTab = {
+  id: "images" | "information" | "membership" | "services";
+  label: string;
+};
+
+export type VenuePreviewItem = {
+  description: string;
+  id: string;
+  title: string;
 };
 
 export type NearbyVenuesContent = {
@@ -28,5 +41,16 @@ export type NearbyVenuesContent = {
   favoriteLabel: string;
   matchLabel: string;
   offerLabel: string;
+  previewBookLabel: string;
+  previewCategories: string[];
+  previewOpenLabel: string;
+  previewPhone: string;
+  previewRatingLabel: string;
+  previewImages: string[];
+  previewMemberships: VenuePreviewItem[];
+  previewServices: VenuePreviewItem[];
+  previewTabs: VenuePreviewTab[];
+  previewVenueMark: string;
   sectionLabel: string;
 };
+import type { SportCategoryId } from "@/components/home/SportCategories/types";

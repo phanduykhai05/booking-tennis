@@ -27,5 +27,5 @@ function subscribe() {
 export default function TodayLabel({ fallbackLabel }: TodayLabelProps) {
   const dateLabel = useSyncExternalStore(subscribe, getTodayLabel, () => fallbackLabel);
 
-  return <span className="block text-[15px] font-semibold leading-none text-white">{dateLabel}</span>;
+  return <span className="block text-[16px] font-semibold leading-none text-white">{dateLabel}</span>;
 }

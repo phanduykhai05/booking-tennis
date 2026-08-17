@@ -39,7 +39,7 @@ export default function AdminTopbar({ content, onMenuOpen }: AdminTopbarProps) {
           <Avatar style={{ backgroundColor: adminBrandColor }}>{content.userInitials}</Avatar>
           <div className="hidden sm:block">
             <Typography.Paragraph className="!mb-0 !text-xs" strong>{content.userName}</Typography.Paragraph>
-            <Typography.Paragraph className="!mb-0 !text-[10px]" type="secondary">{content.roleLabel}</Typography.Paragraph>
+            <Typography.Paragraph className="!mb-0 !text-[11px]" type="secondary">{content.roleLabel}</Typography.Paragraph>
           </div>
         </Space>
       </Space>

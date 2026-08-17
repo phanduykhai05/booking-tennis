@@ -36,7 +36,7 @@ export default function RecentActivities({ activities }: RecentActivitiesProps) 
             children: (
               <div>
                 <Typography.Paragraph className="!mb-0 !text-sm">{activity.message}</Typography.Paragraph>
-                <Typography.Text className="!text-[11px]" type="secondary">
+                <Typography.Text className="!text-[12px]" type="secondary">
                   {timeFormatter.format(new Date(activity.createdAt))}
                 </Typography.Text>
               </div>

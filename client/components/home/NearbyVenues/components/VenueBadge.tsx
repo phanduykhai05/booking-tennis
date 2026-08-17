@@ -7,7 +7,7 @@ const toneClassName: Record<VenueBadgeTone, string> = {
   single: "bg-[#45b649] text-white",
 };
 
-const pillClassName = "flex h-[21px] shrink-0 items-center px-3 text-[11px] font-semibold leading-none shadow-[0_1px_2px_rgba(15,23,42,0.18)]";
+const pillClassName = "flex h-[21px] shrink-0 items-center px-3 text-[12px] font-semibold leading-none shadow-[0_1px_2px_rgba(15,23,42,0.18)]";
 
 type VenueBadgeProps = {
   badge: VenueBadgeType;

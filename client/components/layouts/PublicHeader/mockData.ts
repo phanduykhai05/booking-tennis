@@ -11,8 +11,8 @@ export const publicHeaderContent: PublicHeaderContent = {
 };
 
 export const headerActions: HeaderAction[] = [
-  { id: "login", label: "Đăng nhập" },
-  { id: "register", label: "Đăng kí" },
+  { href: "/login", id: "login", label: "Đăng nhập" },
+  { href: "/register", id: "register", label: "Đăng kí" },
 ];
 
 export const headerShortcuts: HeaderShortcut[] = [

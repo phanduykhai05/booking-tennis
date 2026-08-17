@@ -48,10 +48,10 @@ export default function BookingCard({ booking, content, customer, onSelect, posi
             className="size-1.5 shrink-0 rounded-full"
             style={{ backgroundColor: paymentDotColor[booking.paymentStatus] }}
           />
-          <span className="truncate text-[10px] font-bold uppercase tracking-wide opacity-70">{booking.code}</span>
+          <span className="truncate text-[11px] font-bold uppercase tracking-wide opacity-70">{booking.code}</span>
         </span>
         <span className="mt-0.5 block truncate text-xs font-bold">{customer.name}</span>
-        <span className="mt-0.5 block truncate text-[10px] font-semibold opacity-75">{timeRange}</span>
+        <span className="mt-0.5 block truncate text-[11px] font-semibold opacity-75">{timeRange}</span>
         <span className="sr-only">{content.bookingStatusLabels[booking.status]}</span>
       </button>
     </Tooltip>
