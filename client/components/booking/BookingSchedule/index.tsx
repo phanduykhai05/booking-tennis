@@ -78,10 +78,10 @@ export default function BookingSchedule() {
     setSelection({ courtId, date, endMinute, kind: "slot", startMinute });
   }
 
-  function handleCreateBooking(input: CreateBookingInput) {
+  async function handleCreateBooking(input: CreateBookingInput) {
     if (!selection || selection.kind !== "slot") return;
 
-    const bookingId = createBooking({
+    const bookingId = await createBooking({
       bookingDate: selection.date,
       courtId: selection.courtId,
       customerName: input.customerName,
@@ -97,7 +97,7 @@ export default function BookingSchedule() {
   function handleStatusChange(status: BookingStatus) {
     if (!selectedBooking) return;
 
-    updateBookingStatus(selectedBooking.id, status);
+    void updateBookingStatus(selectedBooking.id, status);
   }
 
   return (

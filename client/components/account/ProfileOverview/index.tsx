@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import images from "@/components/assets/images";
-import { profileContent, profileDetailItems } from "@/components/account/ProfileOverview/mockData";
+import { profileContent, profileDetailItems } from "@/components/account/ProfileOverview/content";
 import type { ProfileDetailItem } from "@/components/account/ProfileOverview/types";
+import { useSession } from "@/lib/api/session";
 
 const personalIcons: Record<ProfileDetailItem["icon"], typeof Target> = {
   goal: Target,
@@ -19,6 +20,9 @@ const personalIcons: Record<ProfileDetailItem["icon"], typeof Target> = {
 export default function ProfileOverview() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"overview" | "links">("overview");
+  const { session } = useSession();
+  const profile = session?.user;
+  const orDash = (value: number | string | null | undefined) => (value === null || value === undefined || value === "" ? profileContent.notProvided : String(value));
 
   return (
     <main className="min-h-[100dvh] w-screen max-w-none bg-[#f7f7f7] pb-3 text-[#18221e]">
@@ -32,16 +36,16 @@ export default function ProfileOverview() {
 
         <section className="absolute inset-x-3 bottom-3 rounded-[18px] bg-white/90 px-4 py-3 shadow-[0_5px_14px_rgba(0,70,40,.12)] backdrop-blur-sm">
           <div className="flex items-start gap-3">
-            <span className="relative flex size-12 shrink-0 items-center justify-center rounded-full bg-[#6471d9] text-[27px] text-white">{profileContent.avatarInitial}<span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-[#5360ad] text-white ring-2 ring-white"><Camera size={11} /></span></span>
+            <span className="relative flex size-12 shrink-0 items-center justify-center rounded-full bg-[#6471d9] text-[27px] text-white">{profile?.avatarInitial ?? profileContent.avatarInitial}<span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-[#5360ad] text-white ring-2 ring-white"><Camera size={11} /></span></span>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1"><h1 className="text-[18px] font-semibold leading-5">{profileContent.name}</h1><BadgeCheck aria-hidden="true" className="text-[#7d8581]" size={16} /></div>
-              <span className="mt-1 inline-flex items-center gap-1 rounded bg-white px-2 py-1 text-[12px] text-[#57625c]"><Image alt="" className="size-[14px]" src={images.alobo.icons.email} />{profileContent.emailPrompt}</span>
+              <div className="flex items-center gap-1"><h1 className="text-[18px] font-semibold leading-5">{profile?.fullName ?? profileContent.name}</h1><BadgeCheck aria-hidden="true" className="text-[#7d8581]" size={16} /></div>
+              <span className="mt-1 inline-flex items-center gap-1 rounded bg-white px-2 py-1 text-[12px] text-[#57625c]"><Image alt="" className="size-[14px]" src={images.alobo.icons.email} />{profile?.email ?? profileContent.emailPrompt}</span>
             </div>
           </div>
           <div className="mt-2 grid grid-cols-3 gap-2 text-center text-[12px] text-[#56605b]">
-            <span className="flex items-center justify-center gap-1"><Image alt="" className="size-[15px]" src={images.alobo.icons.phoneOutline} />{profileContent.phone}</span>
-            <span className="flex items-center justify-center gap-1"><Image alt="" className="size-[15px]" src={images.alobo.icons.calendar} /><span>{profileContent.yearLabel}<b className="block text-[14px] text-[#1c2822]">{profileContent.birthYear}</b></span></span>
-            <span className="flex items-center justify-center gap-1"><Image alt="" className="size-[15px]" src={images.alobo.icons.gender} /><span>{profileContent.genderLabel}<b className="block text-[14px] text-[#1c2822]">{profileContent.gender}</b></span></span>
+            <span className="flex items-center justify-center gap-1"><Image alt="" className="size-[15px]" src={images.alobo.icons.phoneOutline} />{profile?.phone ?? profileContent.phone}</span>
+            <span className="flex items-center justify-center gap-1"><Image alt="" className="size-[15px]" src={images.alobo.icons.calendar} /><span>{profileContent.yearLabel}<b className="block text-[14px] text-[#1c2822]">{orDash(profile?.birthYear)}</b></span></span>
+            <span className="flex items-center justify-center gap-1"><Image alt="" className="size-[15px]" src={images.alobo.icons.gender} /><span>{profileContent.genderLabel}<b className="block text-[14px] text-[#1c2822]">{orDash(profile?.gender)}</b></span></span>
           </div>
         </section>
       </header>
@@ -55,8 +59,8 @@ export default function ProfileOverview() {
         {activeTab === "overview" ? <section className="mt-3 min-h-[604px] rounded-[10px] bg-white px-3 py-3">
           <div className="flex items-center"><h2 className="flex-1 text-[15px] font-medium text-[#008447]">{profileContent.physicalTitle}</h2><button aria-label="Chỉnh sửa thông tin thể chất" className="text-[#008447]" type="button"><Image alt="" className="size-5" src={images.alobo.icons.edit} /></button></div>
           <div className="mt-3 grid grid-cols-2 overflow-hidden rounded-[11px] border border-[#dce2df] py-2 text-center text-[12px] text-[#626b66]">
-            <div className="border-r border-[#e7ebe9]"><span className="flex items-center justify-center gap-1"><Ruler size={15} />{profileContent.heightLabel}</span><b className="mt-1 block text-[14px] text-[#1b2721]">{profileContent.height}</b></div>
-            <div><span className="flex items-center justify-center gap-1"><Dumbbell size={15} />{profileContent.weightLabel}</span><b className="mt-1 block text-[14px] text-[#1b2721]">{profileContent.weight}</b></div>
+            <div className="border-r border-[#e7ebe9]"><span className="flex items-center justify-center gap-1"><Ruler size={15} />{profileContent.heightLabel}</span><b className="mt-1 block text-[14px] text-[#1b2721]">{orDash(profile?.heightCm)}</b></div>
+            <div><span className="flex items-center justify-center gap-1"><Dumbbell size={15} />{profileContent.weightLabel}</span><b className="mt-1 block text-[14px] text-[#1b2721]">{orDash(profile?.weightKg)}</b></div>
           </div>
           <button className="mt-3 flex items-center gap-1 text-[14px] font-medium" type="button"><Image alt="" className="size-[17px]" src={images.alobo.icons.note} />{profileContent.specialNote}</button>
 

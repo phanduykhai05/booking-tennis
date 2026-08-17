@@ -1,140 +1,127 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
-import { adminMockData, bookingActivityStatusLabels } from "@/components/admin/AdminData/mockData";
 import type {
   AdminDataContextValue,
-  Booking,
+  AdminDataState,
   BookingStatus,
   CourtPayload,
   CreateBookingPayload,
-  Customer,
   CustomerStatus,
-  Payment,
   PaymentStatus,
 } from "@/components/admin/AdminData/types";
+import {
+  adminCreateBooking,
+  adminCreateCourt,
+  adminUpdateBookingStatus,
+  adminUpdateCourt,
+  adminUpdateCustomerStatus,
+  adminUpdatePaymentStatus,
+  getAdminData,
+} from "@/lib/api/admin";
+import { ApiError } from "@/lib/api/http";
+import { useSession } from "@/lib/api/session";
 
 const AdminDataContext = createContext<AdminDataContextValue | null>(null);
+
+const emptyState: AdminDataState = {
+  activityEvents: [],
+  bookings: [],
+  courts: [],
+  customers: [],
+  payments: [],
+  venues: [],
+};
 
 type AdminDataProviderProps = {
   children: React.ReactNode;
 };
 
 export default function AdminDataProvider({ children }: AdminDataProviderProps) {
-  const [venues] = useState(adminMockData.venues);
-  const [courts, setCourts] = useState(adminMockData.courts);
-  const [customers, setCustomers] = useState(adminMockData.customers);
-  const [bookings, setBookings] = useState(adminMockData.bookings);
-  const [payments, setPayments] = useState(adminMockData.payments);
-  const [activityEvents, setActivityEvents] = useState(adminMockData.activityEvents);
+  const { isReady, token } = useSession();
+  const [state, setState] = useState<AdminDataState>(emptyState);
+  const [isFetching, setIsFetching] = useState(true);
+  const [fetchError, setFetchError] = useState("");
 
-  function createBooking(payload: CreateBookingPayload) {
-    const uniqueSuffix = `${Date.now()}`;
-    const existingCustomer = customers.find((customer) => customer.phone === payload.customerPhone);
-    const customerId = existingCustomer?.id ?? `customer-local-${uniqueSuffix}`;
-    const bookingId = `booking-local-${uniqueSuffix}`;
-    const paymentId = `payment-local-${uniqueSuffix}`;
-    const court = courts.find((item) => item.id === payload.courtId);
-    const venueId = court?.venueId ?? venues[0]?.id ?? "venue-01";
-    const durationHours = (payload.endMinute - payload.startMinute) / 60;
-    const totalPrice = durationHours * (court?.hourlyRate ?? 180000);
-    const compactDate = payload.bookingDate.replaceAll("-", "").slice(2);
-    const code = `TH${compactDate}${`${bookings.length + 1}`.padStart(2, "0")}`;
-    const newBooking: Booking = {
-      bookingDate: payload.bookingDate,
-      code,
-      courtId: payload.courtId,
-      customerId,
-      endMinute: payload.endMinute,
-      id: bookingId,
-      note: payload.note || undefined,
-      paymentStatus: "unpaid",
-      source: "counter",
-      startMinute: payload.startMinute,
-      status: "pending",
-      totalPrice,
-      venueId,
+  const refresh = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      const data = await getAdminData(token);
+      setState(data);
+      setFetchError("");
+    } catch (error) {
+      setFetchError(error instanceof ApiError ? error.message : "Không tải được dữ liệu quản trị");
+    } finally {
+      setIsFetching(false);
+    }
+  }, [token]);
+
+  // setState nằm trong callback của promise để effect không cập nhật state ngay trong thân hàm.
+  useEffect(() => {
+    if (!isReady || !token) return;
+
+    let isActive = true;
+
+    getAdminData(token)
+      .then((data) => {
+        if (!isActive) return;
+        setState(data);
+        setFetchError("");
+      })
+      .catch((error: unknown) => {
+        if (isActive) setFetchError(error instanceof ApiError ? error.message : "Không tải được dữ liệu quản trị");
+      })
+      .finally(() => {
+        if (isActive) setIsFetching(false);
+      });
+
+    return () => {
+      isActive = false;
     };
-    const newPayment: Payment = {
-      amount: 0,
-      bookingId,
-      createdAt: `${payload.bookingDate}T00:00:00+07:00`,
-      customerId,
-      id: paymentId,
-      method: "cash",
-      status: "unpaid",
-      transactionCode: `PAY${compactDate}${`${payments.length + 1}`.padStart(2, "0")}`,
-    };
+  }, [isReady, token]);
 
-    if (!existingCustomer) {
-      const newCustomer: Customer = {
-        email: "",
-        id: customerId,
-        joinedAt: payload.bookingDate,
-        name: payload.customerName,
-        phone: payload.customerPhone,
-        status: "active",
-      };
-      setCustomers((current) => [...current, newCustomer]);
-    }
+  const errorMessage = isReady && !token ? "Đăng nhập bằng tài khoản quản trị để xem dữ liệu." : fetchError;
+  const isLoading = token ? isFetching : false;
 
-    setBookings((current) => [...current, newBooking]);
-    setPayments((current) => [...current, newPayment]);
-    setActivityEvents((current) => [{ createdAt: newPayment.createdAt, entityId: bookingId, id: `activity-${uniqueSuffix}`, message: `Lịch ${code} vừa được tạo.`, type: "booking-created" }, ...current]);
-    return bookingId;
-  }
+  // Mọi thao tác ghi đều gọi API rồi tải lại state để client không tự suy diễn dữ liệu.
+  const runMutation = async <T,>(action: (activeToken: string) => Promise<T>) => {
+    if (!token) throw new ApiError("Bạn cần đăng nhập bằng tài khoản quản trị", 401);
 
-  function updateBookingStatus(bookingId: string, status: BookingStatus) {
-    const booking = bookings.find((item) => item.id === bookingId);
-    setBookings((current) => current.map((item) => item.id === bookingId ? { ...item, status } : item));
-    if (booking) {
-      setActivityEvents((current) => [{ createdAt: `${booking.bookingDate}T00:00:00+07:00`, entityId: bookingId, id: `activity-${Date.now()}`, message: `Lịch ${booking.code} chuyển sang trạng thái ${bookingActivityStatusLabels[status]}.`, type: "booking-updated" }, ...current]);
-    }
-  }
-
-  function createCourt(payload: CourtPayload) {
-    setCourts((current) => [...current, { ...payload, id: `court-local-${Date.now()}` }]);
-  }
-
-  function updateCourt(courtId: string, payload: CourtPayload) {
-    setCourts((current) => current.map((court) => court.id === courtId ? { ...court, ...payload } : court));
-  }
-
-  function updateCustomerStatus(customerId: string, status: CustomerStatus) {
-    setCustomers((current) => current.map((customer) => customer.id === customerId ? { ...customer, status } : customer));
-  }
-
-  function updatePaymentStatus(paymentId: string, status: PaymentStatus) {
-    const payment = payments.find((item) => item.id === paymentId);
-    const booking = payment ? bookings.find((item) => item.id === payment.bookingId) : undefined;
-    setPayments((current) => current.map((item) => {
-      if (item.id !== paymentId) return item;
-      if (status === "paid") return { ...item, amount: booking?.totalPrice ?? item.amount, paidAt: new Date().toISOString(), status };
-      if (status === "unpaid" || status === "failed") return { ...item, amount: 0, paidAt: undefined, status };
-      return { ...item, status };
-    }));
-    if (payment) {
-      setBookings((current) => current.map((booking) => booking.id === payment.bookingId ? { ...booking, paymentStatus: status } : booking));
-    }
-  }
-
-  const value: AdminDataContextValue = {
-    activityEvents,
-    bookings,
-    courts,
-    createBooking,
-    createCourt,
-    customers,
-    payments,
-    updateBookingStatus,
-    updateCourt,
-    updateCustomerStatus,
-    updatePaymentStatus,
-    venues,
+    const result = await action(token);
+    await refresh();
+    return result;
   };
 
-  return <AdminDataContext.Provider value={value}>{children}</AdminDataContext.Provider>;
+  const value: AdminDataContextValue = {
+    ...state,
+    createBooking: (payload: CreateBookingPayload) =>
+      runMutation(async (activeToken) => (await adminCreateBooking(activeToken, payload)).id),
+    createCourt: (payload: CourtPayload) => runMutation((activeToken) => adminCreateCourt(activeToken, payload)).then(() => undefined),
+    errorMessage,
+    isLoading,
+    refresh,
+    updateBookingStatus: (bookingId: string, status: BookingStatus) =>
+      runMutation((activeToken) => adminUpdateBookingStatus(activeToken, bookingId, status)).then(() => undefined),
+    updateCourt: (courtId: string, payload: CourtPayload) =>
+      runMutation((activeToken) => adminUpdateCourt(activeToken, courtId, payload)).then(() => undefined),
+    updateCustomerStatus: (customerId: string, status: CustomerStatus) =>
+      runMutation((activeToken) => adminUpdateCustomerStatus(activeToken, customerId, status)).then(() => undefined),
+    updatePaymentStatus: (paymentId: string, status: PaymentStatus) =>
+      runMutation((activeToken) => adminUpdatePaymentStatus(activeToken, paymentId, status)).then(() => undefined),
+  };
+
+  return (
+    <AdminDataContext.Provider value={value}>
+      {errorMessage && (
+        <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
+          {errorMessage}
+        </div>
+      )}
+      {children}
+    </AdminDataContext.Provider>
+  );
 }
 
 export function useAdminData() {

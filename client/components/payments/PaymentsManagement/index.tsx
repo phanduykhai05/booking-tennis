@@ -92,7 +92,7 @@ export default function PaymentsManagement() {
         <Select<PaymentStatus>
           aria-label={`Cập nhật ${payment.transactionCode}`}
           className="!w-[160px]"
-          onChange={(value) => updatePaymentStatus(payment.id, value)}
+          onChange={(value) => void updatePaymentStatus(payment.id, value)}
           options={statusOptions}
           size="small"
           value={payment.status}

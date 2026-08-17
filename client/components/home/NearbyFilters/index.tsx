@@ -1,6 +1,6 @@
 "use client";
 
-import { nearbyFilters, nearbyFiltersLabel } from "@/components/home/NearbyFilters/mockData";
+import { nearbyFilters, nearbyFiltersLabel } from "@/components/home/NearbyFilters/content";
 import type { SportCategoryId } from "@/components/home/SportCategories/types";
 
 type NearbyFiltersProps = {

@@ -5,10 +5,10 @@ import Image from "next/image";
 import { useState } from "react";
 
 import venueCover from "@/components/assets/images/uploads/venues/pickleball_cover.png";
-import type { BookingEvent, ProductDetailData } from "@/components/product/ProductDetail/types";
+import type { BookingEvent, ProductDetailContent } from "@/components/product/ProductDetail/types";
 
 type EventCardProps = {
-  actions: ProductDetailData["actions"];
+  actions: ProductDetailContent["actions"];
   event: BookingEvent;
   isPaid: boolean;
   onPayment: (event: BookingEvent, quantity: number) => void;

@@ -1,0 +1,354 @@
+// Lược đồ dữ liệu TennisHub. Mỗi model bám sát type đang dùng ở client
+// (components/**/types.ts) để tầng API không phải nắn dữ liệu nhiều lần.
+
+// importFileExtension = "": import không đuôi để chạy được cả với ts-node (seed) lẫn bản build ra dist.
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "cjs"
+  runtime             = "nodejs"
+  importFileExtension = ""
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum VenueStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum VenueBadgeTone {
+  EVENT
+  SINGLE
+}
+
+enum CourtStatus {
+  AVAILABLE
+  INACTIVE
+  MAINTENANCE
+}
+
+enum CourtSurface {
+  CLAY
+  HARD
+  SYNTHETIC
+}
+
+enum CourtBlockKind {
+  EVENT
+  LOCKED
+}
+
+enum BookingStatus {
+  CANCELLED
+  CHECKED_IN
+  COMPLETED
+  CONFIRMED
+  PENDING
+}
+
+enum BookingSource {
+  COUNTER
+  ONLINE
+}
+
+enum PaymentStatus {
+  FAILED
+  PAID
+  PARTIAL
+  REFUNDED
+  UNPAID
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CARD
+  CASH
+  E_WALLET
+}
+
+enum NotificationKind {
+  BOOKING
+  PROMOTION
+  SYSTEM
+}
+
+enum DiscoverPostType {
+  COURSE
+  EMPTY_COURT
+  EVENT
+  MEMBER
+  OFFER
+}
+
+enum ActivityType {
+  BOOKING_CREATED
+  BOOKING_UPDATED
+  COURT_UPDATED
+  PAYMENT_UPDATED
+}
+
+model SportCategory {
+  id        String  @id
+  icon      String
+  label     String
+  sortOrder Int     @default(0)
+  venues    Venue[]
+}
+
+model User {
+  id             String          @id @default(cuid())
+  birthYear      Int?
+  createdAt      DateTime        @default(now())
+  email          String?         @unique
+  fullName       String
+  gender         String?
+  heightCm       Int?
+  note           String?
+  passwordHash   String
+  phone          String          @unique
+  role           UserRole        @default(USER)
+  status         UserStatus      @default(ACTIVE)
+  updatedAt      DateTime        @updatedAt
+  weightKg       Int?
+  bookings       Booking[]
+  eventTickets   EventTicket[]
+  notifications  Notification[]
+  passwordResets PasswordReset[]
+  payments       Payment[]
+}
+
+model PasswordReset {
+  id        String    @id @default(cuid())
+  code      String
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  usedAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([userId])
+}
+
+model Venue {
+  id            String        @id
+  address       String
+  amenities     String[]
+  closingMinute Int           @default(1320)
+  coverKey      String
+  createdAt     DateTime      @default(now())
+  description   String?
+  isFeatured    Boolean       @default(false)
+  latitude      Float
+  logoKey       String
+  longitude     Float
+  mark          String        @default("ĐTG")
+  name          String
+  offerCount    Int           @default(0)
+  openingMinute Int           @default(360)
+  phone         String
+  rating        Float?
+  slotMinutes   Int           @default(30)
+  sport         SportCategory @relation(fields: [sportId], references: [id])
+  sportId       String
+  status        VenueStatus   @default(ACTIVE)
+  timezone      String        @default("Asia/Bangkok")
+  badges        VenueBadge[]
+  bookings      Booking[]
+  courtGroups   CourtGroup[]
+  courts        Court[]
+  events        VenueEvent[]
+  priceRules    PriceRule[]
+
+  @@index([sportId])
+}
+
+model VenueBadge {
+  id        String         @id @default(cuid())
+  code      String
+  label     String
+  sortOrder Int            @default(0)
+  tone      VenueBadgeTone
+  venue     Venue          @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId   String
+
+  @@unique([venueId, code])
+}
+
+model CourtGroup {
+  id        String  @id @default(cuid())
+  name      String
+  sortOrder Int     @default(0)
+  venue     Venue   @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId   String
+  courts    Court[]
+
+  @@unique([venueId, name])
+}
+
+model Court {
+  id         String       @id @default(cuid())
+  group      CourtGroup?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  groupId    String?
+  hourlyRate Int
+  isIndoor   Boolean      @default(false)
+  name       String
+  sortOrder  Int          @default(0)
+  status     CourtStatus  @default(AVAILABLE)
+  surface    CourtSurface @default(HARD)
+  venue      Venue        @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId    String
+  blocks     CourtBlock[]
+  bookings   Booking[]
+
+  @@index([venueId])
+  @@index([groupId])
+}
+
+model PriceRule {
+  id           String @id @default(cuid())
+  endMinute    Int
+  label        String
+  pricePerHour Int
+  sortOrder    Int    @default(0)
+  startMinute  Int
+  venue        Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId      String
+
+  @@index([venueId])
+}
+
+// Ô "Khoá" và "Sự kiện" trên lưới đặt lịch trực quan.
+model CourtBlock {
+  id          String         @id @default(cuid())
+  blockDate   DateTime       @db.Date
+  court       Court          @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  courtId     String
+  endMinute   Int
+  kind        CourtBlockKind
+  startMinute Int
+  title       String
+
+  @@index([courtId, blockDate])
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  bookingDate   DateTime      @db.Date
+  code          String        @unique
+  court         Court         @relation(fields: [courtId], references: [id], onDelete: Restrict)
+  courtId       String
+  createdAt     DateTime      @default(now())
+  endMinute     Int
+  note          String?
+  paymentStatus PaymentStatus @default(UNPAID)
+  source        BookingSource @default(ONLINE)
+  startMinute   Int
+  status        BookingStatus @default(PENDING)
+  totalPrice    Int
+  updatedAt     DateTime      @updatedAt
+  user          User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId        String
+  venue         Venue         @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  venueId       String
+  payments      Payment[]
+
+  @@index([venueId, bookingDate])
+  @@index([courtId, bookingDate])
+  @@index([userId])
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  amount          Int
+  booking         Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId       String
+  createdAt       DateTime      @default(now())
+  method          PaymentMethod
+  paidAt          DateTime?
+  status          PaymentStatus
+  transactionCode String        @unique
+  user            User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId          String
+
+  @@index([bookingId])
+  @@index([userId])
+}
+
+// Sự kiện bán vé hiển thị ở trang chi tiết sân (SOCIAL SÁNG, SOCIAL CHIỀU...).
+model VenueEvent {
+  id          String        @id @default(cuid())
+  capacity    Int
+  courtLabel  String
+  endMinute   Int
+  eventDate   DateTime      @db.Date
+  price       Int
+  soldCount   Int           @default(0)
+  startMinute Int
+  title       String
+  venue       Venue         @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId     String
+  tickets     EventTicket[]
+
+  @@index([venueId, eventDate])
+}
+
+model EventTicket {
+  id         String     @id @default(cuid())
+  createdAt  DateTime   @default(now())
+  event      VenueEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId    String
+  phone      String
+  quantity   Int
+  totalPrice Int
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+
+  @@index([eventId])
+  @@index([userId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  createdAt DateTime         @default(now())
+  isRead    Boolean          @default(false)
+  kind      NotificationKind
+  message   String
+  title     String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([userId, createdAt])
+}
+
+model DiscoverPost {
+  id          String           @id @default(cuid())
+  labels      String[]
+  publishedAt DateTime
+  type        DiscoverPostType
+  venueName   String
+
+  @@index([publishedAt])
+}
+
+model ActivityEvent {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  entityId  String
+  message   String
+  type      ActivityType
+
+  @@index([createdAt])
+}

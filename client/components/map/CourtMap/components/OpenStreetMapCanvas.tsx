@@ -11,6 +11,8 @@ type LeafletMap = {
 
 type LeafletLayer = {
   addTo: (map: LeafletMap) => LeafletLayer;
+  bindPopup: (html: string) => LeafletLayer;
+  openPopup: () => LeafletLayer;
 };
 
 type LeafletApi = {
@@ -27,8 +29,13 @@ declare global {
 }
 
 export type OpenStreetMapCanvasHandle = {
+  focusVenue: (query: string) => boolean;
   locate: () => void;
 };
+
+// Bỏ dấu tiếng Việt để tìm "cau giay" khớp "Cầu Giấy".
+const normalize = (value: string) =>
+  value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
 type OpenStreetMapCanvasProps = {
   geolocationUnavailableMessage: string;
@@ -39,7 +46,15 @@ type OpenStreetMapCanvasProps = {
 
 const leafletScriptId = "leaflet-library";
 const leafletStyleId = "leaflet-styles";
-const mapCenter: [number, number] = [10.7769, 106.7009];
+// Mặc định trung tâm Hà Nội — nơi tập trung nhiều sân nhất; search có thể bay sang tỉnh khác.
+const mapCenter: [number, number] = [21.0285, 105.81];
+
+const escapeHtml = (value: string) =>
+  value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char);
+
+function getPopupHtml(marker: CourtMapMarker) {
+  return `<div style="min-width:150px"><p style="margin:0 0 6px;font-weight:700;font-size:13px;color:#0b5133">${escapeHtml(marker.name)}</p><a href="${escapeHtml(marker.href)}" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#fff;background:#008447;padding:6px 12px;border-radius:8px;text-decoration:none">Đặt lịch sân</a></div>`;
+}
 
 const sportColors: Record<CourtMapMarker["sport"], string> = {
   athletics: "#e11d48",
@@ -92,9 +107,21 @@ function loadLeaflet() {
 const OpenStreetMapCanvas = forwardRef<OpenStreetMapCanvasHandle, OpenStreetMapCanvasProps>(function OpenStreetMapCanvas({ geolocationUnavailableMessage, markers, showVenueLayer, unavailableMessage }, ref) {
   const mapElementRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
+  const markerLayersRef = useRef<Map<string, LeafletLayer>>(new Map());
   const [statusMessage, setStatusMessage] = useState("");
 
   useImperativeHandle(ref, () => ({
+    focusVenue: (query: string) => {
+      const needle = normalize(query);
+      if (!needle) return false;
+
+      const match = markers.find((marker) => normalize(marker.name).includes(needle));
+      if (!match || !mapRef.current) return false;
+
+      mapRef.current.setView([match.latitude, match.longitude], 15);
+      markerLayersRef.current.get(match.id)?.openPopup();
+      return true;
+    },
     locate: () => {
       if (!navigator.geolocation || !mapRef.current) {
         setStatusMessage(geolocationUnavailableMessage);
@@ -110,7 +137,7 @@ const OpenStreetMapCanvas = forwardRef<OpenStreetMapCanvasHandle, OpenStreetMapC
         { enableHighAccuracy: true, timeout: 10000 },
       );
     },
-  }), [geolocationUnavailableMessage]);
+  }), [geolocationUnavailableMessage, markers]);
 
   useEffect(() => {
     if (!mapElementRef.current) return;
@@ -130,17 +157,20 @@ const OpenStreetMapCanvas = forwardRef<OpenStreetMapCanvasHandle, OpenStreetMapC
         mapRef.current = mapInstance;
 
         leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(mapInstance);
+        markerLayersRef.current.clear();
         if (showVenueLayer) {
           markers.forEach((marker) => {
-            leaflet.marker([marker.latitude, marker.longitude], {
+            const layer = leaflet.marker([marker.latitude, marker.longitude], {
               icon: leaflet.divIcon({
                 className: "",
                 html: getMarkerHtml(marker),
                 iconAnchor: [15, 38],
                 iconSize: [30, 38],
               }),
-              title: `Sân ${marker.sport}`,
-            }).addTo(mapInstance);
+              title: marker.name,
+            });
+            layer.bindPopup(getPopupHtml(marker)).addTo(mapInstance);
+            markerLayersRef.current.set(marker.id, layer);
           });
         }
       })

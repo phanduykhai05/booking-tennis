@@ -4,15 +4,18 @@ import { useState } from "react";
 
 import VenueCard from "@/components/home/NearbyVenues/components/VenueCard";
 import VenuePreviewSheet from "@/components/home/NearbyVenues/components/VenuePreviewSheet";
-import { nearbyVenues, nearbyVenuesContent } from "@/components/home/NearbyVenues/mockData";
+import { nearbyVenuesContent } from "@/components/home/NearbyVenues/content";
 import type { Venue } from "@/components/home/NearbyVenues/types";
 import type { SportCategoryId } from "@/components/home/SportCategories/types";
 
-type NearbyVenuesProps = { sport?: SportCategoryId | null };
+type NearbyVenuesProps = {
+  sport?: SportCategoryId | null;
+  venues: Venue[];
+};
 
-export default function NearbyVenues({ sport = null }: NearbyVenuesProps) {
+export default function NearbyVenues({ sport = null, venues }: NearbyVenuesProps) {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
-  const visibleVenues = sport ? nearbyVenues.filter((venue) => venue.sport === sport) : nearbyVenues;
+  const visibleVenues = sport ? venues.filter((venue) => venue.sport === sport) : venues;
 
   return (
     <>

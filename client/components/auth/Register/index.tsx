@@ -2,20 +2,54 @@
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import PasswordField from "@/components/auth/Register/components/PasswordField";
 import PhoneField from "@/components/auth/Register/components/PhoneField";
 import RegisterField from "@/components/auth/Register/components/RegisterField";
 import styles from "@/components/auth/AuthPageAnimation.module.scss";
-import { initialRegisterValues, registerContent, registerFields } from "@/components/auth/Register/mockData";
+import { initialRegisterValues, registerContent, registerFields } from "@/components/auth/Register/content";
 import type { RegisterFormValues } from "@/components/auth/Register/types";
+import { register } from "@/lib/api/endpoints";
+import { ApiError } from "@/lib/api/http";
+import { useSession } from "@/lib/api/session";
 
 export default function Register() {
   const [values, setValues] = useState<RegisterFormValues>(initialRegisterValues);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setSubmitting] = useState(false);
+  const router = useRouter();
+  const { signIn } = useSession();
 
   const setField = (field: keyof RegisterFormValues, value: string) => {
     setValues((currentValues) => ({ ...currentValues, [field]: value }));
+  };
+
+  const submit = async () => {
+    if (values.password !== values.passwordConfirmation) {
+      setErrorMessage(registerContent.passwordMismatch);
+      return;
+    }
+
+    setSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      signIn(
+        await register({
+          fullName: values.fullName,
+          password: values.password,
+          phone: values.phone.replace(/\D/g, ""),
+          ...(values.email ? { email: values.email } : {}),
+        }),
+      );
+      router.push("/home");
+    } catch (error) {
+      setErrorMessage(error instanceof ApiError ? error.message : registerContent.errorMessage);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -33,7 +67,7 @@ export default function Register() {
           <h1 className="text-[17px] font-bold" id="register-title">{registerContent.title}</h1>
         </header>
 
-        <form className={`rounded-[9px] bg-white px-4 pb-9 pt-8 shadow-[0_12px_30px_rgba(0,64,36,0.14)] sm:px-[18px] ${styles.formEnter}`} onSubmit={(event) => event.preventDefault()}>
+        <form className={`rounded-[9px] bg-white px-4 pb-9 pt-8 shadow-[0_12px_30px_rgba(0,64,36,0.14)] sm:px-[18px] ${styles.formEnter}`} onSubmit={(event) => { event.preventDefault(); void submit(); }}>
           <div className="space-y-[25px]">
             <PhoneField label={registerContent.phone} onChange={(value) => setField("phone", value)} value={values.phone} />
             {registerFields.map((field) => (
@@ -43,8 +77,9 @@ export default function Register() {
             <PasswordField autoComplete="new-password" label={registerContent.passwordConfirmation} onChange={(value) => setField("passwordConfirmation", value)} placeholder="Nhập lại mật khẩu" value={values.passwordConfirmation} />
           </div>
 
-          <button className="mt-10 h-11 w-full rounded bg-[#087a46] text-sm font-bold text-white transition hover:bg-[#056b3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087a46] focus-visible:ring-offset-2 active:scale-[0.99]" type="submit">
-            {registerContent.register}
+          {errorMessage && <p className="mt-6 rounded-md bg-[#fdecec] px-3 py-2 text-[13px] font-medium text-[#b3261e]" role="alert">{errorMessage}</p>}
+          <button className="mt-10 h-11 w-full rounded bg-[#087a46] text-sm font-bold text-white transition hover:bg-[#056b3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087a46] focus-visible:ring-offset-2 active:scale-[0.99] disabled:bg-[#8fb9a2]" disabled={isSubmitting} type="submit">
+            {isSubmitting ? registerContent.registering : registerContent.register}
           </button>
           <p className="mt-7 text-center text-[14px] text-[#323232]">
             {registerContent.alreadyHaveAccount} <a className="font-bold text-[#007b49]" href="/login">

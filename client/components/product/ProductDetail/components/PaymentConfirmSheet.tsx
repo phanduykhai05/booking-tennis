@@ -12,17 +12,20 @@ import styles from "@/components/product/ProductDetail/components/PaymentConfirm
 import type { BookingEvent, CheckoutLabels } from "@/components/product/ProductDetail/types";
 
 type PaymentConfirmSheetProps = {
+  errorMessage: string;
   event: BookingEvent;
+  isSubmitting: boolean;
   labels: CheckoutLabels;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (phone: string) => void;
   quantity: number;
+  requiresSignIn: boolean;
 };
 
-const formatTotal = (price: string, quantity: number) => `${(Number(price.replace(/\D/g, "")) * quantity).toLocaleString("vi-VN")} ₫`;
+const formatTotal = (price: number, quantity: number) => `${(price * quantity).toLocaleString("vi-VN")} ₫`;
 const flagsByCode = images.flags as Record<string, StaticImageData>;
 
-export default function PaymentConfirmSheet({ event, labels, onClose, onConfirm, quantity }: PaymentConfirmSheetProps) {
+export default function PaymentConfirmSheet({ errorMessage, event, isSubmitting, labels, onClose, onConfirm, quantity, requiresSignIn }: PaymentConfirmSheetProps) {
   const [phone, setPhone] = useState("");
   const [shouldSavePhone, setShouldSavePhone] = useState(true);
   const [country, setCountry] = useState<Country>(defaultCountry);
@@ -71,12 +74,15 @@ export default function PaymentConfirmSheet({ event, labels, onClose, onConfirm,
             <div className="flex gap-2"><Ticket aria-hidden="true" className="mt-0.5 text-[#8a9690]" size={15} /><div><dt className="text-[#8a918e]">{labels.ticket}</dt><dd className="font-semibold text-[#008447]">{quantity} vé</dd></div></div>
           </dl>
 
-          <div className="flex items-center text-[16px] font-medium"><span>{labels.total}</span><strong className="ml-auto text-[18px] font-bold text-[#007b45]">{formatTotal(event.price, quantity)}</strong></div>
+          <div className="flex items-center text-[16px] font-medium"><span>{labels.total}</span><strong className="ml-auto text-[18px] font-bold text-[#007b45]">{formatTotal(event.priceValue, quantity)}</strong></div>
+
+          {requiresSignIn && <p className="rounded-md bg-[#fff6e2] px-3 py-2 text-[13px] text-[#8a5b00]">{labels.signInMessage}</p>}
+          {errorMessage && <p className="rounded-md bg-[#fdecec] px-3 py-2 text-[13px] font-medium text-[#b3261e]" role="alert">{errorMessage}</p>}
         </div>
 
         <footer className="flex gap-3 border-t border-[#e7e9e8] px-4 py-3">
           <button className="h-10 flex-1 rounded-lg border border-[#008447] text-[16px] font-semibold text-[#008447]" onClick={() => closeWithAnimation(onClose)} type="button">{labels.cancel}</button>
-          <button className="h-10 flex-[2.1] rounded-lg bg-[#008447] text-[16px] font-semibold text-white disabled:bg-[#e7e7e8] disabled:text-[#b7b8bb]" disabled={!hasValidPhone} onClick={() => closeWithAnimation(onConfirm)} type="button">{labels.confirm}</button>
+          <button className="h-10 flex-[2.1] rounded-lg bg-[#008447] text-[16px] font-semibold text-white disabled:bg-[#e7e7e8] disabled:text-[#b7b8bb]" disabled={!hasValidPhone || isSubmitting} onClick={() => onConfirm(phone)} type="button">{labels.confirm}</button>
         </footer>
       </section>
       {isCountryDialogOpen && <CountryCodeDialog onClose={() => setCountryDialogOpen(false)} onSelect={(selectedCountry) => { setCountry(selectedCountry); setCountryDialogOpen(false); }} />}

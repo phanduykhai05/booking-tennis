@@ -5,6 +5,7 @@ export type BookingEvent = {
   id: string;
   isLive?: boolean;
   price: string;
+  priceValue: number;
   status: string;
   timeEnd: string;
   timeStart: string;
@@ -18,13 +19,15 @@ export type CheckoutLabels = {
   event: string;
   phone: string;
   phonePlaceholder: string;
+  signInMessage: string;
   ticket: string;
   title: string;
   total: string;
   userInfo: string;
 };
 
-export type ProductDetailData = {
+/** Phần chữ cố định của trang chi tiết sân. */
+export type ProductDetailContent = {
   actions: {
     addTicket: string;
     addedTicket: string;
@@ -32,13 +35,28 @@ export type ProductDetailData = {
     payment: string;
     paymentComplete: string;
   };
-  address: string;
   book: string;
   checkout: CheckoutLabels;
-  events: BookingEvent[];
+  emptyEvents: string;
+  eventCountLabel: string;
   liveTitle: string;
-  slug: string;
-  directionsHref: string;
   upcomingTitle: string;
+};
+
+/** Phần dữ liệu lấy từ `GET /venues/:id`. */
+export type ProductDetailData = {
+  address: string;
+  directionsHref: string;
+  events: BookingEvent[];
+  openingLabel: string;
+  phone: string;
+  slug: string;
   venue: string;
+};
+
+export type BookingDateItem = {
+  date: string;
+  day: string;
+  href: string;
+  id: string;
 };

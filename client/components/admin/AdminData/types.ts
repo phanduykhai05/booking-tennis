@@ -102,10 +102,13 @@ export type CourtPayload = {
 };
 
 export type AdminDataContextValue = AdminDataState & {
-  createBooking: (payload: CreateBookingPayload) => string;
-  createCourt: (payload: CourtPayload) => void;
-  updateBookingStatus: (bookingId: string, status: BookingStatus) => void;
-  updateCourt: (courtId: string, payload: CourtPayload) => void;
-  updateCustomerStatus: (customerId: string, status: CustomerStatus) => void;
-  updatePaymentStatus: (paymentId: string, status: PaymentStatus) => void;
+  createBooking: (payload: CreateBookingPayload) => Promise<string>;
+  createCourt: (payload: CourtPayload) => Promise<void>;
+  errorMessage: string;
+  isLoading: boolean;
+  refresh: () => Promise<void>;
+  updateBookingStatus: (bookingId: string, status: BookingStatus) => Promise<void>;
+  updateCourt: (courtId: string, payload: CourtPayload) => Promise<void>;
+  updateCustomerStatus: (customerId: string, status: CustomerStatus) => Promise<void>;
+  updatePaymentStatus: (paymentId: string, status: PaymentStatus) => Promise<void>;
 };

@@ -7,17 +7,39 @@ import { useState } from "react";
 import styles from "@/components/auth/AuthPageAnimation.module.scss";
 import LookupMethodSelector from "@/components/auth/ForgotPassword/components/LookupMethodSelector";
 import SupportActions from "@/components/auth/ForgotPassword/components/SupportActions";
-import { forgotPasswordContent } from "@/components/auth/ForgotPassword/mockData";
+import { forgotPasswordContent } from "@/components/auth/ForgotPassword/content";
 import type { AccountLookupMethod } from "@/components/auth/ForgotPassword/types";
+import { forgotPassword } from "@/lib/api/endpoints";
+import { ApiError } from "@/lib/api/http";
 
 export default function ForgotPassword() {
   const [method, setMethod] = useState<AccountLookupMethod>("email");
   const [value, setValue] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [sentCode, setSentCode] = useState("");
+  const [isSubmitting, setSubmitting] = useState(false);
   const isEmailLookup = method === "email";
 
   const selectMethod = (nextMethod: AccountLookupMethod) => {
     setMethod(nextMethod);
     setValue("");
+    setSentCode("");
+    setErrorMessage("");
+  };
+
+  const submit = async () => {
+    setSubmitting(true);
+    setErrorMessage("");
+    setSentCode("");
+
+    try {
+      const result = await forgotPassword(isEmailLookup ? { email: value } : { phone: value.replace(/\D/g, "") });
+      setSentCode(result.code);
+    } catch (error) {
+      setErrorMessage(error instanceof ApiError ? error.message : forgotPasswordContent.errorMessage);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const fieldLabel = isEmailLookup ? forgotPasswordContent.emailLabel : forgotPasswordContent.phoneLabel;
@@ -38,7 +60,7 @@ export default function ForgotPassword() {
           <h1 className="text-[17px] font-bold" id="forgot-password-title">{forgotPasswordContent.title}</h1>
         </header>
 
-        <form className={`rounded-[9px] bg-white px-4 pb-4 pt-4 shadow-[0_12px_30px_rgba(0,64,36,0.14)] sm:px-[18px] ${styles.formEnter}`} onSubmit={(event) => event.preventDefault()}>
+        <form className={`rounded-[9px] bg-white px-4 pb-4 pt-4 shadow-[0_12px_30px_rgba(0,64,36,0.14)] sm:px-[18px] ${styles.formEnter}`} onSubmit={(event) => { event.preventDefault(); void submit(); }}>
           <p className="text-sm leading-5 text-[#064b30]">{forgotPasswordContent.description}</p>
           <div className="mt-4 space-y-7">
             <LookupMethodSelector activeMethod={method} emailLabel={forgotPasswordContent.email} onSelect={selectMethod} phoneLabel={forgotPasswordContent.phone} title={forgotPasswordContent.lookupTitle} />
@@ -50,7 +72,9 @@ export default function ForgotPassword() {
               </span>
             </label>
           </div>
-          <button className="mt-10 h-11 w-full rounded bg-[#087a46] text-sm font-bold text-white transition hover:bg-[#056b3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087a46] focus-visible:ring-offset-2" type="submit">{forgotPasswordContent.continue}</button>
+          {errorMessage && <p className="mt-6 rounded-md bg-[#fdecec] px-3 py-2 text-[13px] font-medium text-[#b3261e]" role="alert">{errorMessage}</p>}
+          {sentCode && <p className="mt-6 rounded-md bg-[#e6f8ee] px-3 py-2 text-[13px] font-medium text-[#0b5133]" role="status">{forgotPasswordContent.codeSent} <b>{sentCode}</b></p>}
+          <button className="mt-10 h-11 w-full rounded bg-[#087a46] text-sm font-bold text-white transition hover:bg-[#056b3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087a46] focus-visible:ring-offset-2 disabled:bg-[#8fb9a2]" disabled={isSubmitting} type="submit">{forgotPasswordContent.continue}</button>
         </form>
 
         <aside className="mt-11 text-sm leading-5 text-white">

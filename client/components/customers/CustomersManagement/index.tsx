@@ -92,7 +92,7 @@ export default function CustomersManagement() {
       render: (_, customer) => {
         const nextStatus: CustomerStatus = customer.status === "active" ? "inactive" : "active";
         return (
-          <Button onClick={() => updateCustomerStatus(customer.id, nextStatus)} size="small">
+          <Button onClick={() => void updateCustomerStatus(customer.id, nextStatus)} size="small">
             {nextStatus === "active" ? "Kích hoạt" : "Tạm ngưng"}
           </Button>
         );

@@ -7,10 +7,11 @@ import venueCover from "@/components/assets/images/uploads/venues/pickleball_cov
 type ProductHeroProps = {
   address: string;
   bookLabel: string;
+  scheduleHref: string;
   venue: string;
 };
 
-export default function ProductHero({ address, bookLabel, venue }: ProductHeroProps) {
+export default function ProductHero({ address, bookLabel, scheduleHref, venue }: ProductHeroProps) {
   return (
     <header className="relative h-[143px] overflow-hidden text-white">
       <Image alt="Sân Pickleball" className="object-cover" fill priority sizes="(max-width: 430px) 100vw, 410px" src={venueCover} />
@@ -21,7 +22,7 @@ export default function ProductHero({ address, bookLabel, venue }: ProductHeroPr
       <div className="absolute right-3 top-3 flex items-center gap-2 text-xs">
         <Heart aria-hidden="true" className="rounded-full bg-[#ed2d56] p-1 text-[#ffdf1b]" fill="currentColor" size={23} />
         <span className="flex items-center gap-1"><Navigation aria-hidden="true" size={13} />Chỉ đường</span>
-        <button className="rounded-full bg-[#efb91f] px-3 py-2 font-bold text-white transition hover:bg-[#dca50e]" type="button">{bookLabel}</button>
+        <Link className="rounded-full bg-[#efb91f] px-3 py-2 font-bold text-white transition hover:bg-[#dca50e]" href={scheduleHref}>{bookLabel}</Link>
       </div>
       <div className="absolute bottom-4 left-5 right-4 flex items-end gap-3">
         <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-xl border-2 border-white bg-[#f7f2d8] text-xs font-black text-[#006d37]">ĐTG</span>
