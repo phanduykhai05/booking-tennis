@@ -30,3 +30,13 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 17px;
 }
+
+/* Safari iOS tự phóng to khi focus ô nhập có chữ nhỏ hơn 16px. */
+@media (max-width: 767px) {
+  input:not([type="button"]):not([type="reset"]):not([type="submit"]),
+  select,
+  textarea,
+  [contenteditable="true"] {
+    font-size: 16px !important;
+  }
+}
