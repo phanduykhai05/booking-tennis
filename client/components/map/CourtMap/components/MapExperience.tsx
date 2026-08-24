@@ -1,14 +1,16 @@
-"use client";
-
+import { useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
+import { Text, View } from "react-native";
 
+import type { SportCategoryIcon } from "@/components/home/SportCategories/types";
 import MapControls from "@/components/map/CourtMap/components/MapControls";
 import MapFilters from "@/components/map/CourtMap/components/MapFilters";
 import MapSearch from "@/components/map/CourtMap/components/MapSearch";
 import OpenStreetMapCanvas from "@/components/map/CourtMap/components/OpenStreetMapCanvas";
 import type { OpenStreetMapCanvasHandle } from "@/components/map/CourtMap/components/OpenStreetMapCanvas";
 import type { CourtMapContent, CourtMapFilter, CourtMapMarker } from "@/components/map/CourtMap/types";
-import type { SportCategoryIcon } from "@/components/home/SportCategories/types";
+import { shadow } from "@/components/ui/theme";
+import { normalizeText } from "@/lib/format";
 
 type MapExperienceProps = {
   brandName: string;
@@ -17,10 +19,8 @@ type MapExperienceProps = {
   markers: CourtMapMarker[];
 };
 
-const normalize = (value: string) =>
-  value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
-
 export default function MapExperience({ brandName, content, filters, markers }: MapExperienceProps) {
+  const router = useRouter();
   const mapRef = useRef<OpenStreetMapCanvasHandle>(null);
   const [showVenueLayer, setShowVenueLayer] = useState(true);
   const [query, setQuery] = useState("");
@@ -29,10 +29,11 @@ export default function MapExperience({ brandName, content, filters, markers }: 
 
   // Lọc pin theo bộ môn đang chọn và theo từ khoá (khớp tên, không dấu).
   const visibleMarkers = useMemo(() => {
-    const needle = normalize(query);
+    const needle = normalizeText(query);
+
     return markers.filter((marker) => {
       if (activeSport && marker.sport !== activeSport) return false;
-      if (needle && !normalize(marker.name).includes(needle)) return false;
+      if (needle && !normalizeText(marker.name).includes(needle)) return false;
       return true;
     });
   }, [activeSport, markers, query]);
@@ -53,14 +54,16 @@ export default function MapExperience({ brandName, content, filters, markers }: 
   };
 
   return (
-    <>
+    <View className="flex-1">
       <OpenStreetMapCanvas
         geolocationUnavailableMessage={content.geolocationUnavailableMessage}
         markers={visibleMarkers}
+        onMarkerPress={(markerId) => router.push(`/product/${markerId}`)}
         ref={mapRef}
         showVenueLayer={showVenueLayer}
         unavailableMessage={content.unavailableMapMessage}
       />
+
       <MapSearch
         brandName={brandName}
         inputLabel={content.searchInputLabel}
@@ -73,7 +76,9 @@ export default function MapExperience({ brandName, content, filters, markers }: 
         submitLabel={content.searchSubmitLabel}
         value={query}
       />
+
       <MapFilters activeId={activeSport} filters={filters} onSelect={selectSport} />
+
       <MapControls
         currentLocationLabel={content.currentLocationLabel}
         isVenueLayerVisible={showVenueLayer}
@@ -81,14 +86,18 @@ export default function MapExperience({ brandName, content, filters, markers }: 
         onLocate={() => mapRef.current?.locate()}
         onToggleVenueLayer={() => setShowVenueLayer((isVisible) => !isVisible)}
       />
-      {notice && (
-        <p className="absolute left-1/2 top-[120px] z-[1002] -translate-x-1/2 rounded-full bg-white/95 px-4 py-1.5 text-[13px] font-medium text-slate-700 shadow-[0_4px_14px_rgba(15,23,42,0.2)]" role="status">
-          {notice}
-        </p>
-      )}
-      <p className="absolute bottom-20 left-3 z-[1001] rounded bg-white/85 px-1.5 py-0.5 text-[11px] text-slate-600">
+
+      {notice ? (
+        <View className="absolute left-6 right-6 top-[120px] items-center">
+          <Text className="rounded-full bg-white/95 px-4 py-1.5 text-[13px] font-medium text-slate-700" style={shadow.card}>
+            {notice}
+          </Text>
+        </View>
+      ) : null}
+
+      <Text className="absolute bottom-24 left-3 rounded bg-white/85 px-1.5 py-0.5 text-[11px] text-slate-600">
         {content.mapAttribution} · {visibleMarkers.length} sân
-      </p>
-    </>
+      </Text>
+    </View>
   );
 }

@@ -1,3 +1,5 @@
+import { View } from "react-native";
+
 import HeaderAccount from "@/components/layouts/PublicHeader/components/HeaderAccount";
 import HeaderBackdrop from "@/components/layouts/PublicHeader/components/HeaderBackdrop";
 import HeaderLogo from "@/components/layouts/PublicHeader/components/HeaderLogo";
@@ -6,37 +8,41 @@ import LanguageSelector from "@/components/layouts/PublicHeader/components/Langu
 import TodayLabel from "@/components/layouts/PublicHeader/components/TodayLabel";
 import { headerShortcuts, publicHeaderContent } from "@/components/layouts/PublicHeader/mockData";
 
-export default function PublicHeader() {
-  // Không dùng overflow-hidden ở header: HeaderBackdrop đã tự clip, còn dropdown tài khoản cần tràn xuống dưới header.
+type PublicHeaderProps = {
+  onSearchChange: (value: string) => void;
+  searchValue: string;
+};
+
+export default function PublicHeader({ onSearchChange, searchValue }: PublicHeaderProps) {
   return (
-    <header className="relative z-20 w-full bg-[#0f9b58] shadow-[0_8px_24px_-14px_rgba(3,52,32,0.9)]">
+    <View className="w-full bg-[#0f9b58]">
       <HeaderBackdrop />
 
-      <div className="relative mx-auto w-full max-w-[1275px] px-3 pb-4 pt-4 sm:px-4">
-        <div className="flex items-start gap-3 lg:items-center">
+      <View className="w-full max-w-[1275px] self-center px-3 pb-4 pt-4">
+        <View className="flex-row items-start gap-3">
           <HeaderLogo brandName={publicHeaderContent.brandName} />
 
-          {/* Mobile xếp dọc dưới ngày; desktop trải ngang để lấp khoảng trống bên phải. */}
-          <div className="flex min-w-0 flex-1 flex-col pt-1.5 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:pt-0">
-            <TodayLabel fallbackLabel={publicHeaderContent.todayFallbackLabel} />
-            <div className="mt-3.5 lg:mt-0 lg:shrink-0">
+          <View className="min-w-0 flex-1 pt-1.5">
+            <TodayLabel />
+            <View className="mt-3.5">
               <HeaderAccount />
-            </div>
-          </div>
+            </View>
+          </View>
 
           <LanguageSelector label={publicHeaderContent.languageLabel} />
-        </div>
+        </View>
 
-        <div className="relative mt-4">
+        <View className="mt-4">
           <HeaderSearch
             favoriteLabel={publicHeaderContent.favoriteLabel}
-            inputLabel={publicHeaderContent.searchInputLabel}
+            onChange={onSearchChange}
             placeholder={publicHeaderContent.searchPlaceholder}
             shortcuts={headerShortcuts}
             submitLabel={publicHeaderContent.searchSubmitLabel}
+            value={searchValue}
           />
-        </div>
-      </div>
-    </header>
+        </View>
+      </View>
+    </View>
   );
 }

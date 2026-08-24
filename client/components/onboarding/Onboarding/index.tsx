@@ -1,7 +1,6 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import { useRouter } from "expo-router";
 import { useState } from "react";
+import { View } from "react-native";
 
 import images from "@/components/assets/images";
 import ContinueButton from "@/components/onboarding/Onboarding/components/ContinueButton";
@@ -10,6 +9,7 @@ import SlideMedia from "@/components/onboarding/Onboarding/components/SlideMedia
 import SlideText from "@/components/onboarding/Onboarding/components/SlideText";
 import StepDots from "@/components/onboarding/Onboarding/components/StepDots";
 import { onboardingContent } from "@/components/onboarding/Onboarding/mockData";
+import Screen from "@/components/ui/Screen";
 
 export default function Onboarding() {
   const router = useRouter();
@@ -19,30 +19,33 @@ export default function Onboarding() {
   const activeSlide = slides[activeIndex];
   const isLastSlide = activeIndex === slides.length - 1;
 
-  function handleContinue() {
+  const handleContinue = () => {
     if (isLastSlide) {
-      router.push("/");
+      router.replace("/");
       return;
     }
+
     setActiveIndex((current) => current + 1);
-  }
+  };
 
   return (
-    <div className="flex min-h-dvh flex-col bg-white">
-      <div className="flex justify-end px-4 pt-4">
-        <SkipLink label={skipLabel} />
-      </div>
+    <Screen backgroundColor="#ffffff" edges={["bottom", "top"]}>
+      <View className="flex-1">
+        <View className="flex-row justify-end px-4 pt-4">
+          <SkipLink label={skipLabel} onPress={() => router.replace("/")} />
+        </View>
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-8">
-        <SlideMedia alt={activeSlide.title} image={images.onboarding[activeIndex]} />
-        <SlideText description={activeSlide.description} title={activeSlide.title} />
-      </div>
+        <View className="flex-1 items-center justify-center gap-8">
+          <SlideMedia image={images.onboarding[activeIndex]} />
+          <SlideText description={activeSlide.description} title={activeSlide.title} />
+        </View>
 
-      <div className="pb-4">
-        <StepDots activeIndex={activeIndex} onSelect={setActiveIndex} total={slides.length} />
-      </div>
+        <View className="pb-4">
+          <StepDots activeIndex={activeIndex} onSelect={setActiveIndex} total={slides.length} />
+        </View>
 
-      <ContinueButton label={continueLabel} onClick={handleContinue} />
-    </div>
+        <ContinueButton label={continueLabel} onPress={handleContinue} />
+      </View>
+    </Screen>
   );
 }

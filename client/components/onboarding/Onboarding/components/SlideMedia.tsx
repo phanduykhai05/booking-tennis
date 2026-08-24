@@ -1,14 +1,15 @@
-import Image, { type StaticImageData } from "next/image";
+import { Image } from "expo-image";
+import { View } from "react-native";
+import type { ImageSourcePropType } from "react-native";
 
 type SlideMediaProps = {
-  alt: string;
-  image: StaticImageData;
+  image: ImageSourcePropType;
 };
 
-export default function SlideMedia({ alt, image }: SlideMediaProps) {
+export default function SlideMedia({ image }: SlideMediaProps) {
   return (
-    <div className="relative aspect-[23/20] w-full max-w-[280px] overflow-hidden rounded-[28px]">
-      <Image alt={alt} className="object-cover" fill priority sizes="280px" src={image} />
-    </div>
+    <View className="aspect-[23/20] w-full max-w-[280px] overflow-hidden rounded-[28px]">
+      <Image contentFit="cover" source={image} style={{ height: "100%", width: "100%" }} />
+    </View>
   );
 }

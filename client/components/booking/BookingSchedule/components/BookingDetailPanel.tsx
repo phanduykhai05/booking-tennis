@@ -1,7 +1,5 @@
-"use client";
-
-import { UserOutlined } from "@ant-design/icons";
-import { Alert, Avatar, Button, Descriptions, Drawer, Flex, Form, Input, Space, Tag, Typography } from "antd";
+import { useState } from "react";
+import { Text, View } from "react-native";
 
 import StatusBadge from "@/components/admin/shared/StatusBadge";
 import { bookingStatusStyles } from "@/components/booking/BookingSchedule/components/bookingStatusStyles";
@@ -15,127 +13,189 @@ import type {
   CreateBookingInput,
 } from "@/components/booking/BookingSchedule/types";
 import { formatCurrency, formatDateLabel, formatMinutes } from "@/components/booking/BookingSchedule/utils";
+import Avatar, { getInitials } from "@/components/ui/Avatar";
+import Button from "@/components/ui/Button";
+import Drawer from "@/components/ui/Drawer";
+import FormField from "@/components/ui/FormField";
+import TextField from "@/components/ui/TextField";
 
 type BookingDetailPanelProps = {
   booking?: CourtBooking;
   content: BookingScheduleContent;
   court?: BookingCourt;
   customer?: BookingCustomer;
+  isOpen: boolean;
   onClose: () => void;
   onCreate: (input: CreateBookingInput) => void;
   onStatusChange: (status: BookingStatus) => void;
-  open: boolean;
-  // Nullable để Drawer luôn được mount, nhờ vậy còn chạy được animation lúc đóng.
   selection: BookingSelection | null;
 };
 
-const emptyCreateValues: CreateBookingInput = { customerName: "", customerPhone: "", note: "" };
+type DescriptionRowProps = { isLast?: boolean; label: string; value: string };
 
-function getInitials(name: string) {
-  return name.split(" ").slice(-2).map((part) => part[0]).join("");
+// RN không có bộ chọn `:last-child`, nên dòng cuối phải được đánh dấu bằng prop.
+function DescriptionRow({ isLast, label, value }: DescriptionRowProps) {
+  return (
+    <View className={`flex-row ${isLast ? "" : "border-b border-slate-200"}`}>
+      <View className="w-[130px] bg-slate-50 px-3 py-2">
+        <Text className="text-[13px] text-slate-500">{label}</Text>
+      </View>
+      <View className="flex-1 px-3 py-2">
+        <Text className="text-[13px] text-slate-800">{value}</Text>
+      </View>
+    </View>
+  );
 }
 
-export default function BookingDetailPanel({ booking, content, court, customer, onClose, onCreate, onStatusChange, open, selection }: BookingDetailPanelProps) {
+export default function BookingDetailPanel({
+  booking,
+  content,
+  court,
+  customer,
+  isOpen,
+  onClose,
+  onCreate,
+  onStatusChange,
+  selection,
+}: BookingDetailPanelProps) {
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [note, setNote] = useState("");
+  const [errors, setErrors] = useState({ name: "", phone: "" });
+
   const isCreating = selection?.kind === "slot";
   const canChangeStatus = Boolean(booking) && booking?.status !== "cancelled" && booking?.status !== "completed";
 
-  function handleFinish(values: CreateBookingInput) {
-    onCreate({
-      customerName: values.customerName.trim(),
-      customerPhone: values.customerPhone.trim(),
-      note: values.note?.trim() ?? "",
-    });
-  }
+  const submitCreate = () => {
+    const nextErrors = {
+      name: customerName.trim() ? "" : "Nhập tên khách hàng",
+      phone: customerPhone.trim() ? "" : "Nhập số điện thoại",
+    };
+    setErrors(nextErrors);
 
-  function renderFooter() {
-    if (isCreating) {
-      return <Button block form="create-booking-form" htmlType="submit" size="large" type="primary">{content.createBookingLabel}</Button>;
-    }
+    if (nextErrors.name || nextErrors.phone) return;
+
+    onCreate({ customerName: customerName.trim(), customerPhone: customerPhone.trim(), note: note.trim() });
+    setCustomerName("");
+    setCustomerPhone("");
+    setNote("");
+  };
+
+  const renderFooter = () => {
+    if (isCreating) return <Button fullWidth label={content.createBookingLabel} onPress={submitCreate} size="large" />;
+
     if (canChangeStatus) {
       return (
-        <Space className="w-full" classNames={{ item: "flex-1" }}>
-          <Button block danger onClick={() => onStatusChange("cancelled")} size="large">{content.cancelBookingLabel}</Button>
-          <Button block onClick={() => onStatusChange("confirmed")} size="large" type="primary">{content.confirmBookingLabel}</Button>
-        </Space>
+        <View className="flex-row gap-2">
+          <View className="flex-1">
+            <Button fullWidth label={content.cancelBookingLabel} onPress={() => onStatusChange("cancelled")} size="large" tone="danger" />
+          </View>
+          <View className="flex-1">
+            <Button fullWidth label={content.confirmBookingLabel} onPress={() => onStatusChange("confirmed")} size="large" />
+          </View>
+        </View>
       );
     }
-    return <Button block onClick={onClose} size="large">{content.closeLabel}</Button>;
-  }
+
+    return <Button fullWidth label={content.closeLabel} onPress={onClose} size="large" tone="outline" />;
+  };
 
   return (
     <Drawer
-      destroyOnHidden
       footer={renderFooter()}
+      isOpen={isOpen}
       onClose={onClose}
-      open={open}
       title={isCreating ? content.createBookingLabel : content.bookingDetailLabel}
-      width={460}
     >
       {court ? (
-        <Alert
-          className="!mb-4"
-          description={`${content.surfaceLabels[court.surface]}${court.isIndoor ? ` · ${content.indoorLabel}` : ""}`}
-          message={
-            <Flex align="center" gap="small" justify="space-between">
-              <Typography.Text strong>{court.name}</Typography.Text>
-              <StatusBadge label={content.courtStatusLabels[court.status]} tone={court.status === "available" ? "emerald" : "slate"} />
-            </Flex>
-          }
-          type={court.status === "available" ? "success" : "warning"}
-        />
+        <View
+          className={`rounded-lg border p-3 ${court.status === "available" ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}
+        >
+          <View className="flex-row items-center justify-between gap-2">
+            <Text className="text-[15px] font-bold text-slate-900">{court.name}</Text>
+            <StatusBadge
+              label={content.courtStatusLabels[court.status]}
+              tone={court.status === "available" ? "emerald" : "slate"}
+            />
+          </View>
+          <Text className="mt-1 text-[13px] text-slate-600">
+            {content.surfaceLabels[court.surface]}
+            {court.isIndoor ? ` · ${content.indoorLabel}` : ""}
+          </Text>
+        </View>
       ) : null}
 
       {selection?.kind === "slot" ? (
-        <Form<CreateBookingInput> id="create-booking-form" initialValues={emptyCreateValues} layout="vertical" onFinish={handleFinish}>
-          <Alert
-            className="!mb-4"
-            description={`${formatDateLabel(selection.date)} · ${formatMinutes(selection.startMinute)} – ${formatMinutes(selection.endMinute)}`}
-            message={content.createBookingDescription}
-            showIcon
-            type="info"
-          />
+        <View className="gap-4">
+          <View className="rounded-lg border border-sky-200 bg-sky-50 p-3">
+            <Text className="text-[14px] font-semibold text-sky-900">{content.createBookingDescription}</Text>
+            <Text className="mt-1 text-[13px] text-sky-800">
+              {formatDateLabel(selection.date)} · {formatMinutes(selection.startMinute)} – {formatMinutes(selection.endMinute)}
+            </Text>
+          </View>
 
-          <Form.Item label={content.customerNameLabel} name="customerName" rules={[{ message: "Nhập tên khách hàng", required: true }]}>
-            <Input autoFocus placeholder={content.customerNamePlaceholder} size="large" />
-          </Form.Item>
-          <Form.Item label={content.customerPhoneLabel} name="customerPhone" rules={[{ message: "Nhập số điện thoại", required: true }]}>
-            <Input placeholder={content.customerPhonePlaceholder} size="large" type="tel" />
-          </Form.Item>
-          <Form.Item label={content.noteLabel} name="note">
-            <Input.TextArea placeholder={content.notePlaceholder} rows={3} />
-          </Form.Item>
-        </Form>
+          <FormField error={errors.name} label={content.customerNameLabel}>
+            <TextField
+              autoCapitalize="words"
+              onChangeText={setCustomerName}
+              placeholder={content.customerNamePlaceholder}
+              value={customerName}
+            />
+          </FormField>
+
+          <FormField error={errors.phone} label={content.customerPhoneLabel}>
+            <TextField
+              keyboardType="phone-pad"
+              onChangeText={setCustomerPhone}
+              placeholder={content.customerPhonePlaceholder}
+              value={customerPhone}
+            />
+          </FormField>
+
+          <FormField label={content.noteLabel}>
+            <TextField multiline onChangeText={setNote} placeholder={content.notePlaceholder} value={note} />
+          </FormField>
+        </View>
       ) : booking && customer ? (
-        <div className="space-y-4">
+        <View className="gap-4">
           {/* Khối tóm tắt: mã, trạng thái và giá trị — ba thứ cần thấy ngay khi mở panel. */}
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <Flex align="center" gap="middle" justify="space-between" wrap>
-              <div>
-                <Typography.Text className="!text-xs" type="secondary">{content.bookingCodeLabel}</Typography.Text>
-                <Typography.Title className="!mb-0 !mt-0.5" level={4}>{booking.code}</Typography.Title>
-              </div>
-              <Tag color={bookingStatusStyles[booking.status].accent} style={{ marginInlineEnd: 0 }}>
-                {content.bookingStatusLabels[booking.status]}
-              </Tag>
-            </Flex>
-            <Typography.Title className="!mb-0 !mt-3" level={3} type="success">{formatCurrency(booking.totalPrice)}</Typography.Title>
-          </div>
+          <View className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <View className="flex-row flex-wrap items-center justify-between gap-3">
+              <View>
+                <Text className="text-[12px] text-slate-500">{content.bookingCodeLabel}</Text>
+                <Text className="mt-0.5 text-[20px] font-bold text-slate-900">{booking.code}</Text>
+              </View>
+              <View className="rounded px-2 py-1" style={{ backgroundColor: bookingStatusStyles[booking.status].background }}>
+                <Text className="text-[12px] font-semibold" style={{ color: bookingStatusStyles[booking.status].text }}>
+                  {content.bookingStatusLabels[booking.status]}
+                </Text>
+              </View>
+            </View>
+            <Text className="mt-3 text-[24px] font-bold text-emerald-600">{formatCurrency(booking.totalPrice)}</Text>
+          </View>
 
-          <Flex align="center" gap="middle">
-            <Avatar icon={<UserOutlined />} size={44}>{getInitials(customer.name)}</Avatar>
-            <div className="min-w-0">
-              <Typography.Paragraph className="!mb-0" strong>{customer.name}</Typography.Paragraph>
-              <Typography.Text className="!text-xs" type="secondary">{customer.phone}</Typography.Text>
-            </div>
-          </Flex>
+          <View className="flex-row items-center gap-3">
+            <Avatar label={getInitials(customer.name)} size={44} />
+            <View className="min-w-0 flex-1">
+              <Text className="text-[15px] font-bold text-slate-900">{customer.name}</Text>
+              <Text className="text-[12px] text-slate-500">{customer.phone}</Text>
+            </View>
+          </View>
 
-          <Descriptions bordered column={1} items={[
-            { children: <span className="capitalize">{formatDateLabel(booking.bookingDate)}</span>, key: "date", label: content.dateLabel },
-            { children: `${formatMinutes(booking.startMinute)} – ${formatMinutes(booking.endMinute)}`, key: "time", label: content.timeLabel },
-            { children: content.paymentStatusLabels[booking.paymentStatus], key: "payment", label: content.paymentLabel },
-            ...(booking.note ? [{ children: booking.note, key: "note", label: content.noteLabel }] : []),
-          ]} size="small" />
-        </div>
+          <View className="overflow-hidden rounded-lg border border-slate-200">
+            <DescriptionRow label={content.dateLabel} value={formatDateLabel(booking.bookingDate)} />
+            <DescriptionRow
+              label={content.timeLabel}
+              value={`${formatMinutes(booking.startMinute)} – ${formatMinutes(booking.endMinute)}`}
+            />
+            <DescriptionRow
+              isLast={!booking.note}
+              label={content.paymentLabel}
+              value={content.paymentStatusLabels[booking.paymentStatus]}
+            />
+            {booking.note ? <DescriptionRow isLast label={content.noteLabel} value={booking.note} /> : null}
+          </View>
+        </View>
       ) : null}
     </Drawer>
   );

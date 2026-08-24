@@ -1,12 +1,18 @@
-<!-- BEGIN:nextjs-agent-rules -->
+# Quy ước cho client (Expo / React Native)
 
-# This is NOT the Next.js you know
+Đây là ứng dụng Expo, **không phải Next.js**. Trước khi viết code:
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
-
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->
+- Điều hướng theo file trong `app/` bằng **expo-router** (`useRouter`, `Link`, `Redirect`).
+  Không dùng `next/link`, `next/navigation`, `next/image`.
+- Mọi phần tử là component React Native (`View`, `Text`, `Pressable`, `ScrollView`…),
+  không dùng thẻ DOM. Ngoại lệ duy nhất: file có đuôi `.web.tsx` (chỉ vào bundle web).
+- Chữ luôn nằm trong `<Text>`; RN không render chuỗi trần.
+- Style viết bằng `className` của NativeWind. Các tiện ích chỉ có trên web
+  (`grid`, `sticky`, `fixed`, `last:`, `group-hover:`, `focus-visible:`, `backdrop-*`)
+  không hoạt động trên native — dùng flex, `absolute`, hoặc prop thay thế.
+- Icon lấy từ `lucide-react-native`; icon bộ alobo lấy từ `@/components/assets/icons`.
+  Ảnh bitmap lấy từ `@/components/assets/images`.
+- Không dùng `Intl` cho tiền/ngày: dùng `@/lib/format` và `@/lib/date`.
 
 ## Team workflow
 

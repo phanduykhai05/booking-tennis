@@ -1,8 +1,9 @@
-"use client";
-
-import { Search } from "lucide-react";
+import { Search } from "lucide-react-native";
+import { TextInput, View } from "react-native";
 
 import HeaderLogo from "@/components/layouts/PublicHeader/components/HeaderLogo";
+import Touch from "@/components/ui/Pressable";
+import { shadow } from "@/components/ui/theme";
 
 type MapSearchProps = {
   brandName: string;
@@ -16,28 +17,23 @@ type MapSearchProps = {
 
 export default function MapSearch({ brandName, inputLabel, onChange, onSubmit, placeholder, submitLabel, value }: MapSearchProps) {
   return (
-    <form
-      className="absolute left-3 right-3 top-3 z-[1001] flex h-12 items-center rounded-full bg-white px-3 shadow-[0_3px_12px_rgba(15,23,42,0.2)]"
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSubmit();
-      }}
-    >
-      <span className="mr-2 scale-[0.56] origin-left"><HeaderLogo brandName={brandName} /></span>
-      <label className="sr-only" htmlFor="map-search">{inputLabel}</label>
-      <input
-        autoComplete="off"
-        className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
-        id="map-search"
-        name="search"
-        onChange={(event) => onChange(event.target.value)}
+    <View className="absolute left-3 right-3 top-3 h-12 flex-row items-center rounded-full bg-white px-3" style={shadow.raised}>
+      <View className="mr-2">
+        <HeaderLogo brandName={brandName} size={28} />
+      </View>
+      <TextInput
+        accessibilityLabel={inputLabel}
+        className="min-w-0 flex-1 text-[15px] text-slate-800"
+        onChangeText={onChange}
+        onSubmitEditing={onSubmit}
         placeholder={placeholder}
-        type="search"
+        placeholderTextColor="#94a3b8"
+        returnKeyType="search"
         value={value}
       />
-      <button aria-label={submitLabel} className="flex size-8 items-center justify-center rounded-full text-emerald-700 transition-colors hover:bg-emerald-50" type="submit">
-        <Search aria-hidden="true" className="size-5" strokeWidth={2.5} />
-      </button>
-    </form>
+      <Touch accessibilityLabel={submitLabel} className="h-8 w-8 items-center justify-center rounded-full" onPress={onSubmit}>
+        <Search color="#047857" size={20} strokeWidth={2.5} />
+      </Touch>
+    </View>
   );
 }

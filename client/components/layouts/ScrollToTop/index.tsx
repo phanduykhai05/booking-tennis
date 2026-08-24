@@ -1,35 +1,30 @@
-"use client";
+import { ArrowUp } from "lucide-react-native";
+import { View } from "react-native";
 
-import { ArrowUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import Touch from "@/components/ui/Pressable";
+import { shadow } from "@/components/ui/theme";
 
 type ScrollToTopProps = {
+  isVisible: boolean;
   label: string;
+  onPress: () => void;
 };
 
-const VISIBLE_AFTER = 320;
-
-export default function ScrollToTop({ label }: ScrollToTopProps) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    // Không gọi handler ngay trong effect: setState đồng bộ ở đây sẽ tạo render thừa.
-    const handleScroll = () => setIsVisible(window.scrollY > VISIBLE_AFTER);
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+/** Nút "lên đầu trang"; màn hình cha theo dõi vị trí cuộn rồi bật/tắt qua prop. */
+export default function ScrollToTop({ isVisible, label, onPress }: ScrollToTopProps) {
+  if (!isVisible) return null;
 
   return (
-    <button
-      aria-hidden={!isVisible}
-      aria-label={label}
-      className={`fixed bottom-[92px] right-4 z-20 flex size-10 items-center justify-center rounded-full bg-white text-slate-600 shadow-[0_4px_14px_-4px_rgba(15,23,42,0.4)] transition-all duration-200 hover:text-[#0f9b58] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f9b58]/50 active:scale-95 ${isVisible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"}`}
-      onClick={() => window.scrollTo({ behavior: "smooth", top: 0 })}
-      tabIndex={isVisible ? 0 : -1}
-      type="button"
-    >
-      <ArrowUp aria-hidden="true" className="size-5" strokeWidth={2} />
-    </button>
+    <View className="absolute bottom-[92px] right-4 z-20">
+      <Touch
+        accessibilityLabel={label}
+        accessibilityRole="button"
+        className="h-10 w-10 items-center justify-center rounded-full bg-white"
+        onPress={onPress}
+        style={shadow.raised}
+      >
+        <ArrowUp color="#0f9b58" size={20} strokeWidth={2} />
+      </Touch>
+    </View>
   );
 }

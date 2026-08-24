@@ -1,18 +1,18 @@
-import { ChevronRight } from "lucide-react";
-import Link from "next/link";
+import { ChevronRight } from "lucide-react-native";
+import { Text } from "react-native";
+
+import Touch from "@/components/ui/Pressable";
 
 type SkipLinkProps = {
   label: string;
+  onPress: () => void;
 };
 
-export default function SkipLink({ label }: SkipLinkProps) {
+export default function SkipLink({ label, onPress }: SkipLinkProps) {
   return (
-    <Link
-      className="inline-flex items-center gap-0.5 text-sm font-semibold text-emerald-700 transition-colors hover:text-emerald-800"
-      href="/"
-    >
-      {label}
-      <ChevronRight aria-hidden="true" className="size-4" />
-    </Link>
+    <Touch className="flex-row items-center gap-0.5" onPress={onPress}>
+      <Text className="text-[15px] font-semibold text-emerald-700">{label}</Text>
+      <ChevronRight color="#047857" size={16} />
+    </Touch>
   );
 }

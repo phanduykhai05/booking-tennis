@@ -1,3 +1,4 @@
+import type { SportCategoryId } from "@/components/home/SportCategories/types";
 export type VenueBadgeTone = "event" | "single";
 
 export type VenueBadge = {
@@ -53,4 +54,3 @@ export type NearbyVenuesContent = {
   previewVenueMark: string;
   sectionLabel: string;
 };
-import type { SportCategoryId } from "@/components/home/SportCategories/types";

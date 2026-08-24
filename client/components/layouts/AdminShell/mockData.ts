@@ -13,7 +13,7 @@ export const adminShellContent: AdminShellContent = {
 
 export const adminHomeHref = "/admin/dashboard";
 
-// Route thật nằm dưới app/(private)/admin nên mọi href đều phải có tiền tố /admin.
+// Route thật nằm dưới app/admin nên mọi href đều phải có tiền tố /admin.
 export const adminNavigationItems: AdminNavigationItem[] = [
   { href: "/admin/dashboard", icon: "dashboard", id: "dashboard", label: "Tổng quan" },
   { href: "/admin/bookings", icon: "bookings", id: "bookings", label: "Lịch đặt sân" },

@@ -1,6 +1,6 @@
-"use client";
-
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { View } from "react-native";
+import type { ReactNode } from "react";
 
 import type {
   AdminDataContextValue,
@@ -11,6 +11,7 @@ import type {
   CustomerStatus,
   PaymentStatus,
 } from "@/components/admin/AdminData/types";
+import { ErrorMessage } from "@/components/ui/Feedback";
 import {
   adminCreateBooking,
   adminCreateCourt,
@@ -35,7 +36,7 @@ const emptyState: AdminDataState = {
 };
 
 type AdminDataProviderProps = {
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 export default function AdminDataProvider({ children }: AdminDataProviderProps) {
@@ -114,11 +115,11 @@ export default function AdminDataProvider({ children }: AdminDataProviderProps) 
 
   return (
     <AdminDataContext.Provider value={value}>
-      {errorMessage && (
-        <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
-          {errorMessage}
-        </div>
-      )}
+      {errorMessage ? (
+        <View className="mb-4">
+          <ErrorMessage text={errorMessage} />
+        </View>
+      ) : null}
       {children}
     </AdminDataContext.Provider>
   );

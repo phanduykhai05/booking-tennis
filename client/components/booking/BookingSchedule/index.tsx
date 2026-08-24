@@ -1,7 +1,5 @@
-"use client";
-
-import { App, Card } from "antd";
 import { useMemo, useState } from "react";
+import { View, useWindowDimensions } from "react-native";
 
 import { useAdminData } from "@/components/admin/AdminData";
 import AdminPageHeader from "@/components/admin/shared/AdminPageHeader";
@@ -25,6 +23,9 @@ import type {
   CreateBookingInput,
 } from "@/components/booking/BookingSchedule/types";
 import { shiftDate } from "@/components/booking/BookingSchedule/utils";
+import Card from "@/components/ui/Card";
+import { useToast } from "@/components/ui/Toast";
+import { matchesQuery } from "@/lib/format";
 
 const initialFilters: BookingFilterState = {
   courtId: "all",
@@ -33,7 +34,8 @@ const initialFilters: BookingFilterState = {
 };
 
 export default function BookingSchedule() {
-  const { message } = App.useApp();
+  const { success } = useToast();
+  const { width } = useWindowDimensions();
   const { bookings, courts, createBooking, customers, updateBookingStatus, venues } = useAdminData();
   const [date, setDate] = useState(bookingScheduleConfig.initialDate);
   const [filters, setFilters] = useState(initialFilters);
@@ -42,10 +44,7 @@ export default function BookingSchedule() {
 
   const customerMap = useMemo(() => new Map(customers.map((customer) => [customer.id, customer])), [customers]);
 
-  const dateBookings = useMemo(
-    () => bookings.filter((booking) => booking.bookingDate === date),
-    [bookings, date],
-  );
+  const dateBookings = useMemo(() => bookings.filter((booking) => booking.bookingDate === date), [bookings, date]);
 
   const visibleCourts = useMemo(
     () => courts.filter((court) => filters.courtId === "all" || court.id === filters.courtId),
@@ -53,32 +52,26 @@ export default function BookingSchedule() {
   );
 
   const filteredBookings = useMemo(() => {
-    const query = filters.query.trim().toLocaleLowerCase("vi");
+    const query = filters.query.trim();
 
     return dateBookings.filter((booking) => {
       const customer = customerMap.get(booking.customerId);
       const matchesCourt = filters.courtId === "all" || booking.courtId === filters.courtId;
       const matchesStatus = filters.status === "all" || booking.status === filters.status;
-      const matchesQuery = !query
-        || booking.code.toLocaleLowerCase("vi").includes(query)
-        || customer?.name.toLocaleLowerCase("vi").includes(query);
+      const matchesText =
+        !query || matchesQuery(booking.code, query) || Boolean(customer && matchesQuery(customer.name, query));
 
-      return matchesCourt && matchesStatus && Boolean(matchesQuery);
+      return matchesCourt && matchesStatus && matchesText;
     });
   }, [customerMap, dateBookings, filters]);
 
-  const selectedBooking = selection?.kind === "booking"
-    ? bookings.find((booking) => booking.id === selection.bookingId)
-    : undefined;
+  const selectedBooking =
+    selection?.kind === "booking" ? bookings.find((booking) => booking.id === selection.bookingId) : undefined;
   const selectedCourtId = selection?.kind === "slot" ? selection.courtId : selectedBooking?.courtId;
   const selectedCourt = courts.find((court) => court.id === selectedCourtId);
   const selectedCustomer = selectedBooking ? customerMap.get(selectedBooking.customerId) : undefined;
 
-  function handleSlotSelect(courtId: string, startMinute: number, endMinute: number) {
-    setSelection({ courtId, date, endMinute, kind: "slot", startMinute });
-  }
-
-  async function handleCreateBooking(input: CreateBookingInput) {
+  const handleCreateBooking = async (input: CreateBookingInput) => {
     if (!selection || selection.kind !== "slot") return;
 
     const bookingId = await createBooking({
@@ -90,18 +83,18 @@ export default function BookingSchedule() {
       note: input.note,
       startMinute: selection.startMinute,
     });
+
     setSelection({ bookingId, kind: "booking" });
-    message.success(bookingScheduleContent.bookingCreatedMessage);
-  }
+    success(bookingScheduleContent.bookingCreatedMessage);
+  };
 
-  function handleStatusChange(status: BookingStatus) {
+  const handleStatusChange = (status: BookingStatus) => {
     if (!selectedBooking) return;
-
     void updateBookingStatus(selectedBooking.id, status);
-  }
+  };
 
   return (
-    <div className="space-y-5">
+    <View className="gap-5">
       <AdminPageHeader
         actions={<BookingViewSwitcher onChange={setViewMode} value={viewMode} />}
         description={`Theo dõi công suất sân, khách hàng và trạng thái thanh toán tại ${venues[0]?.name ?? bookingScheduleContent.venueName}.`}
@@ -110,7 +103,7 @@ export default function BookingSchedule() {
       />
 
       <Card>
-        <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center">
+        <View className={width >= 1100 ? "flex-row items-center gap-3" : "gap-3"}>
           <BookingDateSelector
             content={bookingScheduleContent}
             date={date}
@@ -118,14 +111,16 @@ export default function BookingSchedule() {
             onNext={() => setDate((current) => shiftDate(current, 1))}
             onPrevious={() => setDate((current) => shiftDate(current, -1))}
           />
-          <BookingFilters
-            content={bookingScheduleContent}
-            courts={courts}
-            filters={filters}
-            onChange={setFilters}
-            statusOptions={bookingStatusOptions}
-          />
-        </div>
+          <View className="min-w-0 flex-1">
+            <BookingFilters
+              content={bookingScheduleContent}
+              courts={courts}
+              filters={filters}
+              onChange={setFilters}
+              statusOptions={bookingStatusOptions}
+            />
+          </View>
+        </View>
       </Card>
 
       <BookingDaySummary
@@ -144,7 +139,7 @@ export default function BookingSchedule() {
           customers={customers}
           date={date}
           onBookingSelect={(bookingId) => setSelection({ bookingId, kind: "booking" })}
-          onSlotSelect={handleSlotSelect}
+          onSlotSelect={(courtId, startMinute, endMinute) => setSelection({ courtId, date, endMinute, kind: "slot", startMinute })}
           occupancyBookings={dateBookings}
           statusOptions={bookingStatusOptions}
         />
@@ -163,12 +158,13 @@ export default function BookingSchedule() {
         content={bookingScheduleContent}
         court={selectedCourt}
         customer={selectedCustomer}
+        isOpen={Boolean(selection)}
+        key={selection?.kind === "slot" ? `${selection.courtId}-${selection.startMinute}` : (selectedBooking?.id ?? "empty")}
         onClose={() => setSelection(null)}
-        onCreate={handleCreateBooking}
+        onCreate={(input) => void handleCreateBooking(input)}
         onStatusChange={handleStatusChange}
-        open={Boolean(selection)}
         selection={selection}
       />
-    </div>
+    </View>
   );
 }

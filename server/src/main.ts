@@ -13,7 +13,7 @@ async function bootstrap() {
   app.enableCors({
     credentials: true,
     origin: (
-      config.get<string>('CORS_ORIGIN') ?? 'http://localhost:3000'
+      config.get<string>('CORS_ORIGIN') ?? 'http://localhost:8081'
     ).split(','),
   });
   app.useGlobalPipes(

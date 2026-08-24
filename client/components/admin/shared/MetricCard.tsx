@@ -1,7 +1,8 @@
-"use client";
+import { ArrowDown, ArrowUp } from "lucide-react-native";
+import { Text, View } from "react-native";
+import type { ReactNode } from "react";
 
-import { ArrowDownOutlined, ArrowUpOutlined } from "@ant-design/icons";
-import { Card, Flex, Statistic, Typography } from "antd";
+import Card from "@/components/ui/Card";
 
 export type MetricTone = "blue" | "emerald" | "orange" | "violet";
 
@@ -12,40 +13,51 @@ export type MetricTrend = {
 
 type MetricCardProps = {
   change?: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   tone?: MetricTone;
   trend?: MetricTrend;
   value: string;
 };
 
-// antd không có ô icon màu nhạt sẵn nên phần này vẫn dùng Tailwind.
-const toneClassName: Record<MetricTone, string> = {
-  blue: "bg-sky-50 text-sky-600 ring-sky-100",
-  emerald: "bg-emerald-50 text-emerald-600 ring-emerald-100",
-  orange: "bg-orange-50 text-orange-600 ring-orange-100",
-  violet: "bg-violet-50 text-violet-600 ring-violet-100",
+const toneBackground: Record<MetricTone, string> = {
+  blue: "bg-sky-50",
+  emerald: "bg-emerald-50",
+  orange: "bg-orange-50",
+  violet: "bg-violet-50",
+};
+
+export const metricIconColor: Record<MetricTone, string> = {
+  blue: "#0284c7",
+  emerald: "#059669",
+  orange: "#ea580c",
+  violet: "#7c3aed",
 };
 
 export default function MetricCard({ change, icon, label, tone = "emerald", trend, value }: MetricCardProps) {
   return (
-    <Card className="h-full transition-shadow duration-200 hover:shadow-[0_10px_28px_-18px_rgba(15,23,42,0.5)]">
-      <Flex align="flex-start" gap="middle" justify="space-between">
-        <Statistic title={label} value={value} />
-        <span className={`flex size-11 shrink-0 items-center justify-center rounded-xl text-lg ring-1 ${toneClassName[tone]}`}>
-          {icon}
-        </span>
-      </Flex>
+    <Card className="h-full">
+      <View className="flex-row items-start justify-between gap-3">
+        <View className="min-w-0 flex-1">
+          <Text className="text-[13px] text-slate-500">{label}</Text>
+          <Text className="mt-1 text-[24px] font-bold text-slate-900">{value}</Text>
+        </View>
+        <View className={`h-11 w-11 shrink-0 items-center justify-center rounded-xl ${toneBackground[tone]}`}>{icon}</View>
+      </View>
 
-      <Flex align="center" className="!mt-2" gap="small" wrap>
+      <View className="mt-2 flex-row flex-wrap items-center gap-2">
         {trend ? (
-          <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${trend.isPositive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
-            {trend.isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
-            {trend.label}
-          </span>
+          <View
+            className={`flex-row items-center gap-1 rounded-full px-2 py-0.5 ${trend.isPositive ? "bg-emerald-50" : "bg-rose-50"}`}
+          >
+            {trend.isPositive ? <ArrowUp color="#059669" size={12} /> : <ArrowDown color="#e11d48" size={12} />}
+            <Text className={`text-[12px] font-semibold ${trend.isPositive ? "text-emerald-600" : "text-rose-600"}`}>
+              {trend.label}
+            </Text>
+          </View>
         ) : null}
-        {change ? <Typography.Text className="!text-xs" type="secondary">{change}</Typography.Text> : null}
-      </Flex>
+        {change ? <Text className="text-[12px] text-slate-500">{change}</Text> : null}
+      </View>
     </Card>
   );
 }

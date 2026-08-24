@@ -15,17 +15,14 @@ import type {
 type BookingSlotInput = { courtId: string; endMinute: number; startMinute: number };
 
 const query = (params: Record<string, string | number | undefined>) => {
-  const search = new URLSearchParams();
+  const pairs = Object.entries(params)
+    .filter(([, value]) => value !== undefined && value !== "")
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
 
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") search.set(key, String(value));
-  }
-
-  const value = search.toString();
-  return value ? `?${value}` : "";
+  return pairs.length > 0 ? `?${pairs.join("&")}` : "";
 };
 
-export const getSports = () => apiFetch<ApiSportCategory[]>("/sports", { revalidate: 3600 });
+export const getSports = () => apiFetch<ApiSportCategory[]>("/sports");
 
 export const getVenues = (params: { lat?: number; lng?: number; q?: string; sport?: string } = {}) =>
   apiFetch<ApiVenueListItem[]>(`/venues${query(params)}`);
@@ -35,10 +32,9 @@ export const getVenue = (venueId: string) => apiFetch<ApiVenueDetail>(`/venues/$
 export const getVenueSchedule = (venueId: string, date: string) =>
   apiFetch<ApiSchedule>(`/venues/${venueId}/schedule${query({ date })}`);
 
-export const getMapMarkers = () => apiFetch<ApiMapMarker[]>("/venues/map", { revalidate: 600 });
+export const getMapMarkers = () => apiFetch<ApiMapMarker[]>("/venues/map");
 
-export const getDiscoverPosts = (type?: string) =>
-  apiFetch<ApiDiscoverPost[]>(`/discover/posts${query({ type })}`);
+export const getDiscoverPosts = (type?: string) => apiFetch<ApiDiscoverPost[]>(`/discover/posts${query({ type })}`);
 
 export const login = (body: { email?: string; password: string; phone?: string }) =>
   apiFetch<ApiSession>("/auth/login", { body, method: "POST" });
@@ -57,8 +53,10 @@ export const resetPassword = (body: { account: string; code: string; password: s
 
 export const getProfile = (token: string) => apiFetch<ApiProfile>("/account/profile", { token });
 
-export const updateProfile = (token: string, body: Partial<Omit<ApiProfile, "id" | "joinedAt" | "phone" | "role" | "status">>) =>
-  apiFetch<ApiProfile>("/account/profile", { body, method: "PATCH", token });
+export const updateProfile = (
+  token: string,
+  body: Partial<Omit<ApiProfile, "id" | "joinedAt" | "phone" | "role" | "status">>,
+) => apiFetch<ApiProfile>("/account/profile", { body, method: "PATCH", token });
 
 export const getMyBookings = (token: string, date?: string) =>
   apiFetch<ApiBooking[]>(`/bookings${query({ date })}`, { token });
@@ -71,8 +69,7 @@ export const createBooking = (
 export const cancelBooking = (token: string, bookingId: string) =>
   apiFetch<ApiBooking>(`/bookings/${bookingId}/cancel`, { method: "PATCH", token });
 
-export const getNotifications = (token: string) =>
-  apiFetch<ApiNotification[]>("/notifications", { token });
+export const getNotifications = (token: string) => apiFetch<ApiNotification[]>("/notifications", { token });
 
 export const markNotificationsRead = (token: string) =>
   apiFetch<{ updated: number }>("/notifications/read-all", { method: "PATCH", token });

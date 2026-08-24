@@ -1,16 +1,20 @@
-"use client";
-
-import { ArrowLeft, BadgeCheck, CalendarDays, Camera, CircleDot, Dumbbell, Ruler, Target, Trophy } from "lucide-react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { Image } from "expo-image";
+import { useRouter } from "expo-router";
+import { ArrowLeft, BadgeCheck, CalendarDays, Camera, CircleDot, Dumbbell, Ruler, Target, Trophy } from "lucide-react-native";
 import { useState } from "react";
+import { ScrollView, Text, View } from "react-native";
+import type { LucideIcon } from "lucide-react-native";
 
-import images from "@/components/assets/images";
 import { profileContent, profileDetailItems } from "@/components/account/ProfileOverview/content";
 import type { ProfileDetailItem } from "@/components/account/ProfileOverview/types";
+import aloboIcons from "@/components/assets/icons";
+import images from "@/components/assets/images";
+import Touch from "@/components/ui/Pressable";
+import Screen from "@/components/ui/Screen";
+import { shadow } from "@/components/ui/theme";
 import { useSession } from "@/lib/api/session";
 
-const personalIcons: Record<ProfileDetailItem["icon"], typeof Target> = {
+const personalIcons: Record<ProfileDetailItem["icon"], LucideIcon> = {
   goal: Target,
   location: CircleDot,
   schedule: CalendarDays,
@@ -19,57 +23,156 @@ const personalIcons: Record<ProfileDetailItem["icon"], typeof Target> = {
 
 export default function ProfileOverview() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"overview" | "links">("overview");
+  const [activeTab, setActiveTab] = useState<"links" | "overview">("overview");
   const { session } = useSession();
   const profile = session?.user;
-  const orDash = (value: number | string | null | undefined) => (value === null || value === undefined || value === "" ? profileContent.notProvided : String(value));
+
+  const orDash = (value: number | string | null | undefined) =>
+    value === null || value === undefined || value === "" ? profileContent.notProvided : String(value);
 
   return (
-    <main className="min-h-[100dvh] w-screen max-w-none bg-[#f7f7f7] pb-3 text-[#18221e]">
-      <header className="relative h-[185px] overflow-hidden rounded-b-[25px] bg-[#008447]">
-        <Image alt="" className="object-cover opacity-55" fill priority sizes="410px" src={images.alobo.homeHeader} />
-        <div className="absolute left-1/2 top-1 h-11 w-[196px] -translate-x-1/2 overflow-hidden">
-          <Image alt="ALOBO" className="absolute left-0 top-[-146px] w-[196px] max-w-none brightness-0 invert" src={images.alobo.logo} />
-        </div>
-        <button aria-label="Quay lại tài khoản" className="absolute left-3 top-3 flex size-9 items-center justify-center rounded-full bg-[#005b36]/80 text-white" onClick={() => router.push("/account")} type="button"><ArrowLeft size={21} strokeWidth={2.5} /></button>
-        <label className="absolute right-3 top-3 flex size-9 cursor-pointer items-center justify-center rounded-full bg-[#005b36]/80 text-white"><Camera size={18} /><input accept="image/*" aria-label="Đổi ảnh đại diện" className="sr-only" type="file" /></label>
+    <Screen backgroundColor="#008447" statusBarStyle="light">
+      <ScrollView className="flex-1 bg-[#f7f7f7]" contentContainerClassName="pb-6">
+        <View className="h-[185px] overflow-hidden rounded-b-[25px] bg-[#008447]">
+          <Image
+            contentFit="cover"
+            source={images.alobo.homeHeader}
+            style={{ bottom: 0, left: 0, opacity: 0.55, position: "absolute", right: 0, top: 0 }}
+          />
 
-        <section className="absolute inset-x-3 bottom-3 rounded-[18px] bg-white/90 px-4 py-3 shadow-[0_5px_14px_rgba(0,70,40,.12)] backdrop-blur-sm">
-          <div className="flex items-start gap-3">
-            <span className="relative flex size-12 shrink-0 items-center justify-center rounded-full bg-[#6471d9] text-[27px] text-white">{profile?.avatarInitial ?? profileContent.avatarInitial}<span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-[#5360ad] text-white ring-2 ring-white"><Camera size={11} /></span></span>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1"><h1 className="text-[18px] font-semibold leading-5">{profile?.fullName ?? profileContent.name}</h1><BadgeCheck aria-hidden="true" className="text-[#7d8581]" size={16} /></div>
-              <span className="mt-1 inline-flex items-center gap-1 rounded bg-white px-2 py-1 text-[12px] text-[#57625c]"><Image alt="" className="size-[14px]" src={images.alobo.icons.email} />{profile?.email ?? profileContent.emailPrompt}</span>
-            </div>
-          </div>
-          <div className="mt-2 grid grid-cols-3 gap-2 text-center text-[12px] text-[#56605b]">
-            <span className="flex items-center justify-center gap-1"><Image alt="" className="size-[15px]" src={images.alobo.icons.phoneOutline} />{profile?.phone ?? profileContent.phone}</span>
-            <span className="flex items-center justify-center gap-1"><Image alt="" className="size-[15px]" src={images.alobo.icons.calendar} /><span>{profileContent.yearLabel}<b className="block text-[14px] text-[#1c2822]">{orDash(profile?.birthYear)}</b></span></span>
-            <span className="flex items-center justify-center gap-1"><Image alt="" className="size-[15px]" src={images.alobo.icons.gender} /><span>{profileContent.genderLabel}<b className="block text-[14px] text-[#1c2822]">{orDash(profile?.gender)}</b></span></span>
-          </div>
-        </section>
-      </header>
+          <Touch
+            accessibilityLabel="Quay lại tài khoản"
+            className="absolute left-3 top-3 h-9 w-9 items-center justify-center rounded-full bg-[#005b36]/80"
+            onPress={() => router.navigate("/account")}
+          >
+            <ArrowLeft color="#ffffff" size={21} strokeWidth={2.5} />
+          </Touch>
 
-      <div className="px-3 pt-4">
-        <nav className="grid grid-cols-2 overflow-hidden rounded-[10px] bg-[#008447] p-1 text-[15px] font-semibold text-white">
-          <button className={`h-8 rounded-[7px] transition ${activeTab === "overview" ? "bg-white text-[#008447]" : ""}`} onClick={() => setActiveTab("overview")} type="button">{profileContent.overview}</button>
-          <button className={`h-8 rounded-[7px] transition ${activeTab === "links" ? "bg-white text-[#008447]" : ""}`} onClick={() => setActiveTab("links")} type="button">Liên kết</button>
-        </nav>
+          <Touch
+            accessibilityLabel="Đổi ảnh đại diện"
+            className="absolute right-3 top-3 h-9 w-9 items-center justify-center rounded-full bg-[#005b36]/80"
+          >
+            <Camera color="#ffffff" size={18} />
+          </Touch>
 
-        {activeTab === "overview" ? <section className="mt-3 min-h-[604px] rounded-[10px] bg-white px-3 py-3">
-          <div className="flex items-center"><h2 className="flex-1 text-[15px] font-medium text-[#008447]">{profileContent.physicalTitle}</h2><button aria-label="Chỉnh sửa thông tin thể chất" className="text-[#008447]" type="button"><Image alt="" className="size-5" src={images.alobo.icons.edit} /></button></div>
-          <div className="mt-3 grid grid-cols-2 overflow-hidden rounded-[11px] border border-[#dce2df] py-2 text-center text-[12px] text-[#626b66]">
-            <div className="border-r border-[#e7ebe9]"><span className="flex items-center justify-center gap-1"><Ruler size={15} />{profileContent.heightLabel}</span><b className="mt-1 block text-[14px] text-[#1b2721]">{orDash(profile?.heightCm)}</b></div>
-            <div><span className="flex items-center justify-center gap-1"><Dumbbell size={15} />{profileContent.weightLabel}</span><b className="mt-1 block text-[14px] text-[#1b2721]">{orDash(profile?.weightKg)}</b></div>
-          </div>
-          <button className="mt-3 flex items-center gap-1 text-[14px] font-medium" type="button"><Image alt="" className="size-[17px]" src={images.alobo.icons.note} />{profileContent.specialNote}</button>
+          <View className="absolute inset-x-3 bottom-3 rounded-[18px] bg-white/90 px-4 py-3" style={shadow.card}>
+            <View className="flex-row items-start gap-3">
+              <View className="h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#6471d9]">
+                <Text className="text-[26px] uppercase text-white">{profile?.avatarInitial ?? profileContent.avatarInitial}</Text>
+                <View className="absolute -bottom-1 -right-1 h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-[#5360ad]">
+                  <Camera color="#ffffff" size={11} />
+                </View>
+              </View>
+              <View className="min-w-0 flex-1">
+                <View className="flex-row items-center gap-1">
+                  <Text className="text-[18px] font-semibold text-[#18221e]" numberOfLines={1}>
+                    {profile?.fullName ?? profileContent.name}
+                  </Text>
+                  <BadgeCheck color="#7d8581" size={16} />
+                </View>
+                <View className="mt-1 flex-row items-center gap-1 self-start rounded bg-white px-2 py-1">
+                  <aloboIcons.email color="#57625c" height={14} width={14} />
+                  <Text className="text-[12px] text-[#57625c]">{profile?.email ?? profileContent.emailPrompt}</Text>
+                </View>
+              </View>
+            </View>
 
-          <div className="mt-3 flex items-center"><h2 className="flex-1 text-[15px] font-medium text-[#008447]">{profileContent.personalTitle}</h2><button aria-label="Chỉnh sửa thông tin cá nhân" className="text-[#008447]" type="button"><Image alt="" className="size-5" src={images.alobo.icons.edit} /></button></div>
-          <div className="mt-4 space-y-3.5">
-            {profileDetailItems.map((item) => { const Icon = personalIcons[item.icon]; return <button className="flex items-center gap-1.5 text-[14px]" key={item.id} type="button"><Icon aria-hidden="true" size={16} />{item.label}</button>; })}
-          </div>
-        </section> : <section className="mt-3 min-h-[604px] rounded-[10px] bg-white px-3 py-5 text-center text-[14px] text-[#7d8581]">Chưa có tài khoản liên kết.</section>}
-      </div>
-    </main>
+            <View className="mt-2 flex-row">
+              <View className="flex-1 flex-row items-center justify-center gap-1">
+                <aloboIcons.phoneOutline color="#56605b" height={15} width={15} />
+                <Text className="text-[12px] text-[#56605b]">{profile?.phone ?? profileContent.phone}</Text>
+              </View>
+              <View className="flex-1 flex-row items-center justify-center gap-1">
+                <aloboIcons.calendar color="#56605b" height={15} width={15} />
+                <View>
+                  <Text className="text-[12px] text-[#56605b]">{profileContent.yearLabel}</Text>
+                  <Text className="text-[14px] font-bold text-[#1c2822]">{orDash(profile?.birthYear)}</Text>
+                </View>
+              </View>
+              <View className="flex-1 flex-row items-center justify-center gap-1">
+                <aloboIcons.gender color="#56605b" height={15} width={15} />
+                <View>
+                  <Text className="text-[12px] text-[#56605b]">{profileContent.genderLabel}</Text>
+                  <Text className="text-[14px] font-bold text-[#1c2822]">{orDash(profile?.gender)}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View className="px-3 pt-4">
+          <View className="flex-row overflow-hidden rounded-[10px] bg-[#008447] p-1">
+            {(["overview", "links"] as const).map((tab) => (
+              <Touch
+                className={`h-8 flex-1 items-center justify-center rounded-[7px] ${activeTab === tab ? "bg-white" : ""}`}
+                key={tab}
+                onPress={() => setActiveTab(tab)}
+              >
+                <Text className={`text-[15px] font-semibold ${activeTab === tab ? "text-[#008447]" : "text-white"}`}>
+                  {tab === "overview" ? profileContent.overview : "Liên kết"}
+                </Text>
+              </Touch>
+            ))}
+          </View>
+
+          {activeTab === "overview" ? (
+            <View className="mt-3 min-h-[520px] rounded-[10px] bg-white px-3 py-3">
+              <View className="flex-row items-center">
+                <Text className="flex-1 text-[15px] font-medium text-[#008447]">{profileContent.physicalTitle}</Text>
+                <Touch accessibilityLabel="Chỉnh sửa thông tin thể chất">
+                  <aloboIcons.edit color="#008447" height={20} width={20} />
+                </Touch>
+              </View>
+
+              <View className="mt-3 flex-row overflow-hidden rounded-[11px] border border-[#dce2df] py-2">
+                <View className="flex-1 items-center border-r border-[#e7ebe9]">
+                  <View className="flex-row items-center gap-1">
+                    <Ruler color="#626b66" size={15} />
+                    <Text className="text-[12px] text-[#626b66]">{profileContent.heightLabel}</Text>
+                  </View>
+                  <Text className="mt-1 text-[14px] font-bold text-[#1b2721]">{orDash(profile?.heightCm)}</Text>
+                </View>
+                <View className="flex-1 items-center">
+                  <View className="flex-row items-center gap-1">
+                    <Dumbbell color="#626b66" size={15} />
+                    <Text className="text-[12px] text-[#626b66]">{profileContent.weightLabel}</Text>
+                  </View>
+                  <Text className="mt-1 text-[14px] font-bold text-[#1b2721]">{orDash(profile?.weightKg)}</Text>
+                </View>
+              </View>
+
+              <Touch className="mt-3 flex-row items-center gap-1">
+                <aloboIcons.note color="#18221e" height={17} width={17} />
+                <Text className="text-[14px] font-medium text-[#18221e]">{profileContent.specialNote}</Text>
+              </Touch>
+
+              <View className="mt-3 flex-row items-center">
+                <Text className="flex-1 text-[15px] font-medium text-[#008447]">{profileContent.personalTitle}</Text>
+                <Touch accessibilityLabel="Chỉnh sửa thông tin cá nhân">
+                  <aloboIcons.edit color="#008447" height={20} width={20} />
+                </Touch>
+              </View>
+
+              <View className="mt-4 gap-3.5">
+                {profileDetailItems.map((item) => {
+                  const Icon = personalIcons[item.icon];
+
+                  return (
+                    <Touch className="flex-row items-center gap-1.5" key={item.id}>
+                      <Icon color="#18221e" size={16} />
+                      <Text className="text-[14px] text-[#18221e]">{item.label}</Text>
+                    </Touch>
+                  );
+                })}
+              </View>
+            </View>
+          ) : (
+            <View className="mt-3 min-h-[520px] rounded-[10px] bg-white px-3 py-5">
+              <Text className="text-center text-[14px] text-[#7d8581]">Chưa có tài khoản liên kết.</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </Screen>
   );
 }

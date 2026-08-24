@@ -1,63 +1,142 @@
-"use client";
-
-import type { RefObject } from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
+import { ScrollView, Text, View } from "react-native";
 
 import { leadColumnWidth, scheduleLayout } from "@/components/booking/CourtScheduleBooking/components/scheduleLayout";
-import ScheduleCourtRow from "@/components/booking/CourtScheduleBooking/components/ScheduleCourtRow";
-import ScheduleTimeHeader from "@/components/booking/CourtScheduleBooking/components/ScheduleTimeHeader";
+import ScheduleSlotCell from "@/components/booking/CourtScheduleBooking/components/ScheduleSlotCell";
 import type {
   CourtScheduleContent,
   ScheduleCourtGroup,
   ScheduleEntry,
-  SchedulePriceRule,
 } from "@/components/booking/CourtScheduleBooking/types";
+import { findEntry, formatMinutes, getSlotStatus, slotKey } from "@/components/booking/CourtScheduleBooking/utils";
+
+export type ScheduleGridHandle = {
+  /** Nhảy tới vị trí cuộn theo tỉ lệ 0–1 của phần cuộn được. */
+  seek: (ratio: number) => void;
+};
 
 type ScheduleGridProps = {
   content: CourtScheduleContent;
   entries: ScheduleEntry[];
   groups: ScheduleCourtGroup[];
+  onScrollRatioChange: (ratio: number) => void;
   onSlotToggle: (courtId: string, startMinute: number) => void;
-  priceRules: SchedulePriceRule[];
-  scrollRef: RefObject<HTMLDivElement | null>;
   selectedKeys: string[];
   slotMinutes: number;
   timeSlots: number[];
 };
 
-export default function ScheduleGrid({ content, entries, groups, onSlotToggle, priceRules, scrollRef, selectedKeys, slotMinutes, timeSlots }: ScheduleGridProps) {
+/**
+ * Cột nhóm và cột sân nằm ngoài vùng cuộn ngang (RN không có `position: sticky`),
+ * nên tên sân luôn thấy được khi kéo phần giờ sang phải. Hai bên dùng chung
+ * `scheduleLayout.rowHeight` để các dòng luôn khớp nhau.
+ */
+const ScheduleGrid = forwardRef<ScheduleGridHandle, ScheduleGridProps>(function ScheduleGrid(
+  { content, entries, groups, onScrollRatioChange, onSlotToggle, selectedKeys, slotMinutes, timeSlots },
+  ref,
+) {
+  const scrollRef = useRef<ScrollView>(null);
+  // Phần cuộn được = bề rộng nội dung trừ bề rộng khung nhìn; chỉ biết sau khi đo xong.
+  const maxScrollRef = useRef(0);
+  const courts = groups.flatMap((group) => group.courts);
+
+  useImperativeHandle(ref, () => ({
+    seek: (ratio: number) => {
+      scrollRef.current?.scrollTo({ animated: false, x: maxScrollRef.current * ratio });
+    },
+  }));
+
   return (
-    // Chỉ khung lưới cuộn ngang; cột nhóm và cột sân dính trái nên luôn nhìn thấy tên sân khi kéo giờ.
-    <div className="overflow-x-auto overscroll-x-contain border-y border-[#cfe6d8] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" ref={scrollRef}>
-      <div style={{ minWidth: leadColumnWidth + timeSlots.length * scheduleLayout.slotWidth }}>
-        <ScheduleTimeHeader timeLabel={content.timeColumnLabel} timeSlots={timeSlots} />
+    <View className="flex-row border-y border-[#cfe6d8] bg-white">
+      <View style={{ width: leadColumnWidth }}>
+        <View
+          className="items-center justify-center border-r border-[#9fd2e8] bg-[#c9e9f6]"
+          style={{ height: scheduleLayout.timeHeaderHeight }}
+        >
+          <Text className="text-[12px] font-semibold text-[#0e4a63]">{content.timeColumnLabel}</Text>
+        </View>
 
         {groups.map((group) => (
-          <div className="flex border-b border-[#bcdcc9] last:border-b-0" key={group.id}>
-            <div
-              className="sticky left-0 z-30 flex shrink-0 items-center justify-center border-r border-[#cfe6d8] bg-[#e2f4e9] px-1 text-center text-[12px] font-semibold text-[#0b5133]"
+          <View className="flex-row" key={group.id}>
+            <View
+              className="items-center justify-center border-r border-[#cfe6d8] bg-[#e2f4e9] px-1"
               style={{ width: scheduleLayout.groupColumnWidth }}
             >
-              {group.name}
-            </div>
-
-            <div className="flex-1">
+              <Text className="text-center text-[12px] font-semibold text-[#0b5133]">{group.name}</Text>
+            </View>
+            <View style={{ width: scheduleLayout.courtColumnWidth }}>
               {group.courts.map((court) => (
-                <ScheduleCourtRow
-                  content={content}
-                  court={court}
-                  entries={entries}
+                <View
+                  className="items-center justify-center border-b border-[#dbe7e0] bg-[#eefaf3] px-1"
                   key={court.id}
-                  onSlotToggle={onSlotToggle}
-                  priceRules={priceRules}
-                  selectedKeys={selectedKeys}
-                  slotMinutes={slotMinutes}
-                  timeSlots={timeSlots}
-                />
+                  style={{ height: scheduleLayout.rowHeight }}
+                >
+                  <Text className="text-center text-[12px] font-medium text-[#123f2c]">{court.name}</Text>
+                </View>
               ))}
-            </div>
-          </div>
+            </View>
+          </View>
         ))}
-      </div>
-    </div>
+      </View>
+
+      <ScrollView
+        horizontal
+        onLayout={(event) => {
+          maxScrollRef.current = Math.max(
+            timeSlots.length * scheduleLayout.slotWidth - event.nativeEvent.layout.width,
+            0,
+          );
+        }}
+        onScroll={(event) => {
+          const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+          maxScrollRef.current = Math.max(contentSize.width - layoutMeasurement.width, 0);
+          onScrollRatioChange(maxScrollRef.current === 0 ? 0 : contentOffset.x / maxScrollRef.current);
+        }}
+        ref={scrollRef}
+        scrollEventThrottle={32}
+        showsHorizontalScrollIndicator={false}
+      >
+        <View style={{ width: timeSlots.length * scheduleLayout.slotWidth }}>
+          <View className="flex-row bg-[#c9e9f6]" style={{ height: scheduleLayout.timeHeaderHeight }}>
+            {timeSlots.map((startMinute) => (
+              <View
+                className="shrink-0 items-center justify-center border-l border-[#e9a71f]"
+                key={startMinute}
+                style={{ width: scheduleLayout.slotWidth }}
+              >
+                <Text className="text-[11px] font-medium text-[#123028]">{formatMinutes(startMinute)}</Text>
+              </View>
+            ))}
+          </View>
+
+          {courts.map((court) => (
+            <View
+              className="flex-row border-b border-[#dbe7e0]"
+              key={court.id}
+              style={{ height: scheduleLayout.rowHeight }}
+            >
+              {timeSlots.map((startMinute) => {
+                const endMinute = startMinute + slotMinutes;
+                const entry = findEntry(entries, court.id, startMinute, endMinute);
+                const status = getSlotStatus(entry);
+                const timeRange = `${formatMinutes(startMinute)} - ${formatMinutes(endMinute)}`;
+
+                return (
+                  <ScheduleSlotCell
+                    isSelected={selectedKeys.includes(slotKey(court.id, startMinute))}
+                    key={startMinute}
+                    label={`${court.name} ${timeRange}, ${content.slotStatusLabels[status]}`}
+                    onSelect={() => onSlotToggle(court.id, startMinute)}
+                    status={status}
+                  />
+                );
+              })}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
-}
+});
+
+export default ScheduleGrid;

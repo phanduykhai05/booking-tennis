@@ -1,55 +1,66 @@
-"use client";
-
-import { Drawer, Layout } from "antd";
-import { usePathname } from "next/navigation";
+import { usePathname } from "expo-router";
 import { useState } from "react";
+import { Modal, ScrollView, View, useWindowDimensions } from "react-native";
+import type { ReactNode } from "react";
 
 import AdminBreadcrumbs from "@/components/layouts/AdminShell/components/AdminBreadcrumbs";
 import AdminSidebar from "@/components/layouts/AdminShell/components/AdminSidebar";
 import AdminTopbar from "@/components/layouts/AdminShell/components/AdminTopbar";
 import { adminNavigationItems, adminShellContent } from "@/components/layouts/AdminShell/mockData";
+import Touch from "@/components/ui/Pressable";
+import Screen from "@/components/ui/Screen";
 
 type AdminShellProps = {
-  children: React.ReactNode;
+  children: ReactNode;
 };
+
+/** Dưới ngưỡng này (chủ yếu là điện thoại) menu chuyển thành ngăn kéo trượt từ trái. */
+const SIDEBAR_BREAKPOINT = 1024;
+const SIDEBAR_WIDTH = 258;
 
 export default function AdminShell({ children }: AdminShellProps) {
   const pathname = usePathname();
+  const { width } = useWindowDimensions();
   const [isMobileNavigationOpen, setIsMobileNavigationOpen] = useState(false);
+  const isCompact = width < SIDEBAR_BREAKPOINT;
 
   return (
-    <Layout hasSider style={{ minHeight: "100dvh" }}>
-      {/* Ẩn/hiện bằng class Tailwind thay vì breakpoint JS của Sider: tránh lệch giữa SSR và client. */}
-      <Layout.Sider className="hidden lg:block" style={{ borderInlineEnd: "1px solid #e2e8f0", height: "100dvh", insetBlockStart: 0, position: "sticky" }} theme="light" width={258}>
-        <AdminSidebar content={adminShellContent} items={adminNavigationItems} pathname={pathname} />
-      </Layout.Sider>
+    <Screen backgroundColor="#ffffff" edges={["bottom", "left", "right", "top"]}>
+      <View className="flex-1 flex-row bg-[#f5f7f9]">
+        {isCompact ? null : (
+          <View className="border-r border-slate-200 bg-white" style={{ width: SIDEBAR_WIDTH }}>
+            <AdminSidebar content={adminShellContent} items={adminNavigationItems} pathname={pathname} />
+          </View>
+        )}
 
-      <Drawer
-        classNames={{ body: "!p-0" }}
-        onClose={() => setIsMobileNavigationOpen(false)}
-        open={isMobileNavigationOpen}
-        placement="left"
-        title={null}
-        width={258}
+        <View className="min-w-0 flex-1">
+          <AdminTopbar content={adminShellContent} isCompact={isCompact} onMenuOpen={() => setIsMobileNavigationOpen(true)} />
+
+          <ScrollView className="flex-1" contentContainerClassName="p-4 pb-10">
+            <AdminBreadcrumbs items={adminNavigationItems} pathname={pathname} />
+            {children}
+          </ScrollView>
+        </View>
+      </View>
+
+      <Modal
+        animationType="slide"
+        onRequestClose={() => setIsMobileNavigationOpen(false)}
+        transparent
+        visible={isCompact && isMobileNavigationOpen}
       >
-        <AdminSidebar
-          content={adminShellContent}
-          items={adminNavigationItems}
-          onNavigate={() => setIsMobileNavigationOpen(false)}
-          pathname={pathname}
-        />
-      </Drawer>
-
-      <Layout>
-        <Layout.Header style={{ borderBlockEnd: "1px solid #e2e8f0", insetBlockStart: 0, position: "sticky", zIndex: 40 }}>
-          <AdminTopbar content={adminShellContent} onMenuOpen={() => setIsMobileNavigationOpen(true)} />
-        </Layout.Header>
-
-        <Layout.Content className="!p-4 sm:!p-5 lg:!p-6">
-          <AdminBreadcrumbs items={adminNavigationItems} pathname={pathname} />
-          {children}
-        </Layout.Content>
-      </Layout>
-    </Layout>
+        <View className="flex-1 flex-row bg-[#0f172a]/45">
+          <View className="bg-white" style={{ width: SIDEBAR_WIDTH }}>
+            <AdminSidebar
+              content={adminShellContent}
+              items={adminNavigationItems}
+              onNavigate={() => setIsMobileNavigationOpen(false)}
+              pathname={pathname}
+            />
+          </View>
+          <Touch accessibilityLabel="Đóng menu" className="flex-1" onPress={() => setIsMobileNavigationOpen(false)} />
+        </View>
+      </Modal>
+    </Screen>
   );
 }

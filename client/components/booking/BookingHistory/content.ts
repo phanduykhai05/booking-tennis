@@ -1,3 +1,4 @@
+import type { StatusTone } from "@/components/ui/Tag";
 import type { ApiBooking } from "@/lib/api/types";
 
 export const bookingHistoryContent = {
@@ -27,10 +28,10 @@ export const paymentStatusLabels: Record<ApiBooking["paymentStatus"], string> = 
   unpaid: "Chưa thanh toán",
 };
 
-export const bookingStatusStyles: Record<ApiBooking["status"], string> = {
-  cancelled: "bg-[#f1f2f1] text-[#6c7671]",
-  "checked-in": "bg-[#e5f1ff] text-[#1f5fa8]",
-  completed: "bg-[#ede7ff] text-[#5b3fbf]",
-  confirmed: "bg-[#e2f7ec] text-[#0b7a48]",
-  pending: "bg-[#fff3d9] text-[#96650a]",
+export const bookingStatusTones: Record<ApiBooking["status"], StatusTone> = {
+  cancelled: "slate",
+  "checked-in": "blue",
+  completed: "violet",
+  confirmed: "emerald",
+  pending: "orange",
 };

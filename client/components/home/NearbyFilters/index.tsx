@@ -1,7 +1,9 @@
-"use client";
+import { ScrollView, Text } from "react-native";
 
 import { nearbyFilters, nearbyFiltersLabel } from "@/components/home/NearbyFilters/content";
 import type { SportCategoryId } from "@/components/home/SportCategories/types";
+import Touch from "@/components/ui/Pressable";
+import { shadow } from "@/components/ui/theme";
 
 type NearbyFiltersProps = {
   activeId?: string | null;
@@ -10,20 +12,27 @@ type NearbyFiltersProps = {
 
 export default function NearbyFilters({ activeId, onChange }: NearbyFiltersProps) {
   return (
-    <nav aria-label={nearbyFiltersLabel} className="overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <ul className="flex w-max min-w-full items-center gap-2.5 px-3 pb-1 pt-4 sm:px-4">
-        {nearbyFilters.map((filter) => (
-          <li key={filter.id}>
-            <button
-              className={`h-9 whitespace-nowrap rounded-[10px] px-4 text-sm font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)] ring-1 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f9b58]/45 active:scale-[0.97] ${activeId === filter.id ? "bg-[#008447] text-white ring-[#008447]" : "bg-white text-slate-600 ring-slate-900/[0.05] hover:text-slate-900 hover:shadow-[0_4px_10px_-4px_rgba(15,23,42,0.22)]"}`}
-              onClick={() => onChange?.(filter.id, filter.sport)}
-              type="button"
-            >
-              {filter.label}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <ScrollView
+      accessibilityLabel={nearbyFiltersLabel}
+      contentContainerClassName="flex-row items-center gap-2.5 px-3 pb-1 pt-4"
+      horizontal
+      showsHorizontalScrollIndicator={false}
+    >
+      {nearbyFilters.map((filter) => {
+        const isActive = activeId === filter.id;
+
+        return (
+          <Touch
+            accessibilityRole="button"
+            className={`h-9 items-center justify-center rounded-[10px] px-4 ${isActive ? "bg-[#008447]" : "border border-slate-900/[0.05] bg-white"}`}
+            key={filter.id}
+            onPress={() => onChange?.(filter.id, filter.sport)}
+            style={shadow.card}
+          >
+            <Text className={`text-[14px] font-medium ${isActive ? "text-white" : "text-slate-600"}`}>{filter.label}</Text>
+          </Touch>
+        );
+      })}
+    </ScrollView>
   );
 }

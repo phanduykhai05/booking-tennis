@@ -6,6 +6,9 @@ import type {
   SelectedSlot,
   SlotStatus,
 } from "@/components/booking/CourtScheduleBooking/types";
+import { formatDayMonthYear } from "@/lib/date";
+
+export { formatCurrency, formatMinutes } from "@/lib/format";
 
 export const slotKey = (courtId: string, startMinute: number) => `${courtId}|${startMinute}`;
 
@@ -19,24 +22,7 @@ export function getTimeSlots(config: CourtScheduleConfig) {
   return slots;
 }
 
-export function formatMinutes(minute: number) {
-  const hours = Math.floor(minute / 60);
-  const minutes = minute % 60;
-  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
-}
-
-export function formatDateLabel(date: string) {
-  const [year, month, day] = date.split("-");
-  return `${day}/${month}/${year}`;
-}
-
-export function formatCurrency(value: number) {
-  return new Intl.NumberFormat("vi-VN", {
-    currency: "VND",
-    maximumFractionDigits: 0,
-    style: "currency",
-  }).format(value);
-}
+export const formatDateLabel = formatDayMonthYear;
 
 export function findEntry(entries: ScheduleEntry[], courtId: string, startMinute: number, endMinute: number) {
   return entries.find((entry) => entry.courtId === courtId && entry.startMinute < endMinute && entry.endMinute > startMinute);
@@ -51,7 +37,7 @@ export function getSlotPrice(priceRules: SchedulePriceRule[], startMinute: numbe
   return rule ? Math.round((rule.pricePerHour * slotMinutes) / 60) : 0;
 }
 
-// Khoá chọn được lưu dạng "courtId|startMinute"; tên sân và giá luôn tính lại từ nguồn dữ liệu để không lệch khi mock thay đổi.
+// Khoá chọn được lưu dạng "courtId|startMinute"; tên sân và giá luôn tính lại từ nguồn dữ liệu để không lệch khi lịch đổi.
 export function getSelectedSlots(
   selectedKeys: string[],
   courtGroups: ScheduleCourtGroup[],

@@ -1,4 +1,8 @@
-import { Crosshair, Layers3 } from "lucide-react";
+import { Crosshair, Layers3 } from "lucide-react-native";
+import { View } from "react-native";
+
+import Touch from "@/components/ui/Pressable";
+import { shadow } from "@/components/ui/theme";
 
 type MapControlsProps = {
   currentLocationLabel: string;
@@ -8,15 +12,32 @@ type MapControlsProps = {
   onToggleVenueLayer: () => void;
 };
 
-export default function MapControls({ currentLocationLabel, isVenueLayerVisible, layersLabel, onLocate, onToggleVenueLayer }: MapControlsProps) {
+export default function MapControls({
+  currentLocationLabel,
+  isVenueLayerVisible,
+  layersLabel,
+  onLocate,
+  onToggleVenueLayer,
+}: MapControlsProps) {
   return (
-    <div className="absolute bottom-24 right-4 z-[1001] flex flex-col gap-3">
-      <button aria-label={layersLabel} aria-pressed={isVenueLayerVisible} className={`flex size-12 items-center justify-center rounded-full shadow-[0_3px_12px_rgba(15,23,42,0.2)] transition-transform hover:scale-105 active:scale-95 ${isVenueLayerVisible ? "bg-white text-slate-700" : "bg-slate-700 text-white"}`} onClick={onToggleVenueLayer} type="button">
-        <Layers3 aria-hidden="true" className="size-6" strokeWidth={2} />
-      </button>
-      <button aria-label={currentLocationLabel} className="flex size-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-[0_3px_12px_rgba(15,110,70,0.35)] transition-transform hover:scale-105 active:scale-95" onClick={onLocate} type="button">
-        <Crosshair aria-hidden="true" className="size-6" strokeWidth={2.2} />
-      </button>
-    </div>
+    <View className="absolute bottom-28 right-4 gap-3">
+      <Touch
+        accessibilityLabel={layersLabel}
+        accessibilityState={{ selected: isVenueLayerVisible }}
+        className={`h-12 w-12 items-center justify-center rounded-full ${isVenueLayerVisible ? "bg-white" : "bg-slate-700"}`}
+        onPress={onToggleVenueLayer}
+        style={shadow.raised}
+      >
+        <Layers3 color={isVenueLayerVisible ? "#334155" : "#ffffff"} size={24} strokeWidth={2} />
+      </Touch>
+      <Touch
+        accessibilityLabel={currentLocationLabel}
+        className="h-12 w-12 items-center justify-center rounded-full bg-emerald-600"
+        onPress={onLocate}
+        style={shadow.raised}
+      >
+        <Crosshair color="#ffffff" size={24} strokeWidth={2.2} />
+      </Touch>
+    </View>
   );
 }

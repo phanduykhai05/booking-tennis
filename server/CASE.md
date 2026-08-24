@@ -9,10 +9,10 @@
 | Thuộc tính | Giá trị |
 |---|---|
 | Sản phẩm | TennisHub – hệ thống tìm và đặt sân thể thao |
-| Phiên bản tài liệu | 1.0 |
-| Ngày cập nhật | 2026-08-18 |
+| Phiên bản tài liệu | 1.1 |
+| Ngày cập nhật | 2026-08-24 |
 | Đối tượng sử dụng | Khách chưa đăng nhập, khách hàng, quản trị viên |
-| Frontend | Next.js, React, TypeScript |
+| Frontend | Expo (React Native) SDK 54, expo-router, TypeScript — app cho người dùng, Expo Web cho quản trị |
 | Backend | NestJS, Prisma, PostgreSQL |
 | Múi giờ nghiệp vụ | UTC+07:00 (`Asia/Ho_Chi_Minh`/`Asia/Bangkok`) |
 | Tiền tệ | Việt Nam đồng (VND) |
@@ -47,7 +47,25 @@ quầy, khách hàng, thanh toán và số liệu vận hành/doanh thu.
 > Phiên bản hiện tại chỉ có vai trò `ADMIN` và `USER`. Chủ sân/nhân viên
 > riêng là hướng mở rộng; chưa được coi là một role độc lập.
 
-### 2.2. Ngoài phạm vi của tài liệu
+### 2.2. Nền tảng chạy
+
+Cả hai phía dùng chung một codebase Expo trong `client/`.
+
+| Phía | Nền tảng | Cách chạy | Ghi chú |
+|---|---|---|---|
+| Người dùng | App Android / iOS | Expo Go hoặc development build | Thiết kế cho màn hình điện thoại |
+| Quản trị | Trình duyệt (Expo Web) | `pnpm web`, đường dẫn `/admin` | Có thể mở trên app nhưng bảng dữ liệu tối ưu cho màn rộng |
+
+Ràng buộc kéo theo:
+
+- Expo Go chỉ chạy được project cùng SDK với chính nó; project chốt SDK 54 theo
+  bản Expo Go mới nhất mà App Store còn phát hành cho thiết bị của nhóm.
+- App gọi API bằng IP LAN hoặc domain thật, không dùng `localhost`.
+- App native không bị CORS; chỉ bản web admin cần origin nằm trong `CORS_ORIGIN`.
+- Mã chỉ chạy được trên trình duyệt (`window`, `document`, API PWA) phải nằm trong
+  file `*.web.tsx` kèm bản native trả về `null`.
+
+### 2.3. Ngoài phạm vi của tài liệu
 
 - Điều phối nhân sự, chấm công hoặc quản lý kho vật tư.
 - Tính lương, kế toán thuế và xuất hoá đơn điện tử.
@@ -77,7 +95,7 @@ quầy, khách hàng, thanh toán và số liệu vận hành/doanh thu.
 11. Mọi thay đổi booking, court và payment quan trọng phải tạo activity/audit
     event có thời gian, tác nhân, đối tượng và nội dung thay đổi.
 12. Thời gian mở/đóng cửa và ngày đặt phải được kiểm tra ở backend, không tin
-    vào dữ liệu hoặc giới hạn do trình duyệt gửi lên.
+    vào dữ liệu hoặc giới hạn do client gửi lên.
 
 ## 4. Danh sách use case chính
 
@@ -167,8 +185,10 @@ quầy, khách hàng, thanh toán và số liệu vận hành/doanh thu.
 - Người dùng chọn ngày và mở trang lịch của venue.
 - Hệ thống trả group/court, giờ mở-đóng, đơn vị slot, bảng giá và các ô
   `available`, `booked`, `locked`, `event`.
-- Giao diện phải phân biệt rõ trạng thái bằng màu và nhãn, có legend, responsive
-  trên mobile; ô quá khứ, ngoài giờ hoặc sân bảo trì không được chọn.
+- Giao diện phải phân biệt rõ trạng thái bằng màu và nhãn, có legend, dùng được
+  trên màn hình điện thoại; ô quá khứ, ngoài giờ hoặc sân bảo trì không được chọn.
+- Cột nhóm và cột sân phải luôn nhìn thấy khi kéo ngang dải giờ (React Native
+  không có `position: sticky` nên hai cột này nằm ngoài vùng cuộn).
 - Khi ngày thay đổi, request cũ không được ghi đè kết quả ngày mới; lỗi tải lịch
   phải có retry.
 - **API hiện tại:** `GET /venues/:id/schedule?date=YYYY-MM-DD`.
@@ -319,7 +339,7 @@ quầy, khách hàng, thanh toán và số liệu vận hành/doanh thu.
 1. ADMIN chọn từ ngày, đến ngày, venue, sân, trạng thái booking/payment và loại
    báo cáo.
 2. Server kiểm tra khoảng ngày, quyền ADMIN và tính aggregate từ DB, không lấy
-   toàn bộ bản ghi về browser để cộng.
+   toàn bộ bản ghi về client để cộng.
 3. UI hiển thị tổng quan, chuỗi theo ngày, breakdown theo venue/court/method và
    danh sách chi tiết có phân trang; cho phép export CSV ở P2.
 4. Khoảng ngày phải dùng timezone nghiệp vụ; biên ngày được xác định rõ và nhất quán.
@@ -370,21 +390,21 @@ khai). Message hiển thị cho người dùng phải rõ ràng nhưng không ti
 | NFR-PERF-01 | API đọc catalog/schedule | p95 ≤ 500 ms ở tải chuẩn, không tính thời gian mạng |
 | NFR-PERF-02 | API tạo/huỷ booking | p95 ≤ 800 ms; không đánh đổi tính đúng đắn để đạt tốc độ |
 | NFR-PERF-03 | Báo cáo aggregate | p95 ≤ 1.5 s cho phạm vi 12 tháng và dữ liệu đã index |
-| NFR-PERF-04 | First load web | LCP ≤ 2.5 s trên thiết bị mobile tầm trung/4G; có loading state |
+| NFR-PERF-04 | Khởi động lần đầu | App: màn hình đầu tiên hiển thị ≤ 2.5 s trên thiết bị tầm trung/4G. Web admin: LCP ≤ 2.5 s. Mọi màn hình có loading state |
 | NFR-PERF-05 | Tương tác chọn slot | Phản hồi visual ≤ 100 ms; request xác nhận có trạng thái pending |
 | NFR-PERF-06 | Đồng thời | Chịu tối thiểu 200 phiên hoạt động và 50 request tranh cùng một slot; tối đa một booking hợp lệ |
-| NFR-PERF-07 | Dữ liệu lớn | Admin list/report phải phân trang, lọc và aggregate ở server; không tải toàn bộ DB vào browser |
+| NFR-PERF-07 | Dữ liệu lớn | Admin list/report phải phân trang, lọc và aggregate ở server; không tải toàn bộ DB vào client |
 | NFR-PERF-08 | Cache | Catalog công khai có thể cache; schedule/booking/payment phải ưu tiên dữ liệu mới và invalidation rõ |
 
 ### 7.2. Bảo mật
 
 | Mã | Yêu cầu | Cách thực hiện/kiểm tra |
 |---|---|---|
-| NFR-SEC-01 | Mã hóa đường truyền | Production chỉ dùng HTTPS/TLS; redirect HTTP; không đưa secret vào client bundle |
+| NFR-SEC-01 | Mã hóa đường truyền | Production chỉ dùng HTTPS/TLS; redirect HTTP; không đưa secret vào client bundle. Mọi biến `EXPO_PUBLIC_*` đều nằm trong bundle nên chỉ chứa cấu hình công khai |
 | NFR-SEC-02 | Mật khẩu | Hash bằng bcrypt/Argon2 với cost phù hợp; không log/response password hoặc passwordHash |
 | NFR-SEC-03 | Xác thực | JWT có secret mạnh từ environment, expiry, kiểm tra signature/issuer/audience nếu dùng; refresh/revoke theo thiết kế |
 | NFR-SEC-04 | Phân quyền | Guard ở backend cho ADMIN; kiểm tra ownership trên từng booking/payment/notification; không tin role từ client |
-| NFR-SEC-05 | Chống chiếm quyền | Production ưu tiên HttpOnly, Secure, SameSite cookie hoặc có biện pháp giảm rủi ro XSS khi dùng localStorage hiện tại |
+| NFR-SEC-05 | Chống chiếm quyền | Token hiện lưu ở AsyncStorage (app) và localStorage (web admin) — cả hai đều đọc được nếu thiết bị/trang bị xâm nhập. Production cần rút ngắn expiry, có refresh/revoke; bản web ưu tiên HttpOnly + Secure + SameSite cookie. App nên chuyển sang expo-secure-store |
 | NFR-SEC-06 | Validate input | DTO/class-validator ở server, giới hạn độ dài/số lượng/khoảng ngày; query qua Prisma parameterized |
 | NFR-SEC-07 | Chống brute force | Rate limit và lockout/backoff cho login, forgot-password, reset-password và payment endpoint |
 | NFR-SEC-08 | Thanh toán | Không lưu CVV/secret thẻ; verify webhook signature, amount, currency, provider transaction và idempotency |
@@ -418,9 +438,13 @@ khai). Message hiển thị cho người dùng phải rõ ràng nhưng không ti
 
 ### 7.5. Khả dụng và trải nghiệm người dùng
 
-- UI responsive từ mobile đến desktop; lưới lịch có thể dùng bằng màn hình hẹp.
-- Tuân thủ tối thiểu WCAG 2.1 AA: keyboard navigation, focus visible, label cho
-  form, contrast, không chỉ dùng màu để phân biệt trạng thái, alt text cho ảnh.
+- App người dùng thiết kế cho màn hình điện thoại; khu quản trị chạy trên trình
+  duyệt và phải dùng được từ màn hình hẹp đến desktop (sidebar thu thành ngăn kéo
+  dưới 1024px). Lưới lịch cuộn ngang được trên cả hai.
+- Tôn trọng vùng an toàn (tai thỏ, thanh điều hướng) bằng safe-area insets.
+- Khả năng tiếp cận: mọi control có `accessibilityLabel`/`accessibilityRole`, vùng
+  chạm tối thiểu 44×44 pt, contrast đạt WCAG 2.1 AA, không chỉ dùng màu để phân
+  biệt trạng thái. Bản web admin giữ thêm điều hướng bằng bàn phím và focus visible.
 - Có trạng thái loading, empty, error, retry và success cho mọi request bất đồng bộ.
 - Không mất nội dung người dùng đang nhập khi request lỗi; nút submit disable khi
   đang gửi nhưng vẫn có cơ chế retry an toàn.
@@ -446,9 +470,10 @@ khai). Message hiển thị cho người dùng phải rõ ràng nhưng không ti
   payment idempotency và report aggregate.
 - Integration/e2e test cho register/login, tạo booking thành công, race cùng slot,
   huỷ booking, admin permission và payment webhook.
-- Frontend kiểm tra loading/error/empty, mobile layout và lỗi 401/403/409.
-- Trước khi merge: `pnpm exec tsc --noEmit`, `pnpm lint` ở client; `pnpm build`,
-  test và `git diff --check` ở server/repo phù hợp.
+- Frontend kiểm tra loading/error/empty, layout trên điện thoại và lỗi 401/403/409.
+- Trước khi merge ở client: `pnpm typecheck`, `pnpm lint` và
+  `npx expo export --platform android` (bắt lỗi resolve/transform mà tsc không thấy).
+- Trước khi merge ở server: `pnpm build`, test và `git diff --check`.
 
 ## 8. Tiêu chí nghiệm thu phát hành
 

@@ -1,12 +1,12 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ScrollView, View } from "react-native";
 
 import CourtPriceSheet from "@/components/booking/CourtScheduleBooking/components/CourtPriceSheet";
 import ScheduleConfirmSheet from "@/components/booking/CourtScheduleBooking/components/ScheduleConfirmSheet";
 import ScheduleFooter from "@/components/booking/CourtScheduleBooking/components/ScheduleFooter";
 import ScheduleGrid from "@/components/booking/CourtScheduleBooking/components/ScheduleGrid";
+import type { ScheduleGridHandle } from "@/components/booking/CourtScheduleBooking/components/ScheduleGrid";
 import ScheduleHeader from "@/components/booking/CourtScheduleBooking/components/ScheduleHeader";
 import ScheduleNotice from "@/components/booking/CourtScheduleBooking/components/ScheduleNotice";
 import ScheduleScrollSlider from "@/components/booking/CourtScheduleBooking/components/ScheduleScrollSlider";
@@ -20,6 +20,7 @@ import {
   getTimeSlots,
   slotKey,
 } from "@/components/booking/CourtScheduleBooking/utils";
+import Screen from "@/components/ui/Screen";
 import { createBooking, getVenueSchedule } from "@/lib/api/endpoints";
 import { ApiError } from "@/lib/api/http";
 import { useSession } from "@/lib/api/session";
@@ -43,7 +44,8 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
   const [isConfirmSheetOpen, setConfirmSheetOpen] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const gridRef = useRef<HTMLDivElement>(null);
+  const [scrollRatio, setScrollRatio] = useState(0);
+  const gridRef = useRef<ScheduleGridHandle>(null);
 
   const loadSchedule = useCallback(
     async (nextDate: string) => {
@@ -105,6 +107,11 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
     setSuccessMessage("");
   };
 
+  const seekGrid = (ratio: number) => {
+    setScrollRatio(ratio);
+    gridRef.current?.seek(ratio);
+  };
+
   const confirmSelection = async () => {
     if (!token) {
       router.push("/login");
@@ -138,64 +145,66 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
   };
 
   return (
-    <main className="mx-auto flex min-h-[100dvh] w-full max-w-[430px] flex-col bg-[#f2fbf5]">
-      <ScheduleHeader
-        backHref={backHref}
-        content={courtScheduleContent}
-        date={date}
-        onDateChange={changeDate}
-        onPriceListOpen={() => setPriceSheetOpen(true)}
-        venueName={schedule.venue.name}
-      />
-
-      <ScheduleNotice
-        hotline={schedule.venue.phone || courtScheduleContent.hotline}
-        prefix={courtScheduleContent.notice.prefix}
-        suffix={courtScheduleContent.notice.suffix}
-        text={courtScheduleContent.notice.text}
-      />
-
-      {isLoading ? (
-        <ScheduleStatePanel message={courtScheduleContent.loadingMessage} />
-      ) : (
-        <ScheduleGrid
+    <Screen backgroundColor="#0b6b3e" edges={["bottom", "top"]} statusBarStyle="light">
+      <View className="flex-1 bg-[#f2fbf5]">
+        <ScheduleHeader
+          backHref={backHref}
           content={courtScheduleContent}
-          entries={schedule.entries}
-          groups={schedule.groups}
-          onSlotToggle={toggleSlot}
-          priceRules={schedule.priceRules}
-          scrollRef={gridRef}
-          selectedKeys={selectedKeys}
-          slotMinutes={schedule.config.slotMinutes}
-          timeSlots={timeSlots}
+          date={date}
+          onDateChange={changeDate}
+          onPriceListOpen={() => setPriceSheetOpen(true)}
+          venueName={schedule.venue.name}
         />
-      )}
 
-      <div className="sticky bottom-0 mt-auto bg-[#f2fbf5] pt-2">
-        <ScheduleScrollSlider label={courtScheduleContent.scrollLabel} targetRef={gridRef} />
-        <ScheduleFooter
-          content={courtScheduleContent}
-          errorMessage={errorMessage}
-          onNext={() => setConfirmSheetOpen(true)}
-          selectedCount={selectedSlots.length}
-          successMessage={successMessage}
-          total={total}
+        <ScheduleNotice
+          hotline={schedule.venue.phone || courtScheduleContent.hotline}
+          prefix={courtScheduleContent.notice.prefix}
+          suffix={courtScheduleContent.notice.suffix}
+          text={courtScheduleContent.notice.text}
         />
-      </div>
 
-      {isPriceSheetOpen && (
+        <ScrollView className="flex-1">
+          {isLoading ? (
+            <ScheduleStatePanel message={courtScheduleContent.loadingMessage} />
+          ) : (
+            <ScheduleGrid
+              content={courtScheduleContent}
+              entries={schedule.entries}
+              groups={schedule.groups}
+              onScrollRatioChange={setScrollRatio}
+              onSlotToggle={toggleSlot}
+              ref={gridRef}
+              selectedKeys={selectedKeys}
+              slotMinutes={schedule.config.slotMinutes}
+              timeSlots={timeSlots}
+            />
+          )}
+        </ScrollView>
+
+        <View className="bg-[#f2fbf5] pt-2">
+          <ScheduleScrollSlider label={courtScheduleContent.scrollLabel} onSeek={seekGrid} ratio={scrollRatio} />
+          <ScheduleFooter
+            content={courtScheduleContent}
+            errorMessage={errorMessage}
+            onNext={() => setConfirmSheetOpen(true)}
+            selectedCount={selectedSlots.length}
+            successMessage={successMessage}
+            total={total}
+          />
+        </View>
+
         <CourtPriceSheet
           content={courtScheduleContent}
           groups={schedule.groups}
+          isOpen={isPriceSheetOpen}
           onClose={() => setPriceSheetOpen(false)}
           priceRules={schedule.priceRules}
         />
-      )}
 
-      {isConfirmSheetOpen && (
         <ScheduleConfirmSheet
           content={courtScheduleContent}
           date={date}
+          isOpen={isConfirmSheetOpen}
           isSubmitting={isSubmitting}
           onClose={() => setConfirmSheetOpen(false)}
           onConfirm={() => void confirmSelection()}
@@ -203,7 +212,7 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
           requiresSignIn={!token}
           total={total}
         />
-      )}
-    </main>
+      </View>
+    </Screen>
   );
 }

@@ -1,32 +1,38 @@
-import Link from "next/link";
+import { useRouter } from "expo-router";
+import { Text, View } from "react-native";
 
 import type { HeaderAction } from "@/components/layouts/PublicHeader/types";
+import Touch from "@/components/ui/Pressable";
 
 type HeaderActionsProps = {
   actions: HeaderAction[];
 };
 
-const baseClassName =
-  "h-9 flex-1 rounded-lg px-4 text-sm font-semibold tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 active:scale-[0.97]";
-const variantClassName: Record<HeaderAction["id"], string> = {
-  login: "bg-white text-[#0b7a4a] shadow-[0_4px_12px_-3px_rgba(3,52,32,0.5)] hover:bg-emerald-50 hover:shadow-[0_6px_16px_-4px_rgba(3,52,32,0.55)]",
-  register: "border border-white/55 bg-white/10 text-white backdrop-blur-sm hover:border-white/80 hover:bg-white/20",
+const variantContainer: Record<HeaderAction["id"], string> = {
+  login: "bg-white",
+  register: "border border-white/55 bg-white/10",
+};
+
+const variantLabel: Record<HeaderAction["id"], string> = {
+  login: "text-[#0b7a4a]",
+  register: "text-white",
 };
 
 export default function HeaderActions({ actions }: HeaderActionsProps) {
+  const router = useRouter();
+
   return (
-    <div className="flex w-full max-w-[300px] gap-2.5">
+    <View className="w-full max-w-[300px] flex-row gap-2.5">
       {actions.map((action) => (
-        action.href ? (
-          <Link className={`${baseClassName} ${variantClassName[action.id]} inline-flex items-center justify-center`} href={action.href} key={action.id}>
-            {action.label}
-          </Link>
-        ) : (
-          <button className={`${baseClassName} ${variantClassName[action.id]}`} key={action.id} type="button">
-            {action.label}
-          </button>
-        )
+        <Touch
+          accessibilityRole="link"
+          className={`h-9 flex-1 items-center justify-center rounded-lg px-4 ${variantContainer[action.id]}`}
+          key={action.id}
+          onPress={() => action.href && router.push(action.href)}
+        >
+          <Text className={`text-[14px] font-semibold ${variantLabel[action.id]}`}>{action.label}</Text>
+        </Touch>
       ))}
-    </div>
+    </View>
   );
 }

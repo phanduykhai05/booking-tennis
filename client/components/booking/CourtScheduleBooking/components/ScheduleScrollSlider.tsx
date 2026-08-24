@@ -1,67 +1,57 @@
-"use client";
+import { useRef, useState } from "react";
+import { View } from "react-native";
+import type { GestureResponderEvent, LayoutChangeEvent } from "react-native";
 
-import { type RefObject, useEffect, useState } from "react";
-
-import styles from "@/components/booking/CourtScheduleBooking/components/ScheduleScrollSlider.module.scss";
+import { shadow } from "@/components/ui/theme";
 
 type ScheduleScrollSliderProps = {
   label: string;
-  targetRef: RefObject<HTMLDivElement | null>;
+  onSeek: (ratio: number) => void;
+  ratio: number;
 };
 
-const getMaxScroll = (node: HTMLDivElement) => Math.max(node.scrollWidth - node.clientWidth, 0);
+const THUMB_SIZE = 18;
 
-// Thanh trượt điều khiển vị trí cuộn ngang của lưới: trên mobile khó kéo trực tiếp vì mỗi ô chỉ rộng vài chục px.
-export default function ScheduleScrollSlider({ label, targetRef }: ScheduleScrollSliderProps) {
-  const [ratio, setRatio] = useState(0);
-  const [isScrollable, setIsScrollable] = useState(false);
+/**
+ * Thanh trượt điều khiển vị trí cuộn ngang của lưới. Lưới vẫn vuốt trực tiếp được,
+ * thanh này cho biết đang ở đâu trong dải giờ và nhảy nhanh tới khung giờ xa.
+ * Dùng thẳng responder props của View thay cho PanResponder cho gọn.
+ */
+export default function ScheduleScrollSlider({ label, onSeek, ratio }: ScheduleScrollSliderProps) {
+  const [trackWidth, setTrackWidth] = useState(0);
+  const trackWidthRef = useRef(0);
 
-  useEffect(() => {
-    const node = targetRef.current;
-    if (!node) return;
+  const seekFromEvent = (event: GestureResponderEvent) => {
+    const usable = Math.max(trackWidthRef.current - THUMB_SIZE, 1);
+    onSeek(Math.max(0, Math.min(1, (event.nativeEvent.locationX - THUMB_SIZE / 2) / usable)));
+  };
 
-    const syncFromScroll = () => {
-      const maxScroll = getMaxScroll(node);
-      setIsScrollable(maxScroll > 0);
-      setRatio(maxScroll === 0 ? 0 : node.scrollLeft / maxScroll);
-    };
-
-    syncFromScroll();
-    node.addEventListener("scroll", syncFromScroll, { passive: true });
-    const observer = new ResizeObserver(syncFromScroll);
-    observer.observe(node);
-
-    return () => {
-      node.removeEventListener("scroll", syncFromScroll);
-      observer.disconnect();
-    };
-  }, [targetRef]);
-
-  const scrollToRatio = (nextRatio: number) => {
-    const node = targetRef.current;
-    if (!node) return;
-
-    node.scrollLeft = getMaxScroll(node) * nextRatio;
-    setRatio(nextRatio);
+  const handleLayout = (event: LayoutChangeEvent) => {
+    trackWidthRef.current = event.nativeEvent.layout.width;
+    setTrackWidth(event.nativeEvent.layout.width);
   };
 
   return (
-    <div className="px-4 py-2">
-      <div className="rounded-full border border-[#dbe7e0] bg-white px-4 py-2 shadow-[0_1px_4px_rgba(11,107,62,.12)]">
-        <input
-          aria-label={label}
-          aria-valuetext={`${Math.round(ratio * 100)}%`}
-          className={styles.slider}
-          disabled={!isScrollable}
-          max={1}
-          min={0}
-          onChange={(event) => scrollToRatio(Number(event.target.value))}
-          step={0.01}
-          style={{ accentColor: "#22a45d" }}
-          type="range"
-          value={ratio}
-        />
-      </div>
-    </div>
+    <View className="px-4 py-2">
+      <View className="rounded-full border border-[#dbe7e0] bg-white px-4 py-2" style={shadow.card}>
+        <View
+          accessibilityLabel={label}
+          accessibilityRole="adjustable"
+          accessibilityValue={{ max: 100, min: 0, now: Math.round(ratio * 100) }}
+          className="h-[22px] justify-center"
+          onLayout={handleLayout}
+          onMoveShouldSetResponder={() => true}
+          onResponderGrant={seekFromEvent}
+          onResponderMove={seekFromEvent}
+          onStartShouldSetResponder={() => true}
+        >
+          <View className="h-1 w-full rounded-full bg-[#e3ebe7]" />
+          <View
+            className="absolute h-[18px] w-[18px] rounded-full border-[3px] border-white bg-[#22a45d]"
+            style={[{ left: Math.max(trackWidth - THUMB_SIZE, 0) * ratio }, shadow.card]}
+          />
+        </View>
+      </View>
+    </View>
   );
 }

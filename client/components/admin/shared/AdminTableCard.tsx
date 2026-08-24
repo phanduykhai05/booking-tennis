@@ -1,28 +1,17 @@
-"use client";
+import type { ReactNode } from "react";
 
-import { Card, Space, Typography } from "antd";
+import Card from "@/components/ui/Card";
 
 type AdminTableCardProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   description?: string;
   title: string;
-  toolbar?: React.ReactNode;
+  toolbar?: ReactNode;
 };
 
 export default function AdminTableCard({ children, description, title, toolbar }: AdminTableCardProps) {
   return (
-    <Card
-      classNames={{ body: "!p-0" }}
-      extra={toolbar ? <Space wrap>{toolbar}</Space> : undefined}
-      title={
-        <div className="py-3">
-          <Typography.Text strong>{title}</Typography.Text>
-          {description ? (
-            <Typography.Paragraph className="!mb-0 !text-xs" type="secondary">{description}</Typography.Paragraph>
-          ) : null}
-        </div>
-      }
-    >
+    <Card description={description} extra={toolbar} noBodyPadding title={title}>
       {children}
     </Card>
   );

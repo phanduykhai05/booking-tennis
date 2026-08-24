@@ -1,0 +1,12 @@
+{
+  "background_color": "#f5f6f5",
+  "description": "Nền tảng quản lý và đặt sân tennis TennisHub",
+  "display": "standalone",
+  "icons": [
+    { "sizes": "192x192", "src": "/favicon.ico", "type": "image/x-icon" }
+  ],
+  "name": "TennisHub - Đặt sân tennis",
+  "short_name": "TennisHub",
+  "start_url": "/",
+  "theme_color": "#0f9b58"
+}

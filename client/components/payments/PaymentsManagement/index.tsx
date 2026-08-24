@@ -1,20 +1,22 @@
-"use client";
-
-import { ClockCircleOutlined, CreditCardOutlined, DollarOutlined, RollbackOutlined } from "@ant-design/icons";
-import { Col, Input, Row, Select, Table, Typography } from "antd";
-import type { TableProps } from "antd";
+import { Clock, CreditCard, DollarSign, Undo2 } from "lucide-react-native";
 import { useState } from "react";
+import { Text, View } from "react-native";
 
 import { useAdminData } from "@/components/admin/AdminData";
 import { getReceivedRevenue } from "@/components/admin/AdminData/selectors";
 import type { Payment, PaymentStatus } from "@/components/admin/AdminData/types";
 import AdminPageHeader from "@/components/admin/shared/AdminPageHeader";
 import AdminTableCard from "@/components/admin/shared/AdminTableCard";
-import MetricCard from "@/components/admin/shared/MetricCard";
+import MetricCard, { metricIconColor } from "@/components/admin/shared/MetricCard";
 import StatusBadge from "@/components/admin/shared/StatusBadge";
 import type { StatusTone } from "@/components/admin/shared/StatusBadge";
-import { formatCurrency } from "@/components/booking/BookingSchedule/utils";
 import { paymentsContent } from "@/components/payments/PaymentsManagement/content";
+import DataTable from "@/components/ui/DataTable";
+import type { Column } from "@/components/ui/DataTable";
+import MetricGrid from "@/components/ui/MetricGrid";
+import SearchField from "@/components/ui/SearchField";
+import Select from "@/components/ui/Select";
+import { formatCurrency, matchesQuery } from "@/lib/format";
 
 const statusTone: Record<PaymentStatus, StatusTone> = {
   failed: "rose",
@@ -24,9 +26,19 @@ const statusTone: Record<PaymentStatus, StatusTone> = {
   unpaid: "slate",
 };
 
-const statusOptions = Object.entries(paymentsContent.statusLabels).map(([value, label]) => ({ label, value }));
-const statusFilterOptions = [{ label: paymentsContent.allStatusesLabel, value: "all" }, ...statusOptions];
-const dateFormatter = new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+const statusOptions = (Object.entries(paymentsContent.statusLabels) as [PaymentStatus, string][]).map(([value, label]) => ({
+  label,
+  value,
+}));
+
+const statusFilterOptions = [{ label: paymentsContent.allStatusesLabel, value: "all" as const }, ...statusOptions];
+
+/** ISO datetime của API -> "dd/mm/yyyy" theo giờ máy, đủ để đối soát trong ngày. */
+function formatDate(value: string) {
+  const date = new Date(value);
+  const pad = (part: number) => part.toString().padStart(2, "0");
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
+}
 
 export default function PaymentsManagement() {
   const { bookings, customers, payments, updatePaymentStatus } = useAdminData();
@@ -35,103 +47,153 @@ export default function PaymentsManagement() {
 
   const bookingMap = new Map(bookings.map((booking) => [booking.id, booking]));
   const customerMap = new Map(customers.map((customer) => [customer.id, customer]));
-  const normalizedQuery = query.trim().toLocaleLowerCase("vi");
 
   const filteredPayments = payments.filter((payment) => {
     const booking = bookingMap.get(payment.bookingId);
     const customer = customerMap.get(payment.customerId);
     const matchesStatus = status === "all" || payment.status === status;
-    const matchesQuery = !normalizedQuery
-      || [payment.transactionCode, booking?.code ?? "", customer?.name ?? ""].some((value) => value.toLocaleLowerCase("vi").includes(normalizedQuery));
-    return matchesStatus && matchesQuery;
+    const matchesText =
+      !query.trim() ||
+      [payment.transactionCode, booking?.code ?? "", customer?.name ?? ""].some((value) => matchesQuery(value, query));
+
+    return matchesStatus && matchesText;
   });
 
   const outstandingAmount = payments.reduce((total, payment) => {
     const booking = bookingMap.get(payment.bookingId);
+
     return payment.status === "unpaid" || payment.status === "partial"
       ? total + Math.max((booking?.totalPrice ?? 0) - payment.amount, 0)
       : total;
   }, 0);
 
-  const columns: TableProps<Payment>["columns"] = [
-    { dataIndex: "transactionCode", key: "transactionCode", render: (code: string) => <Typography.Text strong>{code}</Typography.Text>, title: "Giao dịch" },
-    { key: "booking", render: (_, payment) => <Typography.Text type="success">{bookingMap.get(payment.bookingId)?.code ?? "—"}</Typography.Text>, title: "Booking" },
+  const columns: Column<Payment>[] = [
+    {
+      key: "transactionCode",
+      render: (payment) => <Text className="text-[14px] font-bold text-slate-900">{payment.transactionCode}</Text>,
+      title: "Giao dịch",
+      width: 160,
+    },
+    {
+      key: "booking",
+      render: (payment) => (
+        <Text className="text-[14px] text-emerald-600">{bookingMap.get(payment.bookingId)?.code ?? "—"}</Text>
+      ),
+      title: "Booking",
+      width: 130,
+    },
     {
       key: "customer",
-      render: (_, payment) => {
+      render: (payment) => {
         const customer = customerMap.get(payment.customerId);
+
         return (
-          <div>
-            <Typography.Paragraph className="!mb-0">{customer?.name ?? "—"}</Typography.Paragraph>
-            <Typography.Text className="!text-xs" type="secondary">{customer?.phone}</Typography.Text>
-          </div>
+          <View>
+            <Text className="text-[14px] text-slate-800">{customer?.name ?? "—"}</Text>
+            <Text className="text-[12px] text-slate-500">{customer?.phone}</Text>
+          </View>
         );
       },
       title: "Khách hàng",
+      width: 190,
     },
-    { dataIndex: "method", key: "method", render: (method: Payment["method"]) => paymentsContent.methodLabels[method], title: "Phương thức" },
     {
-      dataIndex: "createdAt",
+      key: "method",
+      render: (payment) => <Text className="text-[14px] text-slate-700">{paymentsContent.methodLabels[payment.method]}</Text>,
+      title: "Phương thức",
+      width: 150,
+    },
+    {
       key: "createdAt",
-      render: (createdAt: string) => dateFormatter.format(new Date(createdAt)),
+      render: (payment) => <Text className="text-[14px] text-slate-700">{formatDate(payment.createdAt)}</Text>,
       sorter: (first, second) => first.createdAt.localeCompare(second.createdAt),
       title: "Ngày",
+      width: 130,
     },
     {
-      dataIndex: "amount",
       key: "amount",
-      render: (amount: number) => <Typography.Text strong>{formatCurrency(amount)}</Typography.Text>,
+      render: (payment) => <Text className="text-[14px] font-bold text-slate-900">{formatCurrency(payment.amount)}</Text>,
       sorter: (first, second) => first.amount - second.amount,
       title: "Số tiền",
+      width: 150,
     },
-    { dataIndex: "status", key: "status", render: (value: PaymentStatus) => <StatusBadge label={paymentsContent.statusLabels[value]} tone={statusTone[value]} />, title: "Trạng thái" },
     {
-      align: "right",
+      key: "status",
+      render: (payment) => <StatusBadge label={paymentsContent.statusLabels[payment.status]} tone={statusTone[payment.status]} />,
+      title: "Trạng thái",
+      width: 150,
+    },
+    {
       key: "actions",
-      render: (_, payment) => (
-        <Select<PaymentStatus>
-          aria-label={`Cập nhật ${payment.transactionCode}`}
-          className="!w-[160px]"
+      render: (payment) => (
+        <Select
+          accessibilityLabel={`Cập nhật ${payment.transactionCode}`}
           onChange={(value) => void updatePaymentStatus(payment.id, value)}
           options={statusOptions}
           size="small"
           value={payment.status}
+          width={150}
         />
       ),
       title: "Cập nhật",
+      width: 170,
     },
   ];
 
   return (
-    <div className="space-y-5">
+    <View className="gap-5">
       <AdminPageHeader description={paymentsContent.description} eyebrow="Tài chính booking" title={paymentsContent.title} />
 
-      <Row gutter={[16, 16]}>
-        <Col span={24} md={12} xl={6}><MetricCard icon={<DollarOutlined />} label="Doanh thu thực nhận" value={formatCurrency(getReceivedRevenue(payments))} /></Col>
-        <Col span={24} md={12} xl={6}><MetricCard icon={<CreditCardOutlined />} label="Đã thanh toán" tone="blue" value={`${payments.filter((payment) => payment.status === "paid").length}`} /></Col>
-        <Col span={24} md={12} xl={6}><MetricCard icon={<ClockCircleOutlined />} label="Còn phải thu" tone="orange" value={formatCurrency(outstandingAmount)} /></Col>
-        <Col span={24} md={12} xl={6}><MetricCard icon={<RollbackOutlined />} label="Đã hoàn tiền" tone="violet" value={`${payments.filter((payment) => payment.status === "refunded").length}`} /></Col>
-      </Row>
+      <MetricGrid minItemWidth={230}>
+        <MetricCard
+          icon={<DollarSign color={metricIconColor.emerald} size={20} />}
+          label="Doanh thu thực nhận"
+          value={formatCurrency(getReceivedRevenue(payments))}
+        />
+        <MetricCard
+          icon={<CreditCard color={metricIconColor.blue} size={20} />}
+          label="Đã thanh toán"
+          tone="blue"
+          value={`${payments.filter((payment) => payment.status === "paid").length}`}
+        />
+        <MetricCard
+          icon={<Clock color={metricIconColor.orange} size={20} />}
+          label="Còn phải thu"
+          tone="orange"
+          value={formatCurrency(outstandingAmount)}
+        />
+        <MetricCard
+          icon={<Undo2 color={metricIconColor.violet} size={20} />}
+          label="Đã hoàn tiền"
+          tone="violet"
+          value={`${payments.filter((payment) => payment.status === "refunded").length}`}
+        />
+      </MetricGrid>
 
       <AdminTableCard
         description={`${filteredPayments.length} giao dịch phù hợp`}
         title="Danh sách giao dịch"
         toolbar={
           <>
-            <Input.Search allowClear className="!w-[270px]" onChange={(event) => setQuery(event.target.value)} placeholder={paymentsContent.searchPlaceholder} value={query} />
-            <Select aria-label="Lọc trạng thái thanh toán" className="!w-[190px]" onChange={setStatus} options={statusFilterOptions} value={status} />
+            <SearchField
+              accessibilityLabel={paymentsContent.searchPlaceholder}
+              onChange={setQuery}
+              placeholder={paymentsContent.searchPlaceholder}
+              value={query}
+              width={270}
+            />
+            <Select
+              accessibilityLabel="Lọc trạng thái thanh toán"
+              onChange={setStatus}
+              options={statusFilterOptions}
+              value={status}
+              width={190}
+            />
           </>
         }
       >
-        <Table<Payment>
-          columns={columns}
-          dataSource={filteredPayments}
-          locale={{ emptyText: paymentsContent.emptyLabel }}
-          pagination={{ hideOnSinglePage: true, pageSize: 10 }}
-          rowKey="id"
-          scroll={{ x: 1080 }}
-        />
+        <DataTable columns={columns} emptyText={paymentsContent.emptyLabel} rowKey={(payment) => payment.id} rows={filteredPayments} />
       </AdminTableCard>
-    </div>
+    </View>
   );
 }

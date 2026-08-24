@@ -13,7 +13,6 @@ export class ApiError extends Error {
 type ApiRequest = {
   body?: unknown;
   method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
-  revalidate?: number | false;
   token?: string | null;
 };
 
@@ -22,19 +21,25 @@ type ErrorPayload = { message?: string | string[] };
 /**
  * Điểm vào duy nhất để gọi API. Mọi lỗi đều được chuẩn hoá thành ApiError với
  * thông điệp tiếng Việt do server trả về, nên component chỉ cần hiển thị lại.
+ * Lỗi mạng của React Native ném TypeError chứ không có response, nên được bọc lại thành ApiError 0.
  */
 export async function apiFetch<T>(path: string, options: ApiRequest = {}): Promise<T> {
-  const { body, method = "GET", revalidate, token } = options;
+  const { body, method = "GET", token } = options;
 
-  const response = await fetch(`${apiBaseUrl}${path}`, {
-    body: body === undefined ? undefined : JSON.stringify(body),
-    headers: {
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    method,
-    ...(revalidate === undefined ? { cache: "no-store" as const } : { next: { revalidate } }),
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${apiBaseUrl}${path}`, {
+      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: {
+        ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      method,
+    });
+  } catch {
+    throw new ApiError("Không kết nối được máy chủ", 0);
+  }
 
   if (response.status === 204) return undefined as T;
 

@@ -1,19 +1,24 @@
-"use client";
-
-import { CalendarDays, Check, ChevronDown, Ticket, X } from "lucide-react";
-import Image, { type StaticImageData } from "next/image";
+import { CalendarDays, Check, ChevronDown, Ticket } from "lucide-react-native";
 import { useState } from "react";
+import { Text, TextInput, View } from "react-native";
 
-import images from "@/components/assets/images";
+import CountryPicker from "@/components/auth/CountryPicker";
 import { defaultCountry } from "@/components/auth/CountryPicker/countries";
 import type { Country } from "@/components/auth/CountryPicker/types";
-import CountryCodeDialog from "@/components/product/ProductDetail/components/CountryCodeDialog";
-import styles from "@/components/product/ProductDetail/components/PaymentConfirmSheet.module.scss";
 import type { BookingEvent, CheckoutLabels } from "@/components/product/ProductDetail/types";
+import Button from "@/components/ui/Button";
+import CountryFlag from "@/components/ui/CountryFlag";
+import { ErrorMessage, NoticeMessage } from "@/components/ui/Feedback";
+import Touch from "@/components/ui/Pressable";
+import Sheet from "@/components/ui/Sheet";
+import { formatCurrency } from "@/lib/format";
 
 type PaymentConfirmSheetProps = {
+  accountInitial: string;
+  accountName: string;
   errorMessage: string;
   event: BookingEvent;
+  isOpen: boolean;
   isSubmitting: boolean;
   labels: CheckoutLabels;
   onClose: () => void;
@@ -22,70 +27,129 @@ type PaymentConfirmSheetProps = {
   requiresSignIn: boolean;
 };
 
-const formatTotal = (price: number, quantity: number) => `${(price * quantity).toLocaleString("vi-VN")} ₫`;
-const flagsByCode = images.flags as Record<string, StaticImageData>;
-
-export default function PaymentConfirmSheet({ errorMessage, event, isSubmitting, labels, onClose, onConfirm, quantity, requiresSignIn }: PaymentConfirmSheetProps) {
+export default function PaymentConfirmSheet({
+  accountInitial,
+  accountName,
+  errorMessage,
+  event,
+  isOpen,
+  isSubmitting,
+  labels,
+  onClose,
+  onConfirm,
+  quantity,
+  requiresSignIn,
+}: PaymentConfirmSheetProps) {
   const [phone, setPhone] = useState("");
   const [shouldSavePhone, setShouldSavePhone] = useState(true);
   const [country, setCountry] = useState<Country>(defaultCountry);
-  const [isCountryDialogOpen, setCountryDialogOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
+  const [isCountryPickerOpen, setCountryPickerOpen] = useState(false);
   const hasValidPhone = phone.replace(/\D/g, "").length >= 9;
-  const closeWithAnimation = (afterClose: () => void) => {
-    if (isClosing) return;
-    setIsClosing(true);
-    window.setTimeout(afterClose, 220);
-  };
 
   return (
-    <div aria-modal="true" className={`fixed inset-0 z-[80] flex items-end justify-center bg-[#081e16]/55 ${isClosing ? styles.backdropLeaving : styles.backdrop}`} onMouseDown={() => closeWithAnimation(onClose)} role="dialog">
-      <section className={`max-h-[88dvh] w-full max-w-[410px] overflow-y-auto rounded-t-[18px] bg-white ${isClosing ? styles.sheetLeaving : styles.sheet}`} onMouseDown={(event) => event.stopPropagation()}>
-        <header className="relative flex h-[63px] items-end border-b border-[#e7e9e8] px-4 pb-3">
-          <span aria-hidden="true" className="absolute left-1/2 top-2 h-1 w-9 -translate-x-1/2 rounded-full bg-[#dadadd]" />
-          <h2 className="text-[17px] font-bold text-[#16251f]">{labels.title}</h2>
-          <button aria-label="Đóng" className="ml-auto -mr-1 p-1 text-[#68716d]" onClick={() => closeWithAnimation(onClose)} type="button"><X size={20} /></button>
-        </header>
+    <Sheet
+      closeLabel={labels.cancel}
+      footer={
+        <View className="flex-row gap-3">
+          <View className="flex-1">
+            <Button fullWidth label={labels.cancel} onPress={onClose} tone="outline" />
+          </View>
+          <View className="flex-[2.1]">
+            <Button
+              disabled={!hasValidPhone}
+              fullWidth
+              isLoading={isSubmitting}
+              label={labels.confirm}
+              onPress={() => onConfirm(phone)}
+            />
+          </View>
+        </View>
+      }
+      isOpen={isOpen}
+      onClose={onClose}
+      title={labels.title}
+    >
+      <View className="gap-3">
+        <View>
+          <Text className="mb-1.5 text-[16px] font-semibold text-[#007b45]">{labels.userInfo}</Text>
+          <View className="h-14 flex-row items-center gap-2 rounded-lg border border-[#9bd9b8] bg-[#edfcf2] px-2.5">
+            <View className="h-9 w-9 items-center justify-center rounded-full bg-[#6570d7]">
+              <Text className="text-[18px] font-medium uppercase text-white">{accountInitial}</Text>
+            </View>
+            <Text className="text-[15px] font-medium text-[#172720]">{accountName}</Text>
+          </View>
+        </View>
 
-        <div className="space-y-3 px-4 py-3.5 text-[#172720]">
-          <section>
-            <h3 className="mb-1.5 text-[16px] font-semibold text-[#007b45]">{labels.userInfo}</h3>
-            <div className="flex h-14 items-center gap-2 rounded-lg border border-[#9bd9b8] bg-[#edfcf2] px-2.5">
-              <span className="flex size-9 items-center justify-center rounded-full bg-[#6570d7] text-xl font-medium text-white">k</span>
-              <span className="text-[15px] font-medium">khải duy</span>
-            </div>
-          </section>
+        <View>
+          <Text className="mb-1 text-[15px] font-medium text-[#172720]">
+            {labels.phone}
+            <Text className="text-[#e63345]">*</Text>
+          </Text>
+          <View className="h-10 flex-row overflow-hidden rounded-lg border border-[#d7ddda] bg-white">
+            <Touch
+              accessibilityLabel={`Chọn quốc gia, hiện tại ${country.name}`}
+              className="w-[58px] flex-row items-center justify-center gap-1 border-r border-[#e4e7e5]"
+              onPress={() => setCountryPickerOpen(true)}
+            >
+              <CountryFlag code={country.code} size={16} />
+              <ChevronDown color="#172720" size={14} />
+            </Touch>
+            <TextInput
+              accessibilityLabel={labels.phone}
+              className="min-w-0 flex-1 px-2 text-[15px] text-[#172720]"
+              keyboardType="phone-pad"
+              onChangeText={setPhone}
+              placeholder={labels.phonePlaceholder}
+              placeholderTextColor="#929794"
+              value={phone}
+            />
+          </View>
 
-          <section>
-            <label className="mb-1 block text-[15px] font-medium">{labels.phone}<span className="ml-0.5 text-[#e63345]">*</span></label>
-            <div className="flex h-10 overflow-hidden rounded-lg border border-[#d7ddda] bg-white focus-within:border-[#008447]">
-              <button aria-label={`Chọn quốc gia, hiện tại ${country.name}`} className="flex w-[58px] items-center justify-center gap-1 border-r border-[#e4e7e5] text-[13px]" onClick={() => setCountryDialogOpen(true)} type="button"><Image alt="" className="size-4 rounded-full object-cover" height={16} src={flagsByCode[country.code]} width={16} /><ChevronDown size={14} /></button>
-              <input aria-label={labels.phone} className="min-w-0 flex-1 px-2 text-[15px] outline-none placeholder:text-[#929794]" inputMode="tel" onChange={(event) => setPhone(event.target.value)} placeholder={labels.phonePlaceholder} type="tel" value={phone} />
-            </div>
-            <label className="mt-2 flex cursor-pointer items-center gap-2 text-[13px] text-[#49544f]">
-              <input checked={shouldSavePhone} className="sr-only" onChange={(event) => setShouldSavePhone(event.target.checked)} type="checkbox" />
-              <span className={`flex size-[17px] items-center justify-center rounded-[2px] border ${shouldSavePhone ? "border-[#008447] bg-[#008447] text-white" : "border-[#aeb9b3] bg-white"}`}><Check size={13} strokeWidth={3} /></span>
-              {labels.addPhone}
-            </label>
-          </section>
+          <Touch className="mt-2 flex-row items-center gap-2" onPress={() => setShouldSavePhone((value) => !value)}>
+            <View
+              className={`h-[17px] w-[17px] items-center justify-center rounded-[2px] border ${shouldSavePhone ? "border-[#008447] bg-[#008447]" : "border-[#aeb9b3] bg-white"}`}
+            >
+              {shouldSavePhone ? <Check color="#ffffff" size={13} strokeWidth={3} /> : null}
+            </View>
+            <Text className="flex-1 text-[13px] text-[#49544f]">{labels.addPhone}</Text>
+          </Touch>
+        </View>
 
-          <dl className="space-y-2 border-b border-[#e1e6e3] pb-3 text-[14px]">
-            <div className="flex gap-2"><CalendarDays aria-hidden="true" className="mt-0.5 text-[#8a9690]" size={15} /><div><dt className="text-[#8a918e]">{labels.event}</dt><dd className="font-semibold">{event.title}</dd></div></div>
-            <div className="flex gap-2"><Ticket aria-hidden="true" className="mt-0.5 text-[#8a9690]" size={15} /><div><dt className="text-[#8a918e]">{labels.ticket}</dt><dd className="font-semibold text-[#008447]">{quantity} vé</dd></div></div>
-          </dl>
+        <View className="gap-2 border-b border-[#e1e6e3] pb-3">
+          <View className="flex-row gap-2">
+            <CalendarDays color="#8a9690" size={15} style={{ marginTop: 2 }} />
+            <View className="flex-1">
+              <Text className="text-[14px] text-[#8a918e]">{labels.event}</Text>
+              <Text className="text-[14px] font-semibold text-[#172720]">{event.title}</Text>
+            </View>
+          </View>
+          <View className="flex-row gap-2">
+            <Ticket color="#8a9690" size={15} style={{ marginTop: 2 }} />
+            <View className="flex-1">
+              <Text className="text-[14px] text-[#8a918e]">{labels.ticket}</Text>
+              <Text className="text-[14px] font-semibold text-[#008447]">{quantity} vé</Text>
+            </View>
+          </View>
+        </View>
 
-          <div className="flex items-center text-[16px] font-medium"><span>{labels.total}</span><strong className="ml-auto text-[18px] font-bold text-[#007b45]">{formatTotal(event.priceValue, quantity)}</strong></div>
+        <View className="flex-row items-center">
+          <Text className="flex-1 text-[16px] font-medium text-[#172720]">{labels.total}</Text>
+          <Text className="text-[18px] font-bold text-[#007b45]">{formatCurrency(event.priceValue * quantity)}</Text>
+        </View>
 
-          {requiresSignIn && <p className="rounded-md bg-[#fff6e2] px-3 py-2 text-[13px] text-[#8a5b00]">{labels.signInMessage}</p>}
-          {errorMessage && <p className="rounded-md bg-[#fdecec] px-3 py-2 text-[13px] font-medium text-[#b3261e]" role="alert">{errorMessage}</p>}
-        </div>
+        {requiresSignIn ? <NoticeMessage text={labels.signInMessage} /> : null}
+        <ErrorMessage text={errorMessage} />
+      </View>
 
-        <footer className="flex gap-3 border-t border-[#e7e9e8] px-4 py-3">
-          <button className="h-10 flex-1 rounded-lg border border-[#008447] text-[16px] font-semibold text-[#008447]" onClick={() => closeWithAnimation(onClose)} type="button">{labels.cancel}</button>
-          <button className="h-10 flex-[2.1] rounded-lg bg-[#008447] text-[16px] font-semibold text-white disabled:bg-[#e7e7e8] disabled:text-[#b7b8bb]" disabled={!hasValidPhone || isSubmitting} onClick={() => onConfirm(phone)} type="button">{labels.confirm}</button>
-        </footer>
-      </section>
-      {isCountryDialogOpen && <CountryCodeDialog onClose={() => setCountryDialogOpen(false)} onSelect={(selectedCountry) => { setCountry(selectedCountry); setCountryDialogOpen(false); }} />}
-    </div>
+      <CountryPicker
+        isOpen={isCountryPickerOpen}
+        onClose={() => setCountryPickerOpen(false)}
+        onSelect={(selected) => {
+          setCountry(selected);
+          setCountryPickerOpen(false);
+        }}
+        selectedCode={country.code}
+      />
+    </Sheet>
   );
 }

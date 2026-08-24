@@ -1,4 +1,4 @@
-"use client";
+import { ScrollView } from "react-native";
 
 import CategoryTile from "@/components/home/SportCategories/components/CategoryTile";
 import { sportCategoriesLabel } from "@/components/home/SportCategories/content";
@@ -12,14 +12,20 @@ type SportCategoriesProps = {
 
 export default function SportCategories({ activeId, categories, onSelect }: SportCategoriesProps) {
   return (
-    <nav aria-label={sportCategoriesLabel} className="overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <ul className="flex w-max min-w-full items-start gap-2 px-3 pb-4 pt-1 sm:gap-4 sm:px-4">
-        {categories.map((category) => (
-          <li key={category.id}>
-            <CategoryTile category={category} isActive={activeId === category.id} onSelect={() => onSelect?.(category.id)} />
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <ScrollView
+      accessibilityLabel={sportCategoriesLabel}
+      contentContainerClassName="flex-row items-start gap-2 px-3 pb-4 pt-1"
+      horizontal
+      showsHorizontalScrollIndicator={false}
+    >
+      {categories.map((category) => (
+        <CategoryTile
+          category={category}
+          isActive={activeId === category.id}
+          key={category.id}
+          onSelect={() => onSelect?.(category.id)}
+        />
+      ))}
+    </ScrollView>
   );
 }

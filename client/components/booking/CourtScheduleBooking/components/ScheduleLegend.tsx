@@ -1,4 +1,6 @@
-import { slotStatusStyles } from "@/components/booking/CourtScheduleBooking/components/slotStatusStyles";
+import { Text, View } from "react-native";
+
+import { slotStatusColor } from "@/components/booking/CourtScheduleBooking/components/slotStatusStyles";
 import type { SlotStatus } from "@/components/booking/CourtScheduleBooking/types";
 
 type ScheduleLegendProps = {
@@ -9,15 +11,18 @@ const legendOrder: SlotStatus[] = ["available", "booked", "locked", "event"];
 
 export default function ScheduleLegend({ labels }: ScheduleLegendProps) {
   return (
-    <ul className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] text-white">
+    <View className="flex-row flex-wrap items-center gap-x-4 gap-y-2">
       {legendOrder.map((status) => (
-        <li className="flex items-center gap-1.5" key={status}>
-          <span aria-hidden="true" className={`flex size-[18px] items-center justify-center rounded-[3px] text-[12px] font-bold text-white ${slotStatusStyles[status].swatch}`}>
-            {status === "event" ? "!" : ""}
-          </span>
-          {labels[status]}
-        </li>
+        <View className="flex-row items-center gap-1.5" key={status}>
+          <View
+            className={`h-[18px] w-[18px] items-center justify-center rounded-[3px] ${status === "available" ? "border border-[#c8d5ce]" : ""}`}
+            style={{ backgroundColor: slotStatusColor[status] }}
+          >
+            {status === "event" ? <Text className="text-[12px] font-bold text-white">!</Text> : null}
+          </View>
+          <Text className="text-[13px] text-white">{labels[status]}</Text>
+        </View>
       ))}
-    </ul>
+    </View>
   );
 }

@@ -1,9 +1,8 @@
-"use client";
-
-import { Flex, Space, Typography } from "antd";
+import { Text, View } from "react-native";
+import type { ReactNode } from "react";
 
 type AdminPageHeaderProps = {
-  actions?: React.ReactNode;
+  actions?: ReactNode;
   description: string;
   eyebrow?: string;
   title: string;
@@ -11,17 +10,15 @@ type AdminPageHeaderProps = {
 
 export default function AdminPageHeader({ actions, description, eyebrow, title }: AdminPageHeaderProps) {
   return (
-    <Flex align="flex-end" gap="middle" justify="space-between" wrap>
-      <div>
+    <View className="flex-row flex-wrap items-end justify-between gap-3">
+      <View className="min-w-[240px] flex-1">
         {eyebrow ? (
-          <Typography.Paragraph className="!mb-0 !text-xs !uppercase !tracking-[0.16em]" strong type="success">
-            {eyebrow}
-          </Typography.Paragraph>
+          <Text className="text-[12px] font-bold uppercase tracking-[2px] text-emerald-600">{eyebrow}</Text>
         ) : null}
-        <Typography.Title className="!mb-1 !mt-1" level={3}>{title}</Typography.Title>
-        <Typography.Paragraph className="!mb-0 !max-w-2xl" type="secondary">{description}</Typography.Paragraph>
-      </div>
-      {actions ? <Space wrap>{actions}</Space> : null}
-    </Flex>
+        <Text className="mb-1 mt-1 text-[24px] font-bold text-slate-900">{title}</Text>
+        <Text className="max-w-2xl text-[14px] text-slate-500">{description}</Text>
+      </View>
+      {actions ? <View className="flex-row flex-wrap items-center gap-2">{actions}</View> : null}
+    </View>
   );
 }

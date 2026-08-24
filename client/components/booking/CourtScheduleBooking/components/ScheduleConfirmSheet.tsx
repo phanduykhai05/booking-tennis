@@ -1,14 +1,16 @@
-"use client";
+import { CalendarDays, Clock } from "lucide-react-native";
+import { Text, View } from "react-native";
 
-import { CalendarDays, Clock } from "lucide-react";
-
-import ScheduleSheet from "@/components/booking/CourtScheduleBooking/components/ScheduleSheet";
 import type { CourtScheduleContent, SelectedSlot } from "@/components/booking/CourtScheduleBooking/types";
 import { formatCurrency, formatDateLabel, formatMinutes } from "@/components/booking/CourtScheduleBooking/utils";
+import Button from "@/components/ui/Button";
+import { NoticeMessage } from "@/components/ui/Feedback";
+import Sheet from "@/components/ui/Sheet";
 
 type ScheduleConfirmSheetProps = {
   content: CourtScheduleContent;
   date: string;
+  isOpen: boolean;
   isSubmitting: boolean;
   onClose: () => void;
   onConfirm: () => void;
@@ -17,53 +19,79 @@ type ScheduleConfirmSheetProps = {
   total: number;
 };
 
-export default function ScheduleConfirmSheet({ content, date, isSubmitting, onClose, onConfirm, ranges, requiresSignIn, total }: ScheduleConfirmSheetProps) {
+export default function ScheduleConfirmSheet({
+  content,
+  date,
+  isOpen,
+  isSubmitting,
+  onClose,
+  onConfirm,
+  ranges,
+  requiresSignIn,
+  total,
+}: ScheduleConfirmSheetProps) {
   return (
-    <ScheduleSheet
+    <Sheet
       closeLabel={content.confirmSheet.backLabel}
       footer={
-        <div className="flex gap-3">
-          <button className="h-11 flex-1 rounded-lg border border-[#008447] text-[15px] font-semibold text-[#008447]" onClick={onClose} type="button">
-            {content.confirmSheet.backLabel}
-          </button>
-          <button className="h-11 flex-[2] rounded-lg bg-[#008447] text-[15px] font-semibold text-white disabled:bg-[#e7e7e8] disabled:text-[#b7b8bb]" disabled={ranges.length === 0 || isSubmitting} onClick={onConfirm} type="button">
-            {content.confirmSheet.confirmLabel}
-          </button>
-        </div>
+        <View className="flex-row gap-3">
+          <View className="flex-1">
+            <Button fullWidth label={content.confirmSheet.backLabel} onPress={onClose} tone="outline" />
+          </View>
+          <View className="flex-[2]">
+            <Button
+              disabled={ranges.length === 0}
+              fullWidth
+              isLoading={isSubmitting}
+              label={content.confirmSheet.confirmLabel}
+              onPress={onConfirm}
+            />
+          </View>
+        </View>
       }
+      isOpen={isOpen}
       onClose={onClose}
       title={content.confirmSheet.title}
     >
-      <p className="mb-3 flex items-center gap-1.5 text-[14px] font-medium text-[#124a31]">
-        <CalendarDays aria-hidden="true" className="text-[#8a9690]" size={16} />
-        {formatDateLabel(date)}
-      </p>
+      <View className="mb-3 flex-row items-center gap-1.5">
+        <CalendarDays color="#8a9690" size={16} />
+        <Text className="text-[14px] font-medium text-[#124a31]">{formatDateLabel(date)}</Text>
+      </View>
 
       {ranges.length === 0 ? (
-        <p className="py-6 text-center text-[14px] text-[#68716d]">{content.confirmSheet.emptyMessage}</p>
+        <Text className="py-6 text-center text-[14px] text-[#68716d]">{content.confirmSheet.emptyMessage}</Text>
       ) : (
-        <ul className="space-y-2">
+        <View className="gap-2">
           {ranges.map((range) => (
-            <li className="flex items-center gap-2 rounded-lg border border-[#d9e8e0] bg-[#f7fdfa] px-3 py-2" key={`${range.courtId}-${range.startMinute}`}>
-              <Clock aria-hidden="true" className="text-[#8a9690]" size={16} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[14px] font-semibold text-[#0b5133]">{range.courtName}</p>
-                <p className="text-[13px] text-[#49544f]">{formatMinutes(range.startMinute)} - {formatMinutes(range.endMinute)}</p>
-              </div>
-              <span className="text-[14px] font-semibold text-[#124a31]">{formatCurrency(range.price)}</span>
-            </li>
+            <View
+              className="flex-row items-center gap-2 rounded-lg border border-[#d9e8e0] bg-[#f7fdfa] px-3 py-2"
+              key={`${range.courtId}-${range.startMinute}`}
+            >
+              <Clock color="#8a9690" size={16} />
+              <View className="min-w-0 flex-1">
+                <Text className="text-[14px] font-semibold text-[#0b5133]" numberOfLines={1}>
+                  {range.courtName}
+                </Text>
+                <Text className="text-[13px] text-[#49544f]">
+                  {formatMinutes(range.startMinute)} - {formatMinutes(range.endMinute)}
+                </Text>
+              </View>
+              <Text className="text-[14px] font-semibold text-[#124a31]">{formatCurrency(range.price)}</Text>
+            </View>
           ))}
-        </ul>
+        </View>
       )}
 
-      {requiresSignIn && (
-        <p className="mt-3 rounded-md bg-[#fff6e2] px-3 py-2 text-[13px] text-[#8a5b00]">{content.confirmSheet.signInMessage}</p>
-      )}
+      {requiresSignIn ? (
+        <View className="mt-3">
+          <NoticeMessage text={content.confirmSheet.signInMessage} />
+        </View>
+      ) : null}
 
-      <div className="mt-3 flex items-center border-t border-[#e1e6e3] pt-3 text-[15px] font-medium">
-        <span>{content.totalLabel}</span>
-        <strong className="ml-auto text-[18px] font-bold text-[#007b45]">{formatCurrency(total)}</strong>
-      </div>
-    </ScheduleSheet>
+      <View className="mt-3 flex-row items-center border-t border-[#e1e6e3] pt-3">
+        <Text className="flex-1 text-[15px] font-medium text-[#172720]">{content.totalLabel}</Text>
+        <Text className="text-[18px] font-bold text-[#007b45]">{formatCurrency(total)}</Text>
+      </View>
+    </Sheet>
   );
 }

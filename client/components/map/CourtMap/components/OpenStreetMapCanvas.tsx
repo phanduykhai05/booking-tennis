@@ -1,60 +1,27 @@
-"use client";
-
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { Text, View } from "react-native";
+import { WebView } from "react-native-webview";
+import type { WebViewMessageEvent } from "react-native-webview";
 
 import type { CourtMapMarker } from "@/components/map/CourtMap/types";
-
-type LeafletMap = {
-  remove: () => void;
-  setView: (coordinates: [number, number], zoom: number) => LeafletMap;
-};
-
-type LeafletLayer = {
-  addTo: (map: LeafletMap) => LeafletLayer;
-  bindPopup: (html: string) => LeafletLayer;
-  openPopup: () => LeafletLayer;
-};
-
-type LeafletApi = {
-  divIcon: (options: { className: string; html: string; iconAnchor: [number, number]; iconSize: [number, number] }) => unknown;
-  map: (element: HTMLElement, options: { attributionControl: boolean; zoomControl: boolean }) => LeafletMap;
-  marker: (coordinates: [number, number], options: { icon: unknown; title: string }) => LeafletLayer;
-  tileLayer: (url: string, options: { maxZoom: number }) => LeafletLayer;
-};
-
-declare global {
-  interface Window {
-    L?: LeafletApi;
-  }
-}
+import { normalizeText } from "@/lib/format";
+import { shadow } from "@/components/ui/theme";
 
 export type OpenStreetMapCanvasHandle = {
   focusVenue: (query: string) => boolean;
   locate: () => void;
 };
 
-// Bỏ dấu tiếng Việt để tìm "cau giay" khớp "Cầu Giấy".
-const normalize = (value: string) =>
-  value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
-
 type OpenStreetMapCanvasProps = {
   geolocationUnavailableMessage: string;
   markers: CourtMapMarker[];
+  onMarkerPress: (markerId: string) => void;
   showVenueLayer: boolean;
   unavailableMessage: string;
 };
 
-const leafletScriptId = "leaflet-library";
-const leafletStyleId = "leaflet-styles";
-// Mặc định trung tâm Hà Nội — nơi tập trung nhiều sân nhất; search có thể bay sang tỉnh khác.
-const mapCenter: [number, number] = [21.0285, 105.81];
-
-const escapeHtml = (value: string) =>
-  value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char);
-
-function getPopupHtml(marker: CourtMapMarker) {
-  return `<div style="min-width:150px"><p style="margin:0 0 6px;font-weight:700;font-size:13px;color:#0b5133">${escapeHtml(marker.name)}</p><a href="${escapeHtml(marker.href)}" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#fff;background:#008447;padding:6px 12px;border-radius:8px;text-decoration:none">Đặt lịch sân</a></div>`;
-}
+// Mặc định trung tâm Hà Nội — nơi tập trung nhiều sân nhất; tìm kiếm có thể bay sang tỉnh khác.
+const mapCenter = { latitude: 21.0285, longitude: 105.81 };
 
 const sportColors: Record<CourtMapMarker["sport"], string> = {
   athletics: "#e11d48",
@@ -69,127 +36,159 @@ const sportColors: Record<CourtMapMarker["sport"], string> = {
   volleyball: "#7c3aed",
 };
 
-function getMarkerHtml(marker: CourtMapMarker) {
-  const color = marker.isFeatured ? "#e11d48" : sportColors[marker.sport];
-  return `<span style="display:flex;align-items:center;justify-content:center;width:30px;height:38px;filter:drop-shadow(0 2px 2px rgba(15,23,42,.28))"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="38" viewBox="0 0 30 38"><path fill="${color}" stroke="#fff" stroke-width="1.4" d="M15 1C7.3 1 1 7.3 1 15c0 10.2 12.2 20.9 13.2 21.7.5.4 1.1.4 1.6 0C16.8 35.9 29 25.2 29 15 29 7.3 22.7 1 15 1Z"/><circle cx="15" cy="14.7" r="8.1" fill="#fff"/><path fill="${color}" d="M10.6 9.3h8.8V11h-8.8zm0 3.2h8.8v1.7h-8.8zm0 3.2h5.6v1.7h-5.6z"/></svg></span>`;
+/**
+ * Leaflet chạy trong WebView: giữ nguyên nguồn tile OpenStreetMap và kiểu ghim của
+ * bản web, đồng thời tránh phải cấu hình khoá API bản đồ gốc cho iOS/Android.
+ * Chạm vào ghim gửi message ra ngoài để RN điều hướng sang trang sân.
+ */
+function buildHtml(markers: CourtMapMarker[], showVenueLayer: boolean) {
+  const markerData = markers.map((marker) => ({
+    color: marker.isFeatured ? "#e11d48" : sportColors[marker.sport],
+    id: marker.id,
+    latitude: marker.latitude,
+    longitude: marker.longitude,
+    name: marker.name,
+  }));
+
+  return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  html, body, #map { height: 100%; margin: 0; background: #d9f4ea; }
+  .pin-label { font: 700 13px system-ui, sans-serif; color: #0b5133; }
+  .pin-button { display:inline-block; margin-top:6px; font:600 12px system-ui,sans-serif; color:#fff; background:#008447; padding:6px 12px; border-radius:8px; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  var send = function (payload) {
+    if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(payload));
+  };
+
+  if (!window.L) {
+    send({ type: "error" });
+  } else {
+    var map = L.map("map", { attributionControl: false, zoomControl: false })
+      .setView([${mapCenter.latitude}, ${mapCenter.longitude}], 12);
+
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+
+    var markers = ${JSON.stringify(markerData)};
+    var layers = {};
+
+    var pinHtml = function (color) {
+      return '<span style="display:flex;align-items:center;justify-content:center;width:30px;height:38px;filter:drop-shadow(0 2px 2px rgba(15,23,42,.28))">'
+        + '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="38" viewBox="0 0 30 38">'
+        + '<path fill="' + color + '" stroke="#fff" stroke-width="1.4" d="M15 1C7.3 1 1 7.3 1 15c0 10.2 12.2 20.9 13.2 21.7.5.4 1.1.4 1.6 0C16.8 35.9 29 25.2 29 15 29 7.3 22.7 1 15 1Z"/>'
+        + '<circle cx="15" cy="14.7" r="8.1" fill="#fff"/>'
+        + '<path fill="' + color + '" d="M10.6 9.3h8.8V11h-8.8zm0 3.2h8.8v1.7h-8.8zm0 3.2h5.6v1.7h-5.6z"/>'
+        + '</svg></span>';
+    };
+
+    if (${showVenueLayer ? "true" : "false"}) {
+      markers.forEach(function (marker) {
+        var layer = L.marker([marker.latitude, marker.longitude], {
+          icon: L.divIcon({ className: "", html: pinHtml(marker.color), iconAnchor: [15, 38], iconSize: [30, 38] }),
+          title: marker.name,
+        }).addTo(map);
+
+        layer.on("click", function () {
+          send({ id: marker.id, name: marker.name, type: "marker" });
+        });
+
+        layers[marker.id] = layer;
+      });
+    }
+
+    window.focusVenue = function (latitude, longitude) {
+      map.setView([latitude, longitude], 15);
+    };
+
+    send({ type: "ready" });
+  }
+</script>
+</body>
+</html>`;
 }
 
-function loadLeaflet() {
-  if (window.L) return Promise.resolve(window.L);
-
-  if (!document.getElementById(leafletStyleId)) {
-    const stylesheet = document.createElement("link");
-    stylesheet.id = leafletStyleId;
-    stylesheet.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-    stylesheet.rel = "stylesheet";
-    document.head.append(stylesheet);
-  }
-
-  const existingScript = document.getElementById(leafletScriptId) as HTMLScriptElement | null;
-  if (existingScript) {
-    return new Promise<LeafletApi>((resolve, reject) => {
-      existingScript.addEventListener("load", () => window.L ? resolve(window.L) : reject(new Error("Leaflet không khả dụng.")), { once: true });
-      existingScript.addEventListener("error", () => reject(new Error("Không thể tải Leaflet.")), { once: true });
-    });
-  }
-
-  return new Promise<LeafletApi>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.id = leafletScriptId;
-    script.async = true;
-    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-    script.onload = () => window.L ? resolve(window.L) : reject(new Error("Leaflet không khả dụng."));
-    script.onerror = () => reject(new Error("Không thể tải Leaflet."));
-    document.head.append(script);
-  });
-}
-
-const OpenStreetMapCanvas = forwardRef<OpenStreetMapCanvasHandle, OpenStreetMapCanvasProps>(function OpenStreetMapCanvas({ geolocationUnavailableMessage, markers, showVenueLayer, unavailableMessage }, ref) {
-  const mapElementRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<LeafletMap | null>(null);
-  const markerLayersRef = useRef<Map<string, LeafletLayer>>(new Map());
+const OpenStreetMapCanvas = forwardRef<OpenStreetMapCanvasHandle, OpenStreetMapCanvasProps>(function OpenStreetMapCanvas(
+  { geolocationUnavailableMessage, markers, onMarkerPress, showVenueLayer, unavailableMessage },
+  ref,
+) {
+  const webViewRef = useRef<WebView>(null);
   const [statusMessage, setStatusMessage] = useState("");
 
-  useImperativeHandle(ref, () => ({
-    focusVenue: (query: string) => {
-      const needle = normalize(query);
-      if (!needle) return false;
+  const html = useMemo(() => buildHtml(markers, showVenueLayer), [markers, showVenueLayer]);
 
-      const match = markers.find((marker) => normalize(marker.name).includes(needle));
-      if (!match || !mapRef.current) return false;
+  useImperativeHandle(
+    ref,
+    () => ({
+      focusVenue: (query: string) => {
+        const needle = normalizeText(query);
+        if (!needle) return false;
 
-      mapRef.current.setView([match.latitude, match.longitude], 15);
-      markerLayersRef.current.get(match.id)?.openPopup();
-      return true;
-    },
-    locate: () => {
-      if (!navigator.geolocation || !mapRef.current) {
-        setStatusMessage(geolocationUnavailableMessage);
-        return;
-      }
+        const match = markers.find((marker) => normalizeText(marker.name).includes(needle));
+        if (!match) return false;
 
-      navigator.geolocation.getCurrentPosition(
-        ({ coords }) => {
-          mapRef.current?.setView([coords.latitude, coords.longitude], 15);
-          setStatusMessage("");
-        },
-        () => setStatusMessage(geolocationUnavailableMessage),
-        { enableHighAccuracy: true, timeout: 10000 },
-      );
-    },
-  }), [geolocationUnavailableMessage, markers]);
+        webViewRef.current?.injectJavaScript(`window.focusVenue(${match.latitude}, ${match.longitude}); true;`);
+        return true;
+      },
+      locate: () => {
+        // Vị trí lấy từ chính WebView để không phải xin thêm quyền native ở tầng RN.
+        webViewRef.current?.injectJavaScript(`
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              function (position) { window.focusVenue(position.coords.latitude, position.coords.longitude); },
+              function () { window.ReactNativeWebView.postMessage(JSON.stringify({ type: "geolocation-error" })); },
+              { enableHighAccuracy: true, timeout: 10000 }
+            );
+          } else {
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: "geolocation-error" }));
+          }
+          true;
+        `);
+      },
+    }),
+    [markers],
+  );
 
-  useEffect(() => {
-    if (!mapElementRef.current) return;
+  const handleMessage = (event: WebViewMessageEvent) => {
+    try {
+      const payload = JSON.parse(event.nativeEvent.data) as { id?: string; type: string };
 
-    let isMounted = true;
-    let map: LeafletMap | null = null;
-
-    loadLeaflet()
-      .then((leaflet) => {
-        if (!isMounted || !mapElementRef.current) return;
-
-        const mapInstance = leaflet.map(mapElementRef.current, {
-          attributionControl: false,
-          zoomControl: false,
-        }).setView(mapCenter, 12);
-        map = mapInstance;
-        mapRef.current = mapInstance;
-
-        leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(mapInstance);
-        markerLayersRef.current.clear();
-        if (showVenueLayer) {
-          markers.forEach((marker) => {
-            const layer = leaflet.marker([marker.latitude, marker.longitude], {
-              icon: leaflet.divIcon({
-                className: "",
-                html: getMarkerHtml(marker),
-                iconAnchor: [15, 38],
-                iconSize: [30, 38],
-              }),
-              title: marker.name,
-            });
-            layer.bindPopup(getPopupHtml(marker)).addTo(mapInstance);
-            markerLayersRef.current.set(marker.id, layer);
-          });
-        }
-      })
-      .catch(() => {
-        if (isMounted) setStatusMessage(unavailableMessage);
-      });
-
-    return () => {
-      isMounted = false;
-      map?.remove();
-      mapRef.current = null;
-    };
-  }, [markers, showVenueLayer, unavailableMessage]);
+      if (payload.type === "marker" && payload.id) onMarkerPress(payload.id);
+      if (payload.type === "geolocation-error") setStatusMessage(geolocationUnavailableMessage);
+      if (payload.type === "error") setStatusMessage(unavailableMessage);
+      if (payload.type === "ready") setStatusMessage("");
+    } catch {
+      setStatusMessage(unavailableMessage);
+    }
+  };
 
   return (
-    <div className="absolute inset-0">
-      <div className="size-full" ref={mapElementRef} />
-      {statusMessage && <p className="absolute inset-x-6 top-1/2 -translate-y-1/2 rounded-2xl bg-white/95 p-4 text-center text-sm font-medium text-slate-700 shadow-[0_4px_20px_rgba(15,23,42,0.18)]">{statusMessage}</p>}
-    </div>
+    <View className="absolute inset-0">
+      <WebView
+        allowsInlineMediaPlayback
+        geolocationEnabled
+        onError={() => setStatusMessage(unavailableMessage)}
+        onMessage={handleMessage}
+        originWhitelist={["*"]}
+        ref={webViewRef}
+        source={{ html }}
+        style={{ backgroundColor: "#d9f4ea", flex: 1 }}
+      />
+
+      {statusMessage ? (
+        <View className="absolute inset-x-6 top-1/2 rounded-2xl bg-white/95 p-4" style={shadow.raised}>
+          <Text className="text-center text-[14px] font-medium text-slate-700">{statusMessage}</Text>
+        </View>
+      ) : null}
+    </View>
   );
 });
 

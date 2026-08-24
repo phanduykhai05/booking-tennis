@@ -1,26 +1,30 @@
-"use client";
-
-import { DollarOutlined, EditOutlined, EnvironmentOutlined, PlusOutlined, ToolOutlined } from "@ant-design/icons";
-import { Button, Col, Input, Row, Select, Table, Typography } from "antd";
-import type { TableProps } from "antd";
+import { DollarSign, MapPin, Pencil, Plus, Wrench } from "lucide-react-native";
 import { useState } from "react";
+import { Text, View } from "react-native";
 
 import { useAdminData } from "@/components/admin/AdminData";
 import type { Court, CourtPayload, CourtStatus } from "@/components/admin/AdminData/types";
 import AdminPageHeader from "@/components/admin/shared/AdminPageHeader";
 import AdminTableCard from "@/components/admin/shared/AdminTableCard";
-import MetricCard from "@/components/admin/shared/MetricCard";
+import MetricCard, { metricIconColor } from "@/components/admin/shared/MetricCard";
 import StatusBadge from "@/components/admin/shared/StatusBadge";
 import type { StatusTone } from "@/components/admin/shared/StatusBadge";
-import { formatCurrency } from "@/components/booking/BookingSchedule/utils";
 import CourtFormPanel from "@/components/courts/CourtsManagement/components/CourtFormPanel";
 import { courtsContent } from "@/components/courts/CourtsManagement/content";
+import Button from "@/components/ui/Button";
+import DataTable from "@/components/ui/DataTable";
+import type { Column } from "@/components/ui/DataTable";
+import MetricGrid from "@/components/ui/MetricGrid";
+import Touch from "@/components/ui/Pressable";
+import SearchField from "@/components/ui/SearchField";
+import Select from "@/components/ui/Select";
+import { formatCurrency, matchesQuery } from "@/lib/format";
 
 const statusTone: Record<CourtStatus, StatusTone> = { available: "emerald", inactive: "slate", maintenance: "orange" };
 
 const statusFilterOptions = [
-  { label: courtsContent.allStatusesLabel, value: "all" },
-  ...Object.entries(courtsContent.statusLabels).map(([value, label]) => ({ label, value })),
+  { label: courtsContent.allStatusesLabel, value: "all" as const },
+  ...(Object.entries(courtsContent.statusLabels) as [CourtStatus, string][]).map(([value, label]) => ({ label, value })),
 ];
 
 export default function CourtsManagement() {
@@ -30,87 +34,144 @@ export default function CourtsManagement() {
   const [editingCourt, setEditingCourt] = useState<Court | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-  const normalizedQuery = query.trim().toLocaleLowerCase("vi");
-  const filteredCourts = courts.filter((court) =>
-    (status === "all" || court.status === status)
-    && (!normalizedQuery || court.name.toLocaleLowerCase("vi").includes(normalizedQuery)));
+  const filteredCourts = courts.filter(
+    (court) => (status === "all" || court.status === status) && (!query.trim() || matchesQuery(court.name, query)),
+  );
   const averageRate = courts.length > 0 ? courts.reduce((total, court) => total + court.hourlyRate, 0) / courts.length : 0;
 
-  function handleSave(payload: CourtPayload) {
-    if (editingCourt) updateCourt(editingCourt.id, payload);
-    else createCourt(payload);
+  const handleSave = (payload: CourtPayload) => {
+    if (editingCourt) void updateCourt(editingCourt.id, payload);
+    else void createCourt(payload);
+
     setIsPanelOpen(false);
     setEditingCourt(null);
-  }
+  };
 
-  function handleEdit(court: Court) {
-    setEditingCourt(court);
-    setIsPanelOpen(true);
-  }
-
-  const columns: TableProps<Court>["columns"] = [
-    { dataIndex: "name", key: "name", render: (name: string) => <Typography.Text strong>{name}</Typography.Text>, title: "Tên sân" },
-    { dataIndex: "surface", key: "surface", render: (surface: Court["surface"]) => courtsContent.surfaceLabels[surface], title: "Bề mặt" },
-    { dataIndex: "isIndoor", key: "isIndoor", render: (isIndoor: boolean) => isIndoor ? courtsContent.indoorLabel : courtsContent.outdoorLabel, title: "Không gian" },
+  const columns: Column<Court>[] = [
     {
-      dataIndex: "hourlyRate",
+      key: "name",
+      render: (court) => <Text className="text-[14px] font-bold text-slate-900">{court.name}</Text>,
+      title: "Tên sân",
+      width: 160,
+    },
+    {
+      key: "surface",
+      render: (court) => <Text className="text-[14px] text-slate-700">{courtsContent.surfaceLabels[court.surface]}</Text>,
+      title: "Bề mặt",
+      width: 140,
+    },
+    {
+      key: "isIndoor",
+      render: (court) => (
+        <Text className="text-[14px] text-slate-700">{court.isIndoor ? courtsContent.indoorLabel : courtsContent.outdoorLabel}</Text>
+      ),
+      title: "Không gian",
+      width: 130,
+    },
+    {
       key: "hourlyRate",
-      render: (rate: number) => <Typography.Text strong>{formatCurrency(rate)}</Typography.Text>,
+      render: (court) => <Text className="text-[14px] font-bold text-slate-900">{formatCurrency(court.hourlyRate)}</Text>,
       sorter: (first, second) => first.hourlyRate - second.hourlyRate,
       title: "Giá mỗi giờ",
+      width: 150,
     },
-    { dataIndex: "status", key: "status", render: (value: CourtStatus) => <StatusBadge label={courtsContent.statusLabels[value]} tone={statusTone[value]} />, title: "Trạng thái" },
+    {
+      key: "status",
+      render: (court) => <StatusBadge label={courtsContent.statusLabels[court.status]} tone={statusTone[court.status]} />,
+      title: "Trạng thái",
+      width: 150,
+    },
     {
       align: "right",
       key: "actions",
-      render: (_, court) => <Button aria-label={`${courtsContent.editLabel} ${court.name}`} icon={<EditOutlined />} onClick={() => handleEdit(court)} />,
+      render: (court) => (
+        <Touch
+          accessibilityLabel={`${courtsContent.editLabel} ${court.name}`}
+          className="h-9 w-9 items-center justify-center rounded-md border border-slate-200"
+          onPress={() => {
+            setEditingCourt(court);
+            setIsPanelOpen(true);
+          }}
+        >
+          <Pencil color="#334155" size={16} />
+        </Touch>
+      ),
       title: "Thao tác",
+      width: 110,
     },
   ];
 
   return (
-    <div className="space-y-5">
+    <View className="gap-5">
       <AdminPageHeader
-        actions={<Button icon={<PlusOutlined />} onClick={() => { setEditingCourt(null); setIsPanelOpen(true); }} size="large" type="primary">{courtsContent.createLabel}</Button>}
+        actions={
+          <Button
+            icon={<Plus color="#ffffff" size={17} />}
+            label={courtsContent.createLabel}
+            onPress={() => {
+              setEditingCourt(null);
+              setIsPanelOpen(true);
+            }}
+            size="large"
+          />
+        }
         description={courtsContent.description}
         eyebrow="Cơ sở vật chất"
         title={courtsContent.title}
       />
 
-      <Row gutter={[16, 16]}>
-        <Col span={24} md={8}><MetricCard icon={<EnvironmentOutlined />} label="Tổng số sân" value={`${courts.length}`} /></Col>
-        <Col span={24} md={8}><MetricCard icon={<ToolOutlined />} label="Đang bảo trì" tone="orange" value={`${courts.filter((court) => court.status === "maintenance").length}`} /></Col>
-        <Col span={24} md={8}><MetricCard icon={<DollarOutlined />} label="Giá thuê trung bình" tone="violet" value={formatCurrency(averageRate)} /></Col>
-      </Row>
+      <MetricGrid minItemWidth={240}>
+        <MetricCard icon={<MapPin color={metricIconColor.emerald} size={20} />} label="Tổng số sân" value={`${courts.length}`} />
+        <MetricCard
+          icon={<Wrench color={metricIconColor.orange} size={20} />}
+          label="Đang bảo trì"
+          tone="orange"
+          value={`${courts.filter((court) => court.status === "maintenance").length}`}
+        />
+        <MetricCard
+          icon={<DollarSign color={metricIconColor.violet} size={20} />}
+          label="Giá thuê trung bình"
+          tone="violet"
+          value={formatCurrency(averageRate)}
+        />
+      </MetricGrid>
 
       <AdminTableCard
         description={`${filteredCourts.length} sân phù hợp`}
         title="Danh sách sân"
         toolbar={
           <>
-            <Input.Search allowClear className="!w-[220px]" onChange={(event) => setQuery(event.target.value)} placeholder={courtsContent.searchPlaceholder} value={query} />
-            <Select aria-label="Lọc trạng thái sân" className="!w-[180px]" onChange={setStatus} options={statusFilterOptions} value={status} />
+            <SearchField
+              accessibilityLabel={courtsContent.searchPlaceholder}
+              onChange={setQuery}
+              placeholder={courtsContent.searchPlaceholder}
+              value={query}
+              width={220}
+            />
+            <Select
+              accessibilityLabel="Lọc trạng thái sân"
+              onChange={setStatus}
+              options={statusFilterOptions}
+              value={status}
+              width={180}
+            />
           </>
         }
       >
-        <Table<Court>
-          columns={columns}
-          dataSource={filteredCourts}
-          locale={{ emptyText: courtsContent.emptyLabel }}
-          pagination={{ hideOnSinglePage: true, pageSize: 10 }}
-          rowKey="id"
-          scroll={{ x: 860 }}
-        />
+        <DataTable columns={columns} emptyText={courtsContent.emptyLabel} rowKey={(court) => court.id} rows={filteredCourts} />
       </AdminTableCard>
 
       <CourtFormPanel
         court={editingCourt ?? undefined}
+        isOpen={isPanelOpen}
         key={editingCourt?.id ?? "create"}
-        onClose={() => { setIsPanelOpen(false); setEditingCourt(null); }}
+        onClose={() => {
+          setIsPanelOpen(false);
+          setEditingCourt(null);
+        }}
         onSave={handleSave}
-        open={isPanelOpen}
         venues={venues}
       />
-    </div>
+    </View>
   );
 }

@@ -1,48 +1,58 @@
-"use client";
+import { Bell, Menu, Search } from "lucide-react-native";
+import { Text, TextInput, View } from "react-native";
 
-import { BellOutlined, MenuOutlined, SearchOutlined } from "@ant-design/icons";
-import { Avatar, Badge, Button, Input, Space, Typography } from "antd";
-
-import { adminBrandColor } from "@/components/admin/AdminTheme/theme";
 import type { AdminShellContent } from "@/components/layouts/AdminShell/types";
+import Avatar from "@/components/ui/Avatar";
+import Touch from "@/components/ui/Pressable";
 
 type AdminTopbarProps = {
   content: AdminShellContent;
+  isCompact: boolean;
   onMenuOpen: () => void;
 };
 
-export default function AdminTopbar({ content, onMenuOpen }: AdminTopbarProps) {
+export default function AdminTopbar({ content, isCompact, onMenuOpen }: AdminTopbarProps) {
   return (
-    <div className="flex h-16 items-center gap-3">
-      <Button
-        aria-label={content.menuLabel}
-        className="lg:hidden"
-        icon={<MenuOutlined />}
-        onClick={onMenuOpen}
-        size="large"
-      />
+    <View className="h-16 flex-row items-center gap-3 border-b border-slate-200 bg-white px-4">
+      {isCompact ? (
+        <Touch
+          accessibilityLabel={content.menuLabel}
+          className="h-11 w-11 items-center justify-center rounded-md border border-slate-200"
+          onPress={onMenuOpen}
+        >
+          <Menu color="#334155" size={20} />
+        </Touch>
+      ) : (
+        <View className="h-11 max-w-md flex-1 flex-row items-center gap-2 rounded-md border border-slate-200 px-3">
+          <Search color="#94a3b8" size={17} />
+          <TextInput
+            accessibilityLabel={content.commandPlaceholder}
+            className="min-w-0 flex-1 text-[14px] text-slate-800"
+            placeholder={content.commandPlaceholder}
+            placeholderTextColor="#94a3b8"
+          />
+        </View>
+      )}
 
-      <Input
-        aria-label={content.commandPlaceholder}
-        className="hidden !max-w-md sm:flex"
-        placeholder={content.commandPlaceholder}
-        prefix={<SearchOutlined className="text-slate-400" />}
-        size="large"
-        type="search"
-      />
+      <View className="ml-auto flex-row items-center gap-3">
+        <Touch
+          accessibilityLabel={content.notificationLabel}
+          className="h-11 w-11 items-center justify-center rounded-md border border-slate-200"
+        >
+          <Bell color="#334155" size={19} />
+          <View className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-rose-500" />
+        </Touch>
 
-      <Space align="center" className="ml-auto" size="middle">
-        <Badge dot>
-          <Button aria-label={content.notificationLabel} icon={<BellOutlined />} size="large" />
-        </Badge>
-        <Space align="center" size="small">
-          <Avatar style={{ backgroundColor: adminBrandColor }}>{content.userInitials}</Avatar>
-          <div className="hidden sm:block">
-            <Typography.Paragraph className="!mb-0 !text-xs" strong>{content.userName}</Typography.Paragraph>
-            <Typography.Paragraph className="!mb-0 !text-[11px]" type="secondary">{content.roleLabel}</Typography.Paragraph>
-          </div>
-        </Space>
-      </Space>
-    </div>
+        <View className="flex-row items-center gap-2">
+          <Avatar background="#0f9b58" color="#ffffff" label={content.userInitials} size={36} />
+          {isCompact ? null : (
+            <View>
+              <Text className="text-[13px] font-bold text-slate-900">{content.userName}</Text>
+              <Text className="text-[11px] text-slate-500">{content.roleLabel}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </View>
   );
 }

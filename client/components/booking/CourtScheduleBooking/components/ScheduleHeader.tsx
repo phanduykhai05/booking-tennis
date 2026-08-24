@@ -1,9 +1,12 @@
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "expo-router";
+import { ArrowLeft } from "lucide-react-native";
+import { Text, View } from "react-native";
 
-import ScheduleDatePicker from "@/components/booking/CourtScheduleBooking/components/ScheduleDatePicker";
 import ScheduleLegend from "@/components/booking/CourtScheduleBooking/components/ScheduleLegend";
 import type { CourtScheduleContent } from "@/components/booking/CourtScheduleBooking/types";
+import { formatDateLabel } from "@/components/booking/CourtScheduleBooking/utils";
+import DateField from "@/components/ui/DateField";
+import Touch from "@/components/ui/Pressable";
 
 type ScheduleHeaderProps = {
   backHref: string;
@@ -15,26 +18,37 @@ type ScheduleHeaderProps = {
 };
 
 export default function ScheduleHeader({ backHref, content, date, onDateChange, onPriceListOpen, venueName }: ScheduleHeaderProps) {
+  const router = useRouter();
+
   return (
-    <header className="bg-[linear-gradient(160deg,#0b6b3e,#0a5c36)] pb-3 text-white">
-      <div className="relative flex h-[52px] items-center justify-center px-12">
-        <Link aria-label={content.backLabel} className="absolute left-3 rounded p-1 transition hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" href={backHref}>
-          <ArrowLeft aria-hidden="true" size={21} strokeWidth={2.6} />
-        </Link>
-        <h1 className="truncate text-[16px] font-bold uppercase">{content.title}</h1>
-      </div>
+    <View className="bg-[#0b6b3e] pb-3">
+      <View className="h-[52px] flex-row items-center justify-center px-12">
+        <Touch accessibilityLabel={content.backLabel} className="absolute left-3 rounded p-1" onPress={() => router.navigate(backHref)}>
+          <ArrowLeft color="#ffffff" size={21} strokeWidth={2.6} />
+        </Touch>
+        <Text className="text-[16px] font-bold uppercase text-white" numberOfLines={1}>
+          {content.title}
+        </Text>
+      </View>
 
-      <div className="flex items-center justify-between gap-3 px-3 pb-3">
-        <p className="min-w-0 truncate text-[14px] font-semibold text-white/90">{venueName}</p>
-        <ScheduleDatePicker label={content.datePickerLabel} onChange={onDateChange} value={date} />
-      </div>
+      <View className="flex-row items-center justify-between gap-3 px-3 pb-3">
+        <Text className="min-w-0 flex-1 text-[14px] font-semibold text-white/90" numberOfLines={1}>
+          {venueName}
+        </Text>
+        <DateField
+          accessibilityLabel={content.datePickerLabel}
+          displayValue={formatDateLabel(date)}
+          onChange={onDateChange}
+          value={date}
+        />
+      </View>
 
-      <div className="px-3">
+      <View className="px-3">
         <ScheduleLegend labels={content.slotStatusLabels} />
-        <button className="mt-3 text-[14px] font-semibold text-[#ffe141] underline underline-offset-2" onClick={onPriceListOpen} type="button">
-          {content.priceListLabel}
-        </button>
-      </div>
-    </header>
+        <Touch className="mt-3 self-start" onPress={onPriceListOpen}>
+          <Text className="text-[14px] font-semibold text-[#ffe141] underline">{content.priceListLabel}</Text>
+        </Touch>
+      </View>
+    </View>
   );
 }

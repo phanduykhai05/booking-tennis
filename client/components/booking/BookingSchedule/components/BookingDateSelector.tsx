@@ -1,10 +1,10 @@
-"use client";
-
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
-import { Button, DatePicker, Space } from "antd";
-import dayjs from "dayjs";
+import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { View } from "react-native";
 
 import type { BookingScheduleContent } from "@/components/booking/BookingSchedule/types";
+import { formatDateLabel } from "@/components/booking/BookingSchedule/utils";
+import DateField from "@/components/ui/DateField";
+import Touch from "@/components/ui/Pressable";
 
 type BookingDateSelectorProps = {
   content: BookingScheduleContent;
@@ -14,24 +14,32 @@ type BookingDateSelectorProps = {
   onPrevious: () => void;
 };
 
-const DATE_FORMAT = "YYYY-MM-DD";
-
 export default function BookingDateSelector({ content, date, onChange, onNext, onPrevious }: BookingDateSelectorProps) {
   return (
-    <Space.Compact>
-      <Button aria-label={content.previousDateLabel} icon={<LeftOutlined />} onClick={onPrevious} size="large" />
-      <DatePicker
-        allowClear={false}
-        aria-label={content.selectedDateLabel}
-        className="!w-[240px]"
-        format="dddd, DD/MM/YYYY"
-        onChange={(value) => {
-          if (value) onChange(value.format(DATE_FORMAT));
-        }}
-        size="large"
-        value={dayjs(date, DATE_FORMAT)}
+    <View className="flex-row items-center gap-2">
+      <Touch
+        accessibilityLabel={content.previousDateLabel}
+        className="h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white"
+        onPress={onPrevious}
+      >
+        <ChevronLeft color="#334155" size={17} />
+      </Touch>
+
+      <DateField
+        accessibilityLabel={content.selectedDateLabel}
+        displayValue={formatDateLabel(date)}
+        onChange={onChange}
+        tone="light"
+        value={date}
       />
-      <Button aria-label={content.nextDateLabel} icon={<RightOutlined />} onClick={onNext} size="large" />
-    </Space.Compact>
+
+      <Touch
+        accessibilityLabel={content.nextDateLabel}
+        className="h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white"
+        onPress={onNext}
+      >
+        <ChevronRight color="#334155" size={17} />
+      </Touch>
+    </View>
   );
 }

@@ -1,3 +1,10 @@
+# Metro của React Native không đi theo symlink của pnpm, nên phải cài phẳng như npm.
+nodeLinker: hoisted
+
+# eslint-config-expo 57 kéo theo eslint-plugin-react chưa chạy được trên ESLint 10.
+overrides:
+  eslint: ^9.39.0
+
 allowBuilds:
   '@parcel/watcher': false
   sharp: false

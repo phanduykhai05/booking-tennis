@@ -8,6 +8,8 @@ export const forgotPasswordContent = {
   emailLabel: "Email đã đăng ký",
   emailPlaceholder: "Nhập email đã đăng ký",
   fanpage: "Fanpage",
+  // Chưa có contract link hỗ trợ; để trống thì nút tắt thay vì mở URL giả.
+  fanpageUrl: "",
   phone: "Số điện thoại",
   phoneLabel: "Số điện thoại đã đăng ký",
   phonePlaceholder: "Nhập số điện thoại đã đăng ký",
@@ -15,4 +17,5 @@ export const forgotPasswordContent = {
   title: "Quên mật khẩu",
   lookupTitle: "Tìm kiếm tài khoản theo",
   zalo: "Zalo",
+  zaloUrl: "",
 };
