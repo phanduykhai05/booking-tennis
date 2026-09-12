@@ -18,6 +18,12 @@ const images = {
     },
   },
   homeHeader: require("@/components/assets/images/uploads/header/home_header.png") as ImageSourcePropType,
+  featured: {
+    cocoPickleClubSummer: require("@/assets/images/banners/coco-pickle-club-summer.png") as ImageSourcePropType,
+    myrehabMatsuoka: require("@/assets/images/banners/myrehab-matsuoka.png") as ImageSourcePropType,
+    swinPickleballClub: require("@/assets/images/banners/swin-pickleball-club.png") as ImageSourcePropType,
+    swinPickleballQuan7: require("@/assets/images/banners/swin-pickleball-quan-7.png") as ImageSourcePropType,
+  },
   icons: {
     fire: require("@/components/assets/images/uploads/icons/fire.png") as ImageSourcePropType,
   },
