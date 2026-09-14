@@ -10,7 +10,7 @@ type PublicFooterProps = {
 };
 
 /** Chiều cao phần thanh điều hướng (chưa tính safe area) để nội dung phía trên chừa đúng khoảng. */
-export const publicFooterHeight = 58;
+export const publicFooterHeight = 70;
 
 export default function PublicFooter({ activeItemId = "home" }: PublicFooterProps) {
   const insets = useSafeAreaInsets();

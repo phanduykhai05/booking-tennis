@@ -15,16 +15,16 @@ type PublicHeaderProps = {
 
 export default function PublicHeader({ onSearchChange, searchValue }: PublicHeaderProps) {
   return (
-    <View className="relative w-full overflow-visible bg-[#0f9b58]">
+    <View className="w-full bg-[#0f9b58]">
       <HeaderBackdrop />
 
-      <View className="relative z-10 w-full max-w-[1275px] self-center overflow-visible px-3 pb-4 pt-4">
-        <View className="relative z-20 flex-row items-start gap-3">
+      <View className="w-full max-w-[1275px] self-center px-3 pb-4 pt-4">
+        <View className="flex-row items-start gap-3">
           <HeaderLogo brandName={publicHeaderContent.brandName} />
 
-          <View className="relative z-10 min-w-0 flex-1 pt-1.5">
+          <View className="min-w-0 flex-1 pt-1.5">
             <TodayLabel />
-            <View className="relative z-20 mt-3.5">
+            <View className="mt-3.5">
               <HeaderAccount />
             </View>
           </View>
@@ -32,7 +32,7 @@ export default function PublicHeader({ onSearchChange, searchValue }: PublicHead
           <LanguageSelector label={publicHeaderContent.languageLabel} />
         </View>
 
-        <View className="relative z-0 mt-4">
+        <View className="mt-4">
           <HeaderSearch
             favoriteLabel={publicHeaderContent.favoriteLabel}
             onChange={onSearchChange}
