@@ -122,6 +122,7 @@ const OpenStreetMapCanvas = forwardRef<OpenStreetMapCanvasHandle, OpenStreetMapC
 ) {
   const webViewRef = useRef<WebView>(null);
   const [statusMessage, setStatusMessage] = useState("");
+
   const html = useMemo(() => buildHtml(markers, showVenueLayer), [markers, showVenueLayer]);
 
   useImperativeHandle(

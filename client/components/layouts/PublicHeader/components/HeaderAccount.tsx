@@ -1,10 +1,10 @@
 import { useRouter } from "expo-router";
-import { ChevronDown, LayoutDashboard, LogOut, User } from "lucide-react-native";
+import { ChevronDown, LogOut, User } from "lucide-react-native";
 import { useState } from "react";
 import { Text, View } from "react-native";
 
 import HeaderActions from "@/components/layouts/PublicHeader/components/HeaderActions";
-import { headerAccountContent, headerActions } from "@/components/layouts/PublicHeader/mockData";
+import { headerActions } from "@/components/layouts/PublicHeader/mockData";
 import Touch from "@/components/ui/Pressable";
 import { shadow } from "@/components/ui/theme";
 import { useSession } from "@/lib/api/session";
@@ -22,7 +22,7 @@ export default function HeaderAccount() {
   const { user } = session;
 
   return (
-    <View className="relative z-50 w-full max-w-[300px]" style={{ elevation: 50 }}>
+    <View className="w-full max-w-[300px]">
       <Touch
         accessibilityRole="button"
         className="h-9 w-full flex-row items-center gap-2 rounded-lg bg-white px-3"
@@ -39,10 +39,7 @@ export default function HeaderAccount() {
       </Touch>
 
       {isMenuOpen ? (
-        <View
-          className="absolute right-0 top-11 z-50 w-56 overflow-hidden rounded-xl bg-white"
-          style={[shadow.raised, { elevation: 50 }]}
-        >
+        <View className="absolute right-0 top-11 z-50 w-56 overflow-hidden rounded-xl bg-white" style={shadow.raised}>
           <Touch
             className="flex-row items-center gap-2 px-4 py-3"
             onPress={() => {
@@ -51,20 +48,8 @@ export default function HeaderAccount() {
             }}
           >
             <User color="#0b7a4a" size={17} />
-            <Text className="text-[14px] text-[#1b2f25]">{headerAccountContent.accountLabel}</Text>
+            <Text className="text-[14px] text-[#1b2f25]">Tài khoản của tôi</Text>
           </Touch>
-          {user.role === "admin" ? (
-            <Touch
-              className="flex-row items-center gap-2 border-t border-[#eef3f0] px-4 py-3"
-              onPress={() => {
-                setMenuOpen(false);
-                router.push("/admin/dashboard");
-              }}
-            >
-              <LayoutDashboard color="#0b7a4a" size={17} />
-              <Text className="text-[14px] text-[#1b2f25]">{headerAccountContent.adminLabel}</Text>
-            </Touch>
-          ) : null}
           <Touch
             className="flex-row items-center gap-2 border-t border-[#eef3f0] px-4 py-3"
             onPress={() => {
@@ -74,7 +59,7 @@ export default function HeaderAccount() {
             }}
           >
             <LogOut color="#c0392b" size={17} />
-            <Text className="text-[14px] text-[#c0392b]">{headerAccountContent.signOutLabel}</Text>
+            <Text className="text-[14px] text-[#c0392b]">Đăng xuất</Text>
           </Touch>
         </View>
       ) : null}
