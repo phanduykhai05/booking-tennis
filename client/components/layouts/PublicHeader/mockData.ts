@@ -10,6 +10,12 @@ export const publicHeaderContent: PublicHeaderContent = {
   todayFallbackLabel: "Hôm nay",
 };
 
+export const headerAccountContent = {
+  accountLabel: "Tài khoản của tôi",
+  adminLabel: "Quản trị TennisHub",
+  signOutLabel: "Đăng xuất",
+};
+
 export const headerActions: HeaderAction[] = [
   { href: "/login", id: "login", label: "Đăng nhập" },
   { href: "/register", id: "register", label: "Đăng kí" },

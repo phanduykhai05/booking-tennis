@@ -7,7 +7,7 @@ import images from "@/components/assets/images";
 /** Nền header: dải xanh chéo, tranh vận động viên làm vân mờ và hai quầng sáng ở hai góc. */
 export default function HeaderBackdrop() {
   return (
-    <View className="absolute inset-0 overflow-hidden" pointerEvents="none">
+    <View className="absolute inset-0 z-0 overflow-hidden" pointerEvents="none">
       <LinearGradient
         colors={["#18b667", "#0f9b58", "#097a4f"]}
         end={{ x: 1, y: 1 }}
