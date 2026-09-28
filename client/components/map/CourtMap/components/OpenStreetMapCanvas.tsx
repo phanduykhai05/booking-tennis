@@ -10,6 +10,7 @@ import {
   markerColor,
   maxZoom,
   pinHtml,
+  tileSubdomains,
   tileUrl,
 } from "@/components/map/CourtMap/mapPin";
 import type { CourtMapMarker } from "@/components/map/CourtMap/types";
@@ -26,21 +27,22 @@ type OpenStreetMapCanvasProps = {
   markers: CourtMapMarker[];
   onMarkerPress: (markerId: string) => void;
   showVenueLayer: boolean;
+  tileErrorMessage: string;
   unavailableMessage: string;
 };
 
 /**
- * Leaflet chạy trong WebView: giữ nguyên nguồn tile OpenStreetMap và kiểu ghim của
- * bản web, đồng thời tránh phải cấu hình khoá API bản đồ gốc cho iOS/Android.
+ * Leaflet chạy trong WebView: giữ nguyên nguồn tile và kiểu ghim của bản web,
+ * đồng thời tránh phải cấu hình khoá API bản đồ gốc cho iOS/Android.
  * Chạm vào ghim gửi message ra ngoài để RN điều hướng sang trang sân.
  */
 function buildHtml(markers: CourtMapMarker[], showVenueLayer: boolean) {
   const markerData = markers.map((marker) => ({
-    color: markerColor(marker),
     id: marker.id,
     latitude: marker.latitude,
     longitude: marker.longitude,
     name: marker.name,
+    pin: pinHtml(markerColor(marker)),
   }));
 
   return `<!doctype html>
@@ -69,7 +71,10 @@ function buildHtml(markers: CourtMapMarker[], showVenueLayer: boolean) {
     var map = L.map("map", { attributionControl: false, zoomControl: false })
       .setView([${mapCenter.latitude}, ${mapCenter.longitude}], ${defaultZoom});
 
-    L.tileLayer("${tileUrl}", { maxZoom: ${maxZoom} }).addTo(map);
+    L.tileLayer("${tileUrl}", { maxZoom: ${maxZoom}, subdomains: "${tileSubdomains}" })
+      .on("tileerror", function () { send({ type: "tile-error" }); })
+      .on("load", function () { send({ type: "ready" }); })
+      .addTo(map);
 
     var markers = ${JSON.stringify(markerData)};
     var layers = {};
@@ -90,7 +95,7 @@ function buildHtml(markers: CourtMapMarker[], showVenueLayer: boolean) {
     }
 
     window.focusVenue = function (latitude, longitude) {
-      map.setView([latitude, longitude], 15);
+      map.setView([latitude, longitude], ${focusZoom});
     };
 
     send({ type: "ready" });
@@ -101,7 +106,7 @@ function buildHtml(markers: CourtMapMarker[], showVenueLayer: boolean) {
 }
 
 const OpenStreetMapCanvas = forwardRef<OpenStreetMapCanvasHandle, OpenStreetMapCanvasProps>(function OpenStreetMapCanvas(
-  { geolocationUnavailableMessage, markers, onMarkerPress, showVenueLayer, unavailableMessage },
+  { geolocationUnavailableMessage, markers, onMarkerPress, showVenueLayer, tileErrorMessage, unavailableMessage },
   ref,
 ) {
   const webViewRef = useRef<WebView>(null);
@@ -148,6 +153,7 @@ const OpenStreetMapCanvas = forwardRef<OpenStreetMapCanvasHandle, OpenStreetMapC
       if (payload.type === "marker" && payload.id) onMarkerPress(payload.id);
       if (payload.type === "geolocation-error") setStatusMessage(geolocationUnavailableMessage);
       if (payload.type === "error") setStatusMessage(unavailableMessage);
+      if (payload.type === "tile-error") setStatusMessage(tileErrorMessage);
       if (payload.type === "ready") setStatusMessage("");
     } catch {
       setStatusMessage(unavailableMessage);

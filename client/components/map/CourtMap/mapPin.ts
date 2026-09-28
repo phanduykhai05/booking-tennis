@@ -6,7 +6,32 @@ export const mapCenter = { latitude: 21.0285, longitude: 105.81 };
 export const defaultZoom = 12;
 export const focusZoom = 15;
 
-export const tileUrl = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+/**
+ * Ảnh nền bản đồ.
+ *
+ * Không dùng `tile.openstreetmap.org`: máy chủ tile gốc của OSM không tới được từ nhiều
+ * mạng, khiến bản đồ chỉ còn ghim trên nền trống (đúng lỗi đang gặp ở production).
+ * Cũng không dùng Carto: `basemaps.cartocdn.com` vẫn trả HTTP 200 nhưng nội dung là ảnh
+ * "API KEY REQUIRED" — nhìn mã trạng thái thì tưởng chạy được.
+ *
+ * Esri World Street Map: CDN toàn cầu, không cần API key, nhãn theo tiếng địa phương.
+ * Lưu ý thứ tự toạ độ là {z}/{y}/{x}, khác chuẩn {z}/{x}/{y} của các nguồn còn lại.
+ *
+ * Đổi nhà cung cấp bằng `EXPO_PUBLIC_MAP_TILE_URL` (và `EXPO_PUBLIC_MAP_TILE_ATTRIBUTION`)
+ * mà không phải sửa code — nhớ build lại vì biến EXPO_PUBLIC_* nhúng cứng lúc build.
+ * Các nguồn không cần key khác đã đo được: `tile.openstreetmap.de/{z}/{x}/{y}.png`,
+ * `a.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png`.
+ */
+export const tileUrl =
+  process.env.EXPO_PUBLIC_MAP_TILE_URL ??
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
+
+/** Chỉ dùng khi URL có `{s}`; nguồn không có placeholder này thì Leaflet bỏ qua. */
+export const tileSubdomains = "abc";
+
+export const tileAttribution =
+  process.env.EXPO_PUBLIC_MAP_TILE_ATTRIBUTION ?? "Tiles © Esri";
+
 export const maxZoom = 19;
 
 export const sportColors: Record<CourtMapMarker["sport"], string> = {

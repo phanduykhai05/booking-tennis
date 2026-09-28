@@ -8,6 +8,7 @@ import {
   markerColor,
   maxZoom,
   pinHtml,
+  tileSubdomains,
   tileUrl,
 } from "@/components/map/CourtMap/mapPin";
 import type { CourtMapMarker } from "@/components/map/CourtMap/types";
@@ -24,6 +25,7 @@ type OpenStreetMapCanvasProps = {
   markers: CourtMapMarker[];
   onMarkerPress: (markerId: string) => void;
   showVenueLayer: boolean;
+  tileErrorMessage: string;
   unavailableMessage: string;
 };
 
@@ -50,11 +52,16 @@ type LeafletMap = {
 
 type LeafletMarker = { on: (event: string, handler: () => void) => void; remove: () => void };
 
+type LeafletTileLayer = {
+  addTo: (map: LeafletMap) => LeafletTileLayer;
+  on: (event: string, handler: () => void) => LeafletTileLayer;
+};
+
 type Leaflet = {
   divIcon: (options: Record<string, unknown>) => unknown;
   map: (element: HTMLElement, options: Record<string, unknown>) => LeafletMap;
   marker: (position: [number, number], options: Record<string, unknown>) => { addTo: (map: LeafletMap) => LeafletMarker };
-  tileLayer: (url: string, options: Record<string, unknown>) => { addTo: (map: LeafletMap) => unknown };
+  tileLayer: (url: string, options: Record<string, unknown>) => LeafletTileLayer;
 };
 
 /** Nạp một lần cho cả vòng đời trang, kể cả khi người dùng rời trang bản đồ rồi quay lại. */
@@ -101,7 +108,14 @@ function loadLeaflet(): Promise<Leaflet> {
 
 const OpenStreetMapCanvas = forwardRef<OpenStreetMapCanvasHandle, OpenStreetMapCanvasProps>(
   function OpenStreetMapCanvas(
-    { geolocationUnavailableMessage, markers, onMarkerPress, showVenueLayer, unavailableMessage },
+    {
+      geolocationUnavailableMessage,
+      markers,
+      onMarkerPress,
+      showVenueLayer,
+      tileErrorMessage,
+      unavailableMessage,
+    },
     ref,
   ) {
     const containerRef = useRef<View>(null);
@@ -126,7 +140,18 @@ const OpenStreetMapCanvas = forwardRef<OpenStreetMapCanvasHandle, OpenStreetMapC
 
           const map = leaflet.map(element, { attributionControl: false, zoomControl: false });
           map.setView([mapCenter.latitude, mapCenter.longitude], defaultZoom);
-          leaflet.tileLayer(tileUrl, { maxZoom }).addTo(map);
+
+          // Tile hỏng thì trước đây chỉ còn ghim trên nền trống mà không báo gì;
+          // giờ nói rõ để người dùng biết là do mạng chứ không phải app chết.
+          leaflet
+            .tileLayer(tileUrl, { maxZoom, subdomains: tileSubdomains })
+            .on("tileerror", () => {
+              if (isActive) setStatusMessage(tileErrorMessage);
+            })
+            .on("load", () => {
+              if (isActive) setStatusMessage("");
+            })
+            .addTo(map);
 
           // Leaflet đo khung lúc khởi tạo; layout của RN Web xong sau nên phải đo lại.
           map.invalidateSize();
@@ -143,7 +168,7 @@ const OpenStreetMapCanvas = forwardRef<OpenStreetMapCanvasHandle, OpenStreetMapC
       return () => {
         isActive = false;
       };
-    }, [unavailableMessage]);
+    }, [tileErrorMessage, unavailableMessage]);
 
     // Dọn bản đồ khi rời trang, nếu không Leaflet giữ lại DOM cũ và lần sau khởi tạo lỗi.
     useEffect(

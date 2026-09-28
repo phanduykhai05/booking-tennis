@@ -23,5 +23,6 @@ export type CourtMapContent = {
   searchInputLabel: string;
   searchPlaceholder: string;
   searchSubmitLabel: string;
+  tileErrorMessage: string;
   unavailableMapMessage: string;
 };

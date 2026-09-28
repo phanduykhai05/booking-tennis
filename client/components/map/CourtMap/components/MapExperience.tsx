@@ -61,6 +61,7 @@ export default function MapExperience({ brandName, content, filters, markers }: 
         onMarkerPress={(markerId) => router.push(`/product/${markerId}`)}
         ref={mapRef}
         showVenueLayer={showVenueLayer}
+        tileErrorMessage={content.tileErrorMessage}
         unavailableMessage={content.unavailableMapMessage}
       />
 
