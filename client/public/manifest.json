@@ -3,7 +3,9 @@
   "description": "Nền tảng quản lý và đặt sân tennis TennisHub",
   "display": "standalone",
   "icons": [
-    { "sizes": "192x192", "src": "/favicon.ico", "type": "image/x-icon" }
+    { "sizes": "192x192", "src": "/icon-192.png", "type": "image/png" },
+    { "sizes": "512x512", "src": "/icon-512.png", "type": "image/png" },
+    { "purpose": "maskable", "sizes": "512x512", "src": "/icon-512.png", "type": "image/png" }
   ],
   "name": "TennisHub - Đặt sân tennis",
   "short_name": "TennisHub",
