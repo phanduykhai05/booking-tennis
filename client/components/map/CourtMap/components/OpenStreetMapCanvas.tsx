@@ -3,6 +3,15 @@ import { Text, View } from "react-native";
 import { WebView } from "react-native-webview";
 import type { WebViewMessageEvent } from "react-native-webview";
 
+import {
+  defaultZoom,
+  focusZoom,
+  mapCenter,
+  markerColor,
+  maxZoom,
+  pinHtml,
+  tileUrl,
+} from "@/components/map/CourtMap/mapPin";
 import type { CourtMapMarker } from "@/components/map/CourtMap/types";
 import { normalizeText } from "@/lib/format";
 import { shadow } from "@/components/ui/theme";
@@ -20,22 +29,6 @@ type OpenStreetMapCanvasProps = {
   unavailableMessage: string;
 };
 
-// Mặc định trung tâm Hà Nội — nơi tập trung nhiều sân nhất; tìm kiếm có thể bay sang tỉnh khác.
-const mapCenter = { latitude: 21.0285, longitude: 105.81 };
-
-const sportColors: Record<CourtMapMarker["sport"], string> = {
-  athletics: "#e11d48",
-  badminton: "#0f9b58",
-  basketball: "#d97706",
-  football: "#16a34a",
-  pickleball: "#2563eb",
-  swimming: "#0891b2",
-  tableTennis: "#db2777",
-  taekwondo: "#4f46e5",
-  tennis: "#ea580c",
-  volleyball: "#7c3aed",
-};
-
 /**
  * Leaflet chạy trong WebView: giữ nguyên nguồn tile OpenStreetMap và kiểu ghim của
  * bản web, đồng thời tránh phải cấu hình khoá API bản đồ gốc cho iOS/Android.
@@ -43,7 +36,7 @@ const sportColors: Record<CourtMapMarker["sport"], string> = {
  */
 function buildHtml(markers: CourtMapMarker[], showVenueLayer: boolean) {
   const markerData = markers.map((marker) => ({
-    color: marker.isFeatured ? "#e11d48" : sportColors[marker.sport],
+    color: markerColor(marker),
     id: marker.id,
     latitude: marker.latitude,
     longitude: marker.longitude,
@@ -74,26 +67,17 @@ function buildHtml(markers: CourtMapMarker[], showVenueLayer: boolean) {
     send({ type: "error" });
   } else {
     var map = L.map("map", { attributionControl: false, zoomControl: false })
-      .setView([${mapCenter.latitude}, ${mapCenter.longitude}], 12);
+      .setView([${mapCenter.latitude}, ${mapCenter.longitude}], ${defaultZoom});
 
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+    L.tileLayer("${tileUrl}", { maxZoom: ${maxZoom} }).addTo(map);
 
     var markers = ${JSON.stringify(markerData)};
     var layers = {};
 
-    var pinHtml = function (color) {
-      return '<span style="display:flex;align-items:center;justify-content:center;width:30px;height:38px;filter:drop-shadow(0 2px 2px rgba(15,23,42,.28))">'
-        + '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="38" viewBox="0 0 30 38">'
-        + '<path fill="' + color + '" stroke="#fff" stroke-width="1.4" d="M15 1C7.3 1 1 7.3 1 15c0 10.2 12.2 20.9 13.2 21.7.5.4 1.1.4 1.6 0C16.8 35.9 29 25.2 29 15 29 7.3 22.7 1 15 1Z"/>'
-        + '<circle cx="15" cy="14.7" r="8.1" fill="#fff"/>'
-        + '<path fill="' + color + '" d="M10.6 9.3h8.8V11h-8.8zm0 3.2h8.8v1.7h-8.8zm0 3.2h5.6v1.7h-5.6z"/>'
-        + '</svg></span>';
-    };
-
     if (${showVenueLayer ? "true" : "false"}) {
       markers.forEach(function (marker) {
         var layer = L.marker([marker.latitude, marker.longitude], {
-          icon: L.divIcon({ className: "", html: pinHtml(marker.color), iconAnchor: [15, 38], iconSize: [30, 38] }),
+          icon: L.divIcon({ className: "", html: marker.pin, iconAnchor: [15, 38], iconSize: [30, 38] }),
           title: marker.name,
         }).addTo(map);
 
