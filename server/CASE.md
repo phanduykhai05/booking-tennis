@@ -12,7 +12,7 @@
 | Phiên bản tài liệu | 1.1 |
 | Ngày cập nhật | 2026-08-24 |
 | Đối tượng sử dụng | Khách chưa đăng nhập, khách hàng, quản trị viên |
-| Frontend | Expo (React Native) SDK 54, expo-router, TypeScript — app cho người dùng, Expo Web cho quản trị |
+| Frontend | Expo (React Native) SDK 57, expo-router, TypeScript — app cho người dùng, Expo Web cho quản trị |
 | Backend | NestJS, Prisma, PostgreSQL |
 | Múi giờ nghiệp vụ | UTC+07:00 (`Asia/Ho_Chi_Minh`/`Asia/Bangkok`) |
 | Tiền tệ | Việt Nam đồng (VND) |
@@ -58,8 +58,8 @@ Cả hai phía dùng chung một codebase Expo trong `client/`.
 
 Ràng buộc kéo theo:
 
-- Expo Go chỉ chạy được project cùng SDK với chính nó; project chốt SDK 54 theo
-  bản Expo Go mới nhất mà App Store còn phát hành cho thiết bị của nhóm.
+- Expo Go chỉ chạy được project cùng SDK với chính nó; project chốt SDK 57 theo
+  bản Expo Go đang phát hành trên App Store / Play Store.
 - App gọi API bằng IP LAN hoặc domain thật, không dùng `localhost`.
 - App native không bị CORS; chỉ bản web admin cần origin nằm trong `CORS_ORIGIN`.
 - Mã chỉ chạy được trên trình duyệt (`window`, `document`, API PWA) phải nằm trong

@@ -37,13 +37,13 @@ NestJS**. Phía web **không còn dùng mock data** — mọi màn hình đọc 
 ┌─────────────────────┐        HTTP /api        ┌──────────────────────┐        ┌──────────────┐
 │  client (Expo/RN)   │  ───────────────────▶   │   server (NestJS)    │  ───▶  │  PostgreSQL  │
 │  app + web /admin   │  ◀───────────────────   │   cổng 4000          │        │ booking_tenis│
-│  React Native 0.81  │        JSON             │   Prisma 7 (ORM)     │        └──────────────┘
+│  React Native 0.86  │        JSON             │   Prisma 7 (ORM)     │        └──────────────┘
 └─────────────────────┘                         └──────────────────────┘
 ```
 
 | Tầng | Công nghệ | Thư mục |
 |------|-----------|---------|
-| Frontend | Expo SDK 54, React Native 0.81, expo-router, TypeScript, NativeWind 4 | [`client/`](client/) |
+| Frontend | Expo SDK 57, React Native 0.86, expo-router, TypeScript, NativeWind 4 | [`client/`](client/) |
 | Backend | NestJS 11, Prisma 7, class-validator, JWT, Swagger | [`server/`](server/) |
 | Cơ sở dữ liệu | PostgreSQL 18 | (schema ở [`server/prisma/schema.prisma`](server/prisma/schema.prisma)) |
 
@@ -58,7 +58,7 @@ Cài sẵn trên máy trước khi bắt đầu:
 - **PostgreSQL** ≥ 14 (dự án đang chạy trên 18). Nhớ mật khẩu user `postgres`.
 - **Git**
 - **Expo Go** trên điện thoại (Android/iOS) — dùng để chạy app người dùng.
-  Bản Expo Go phải là **SDK 54** (khớp với project); xem mục 6.2.
+  Bản Expo Go phải là **SDK 57** (khớp với project); xem mục 6.2.
 
 Kiểm tra nhanh:
 
@@ -138,12 +138,12 @@ pnpm start                  # mở Expo Dev Server, quét QR bằng Expo Go
 - **Người dùng (app)**: quét mã QR bằng Expo Go, hoặc `pnpm android` / `pnpm ios`.
 - **Quản trị (web)**: `pnpm web` rồi mở <http://localhost:8081/admin/dashboard>.
 
-> **Expo Go phải cùng SDK với project.** Project chốt **SDK 54** vì đó là bản Expo Go
-> mới nhất App Store còn phát hành cho thiết bị của nhóm. Nếu Expo Go báo
-> *"Project is incompatible with this version of Expo Go"* thì SDK hai bên lệch nhau.
-> Muốn dùng SDK cao hơn thì phải bỏ Expo Go, chuyển sang
-> [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-> (iOS cần macOS hoặc EAS Build).
+> **Expo Go phải cùng SDK với project.** Project chốt **SDK 57** — phiên bản app Expo Go
+> đang phát hành trên App Store / Play Store. Nếu Expo Go báo
+> *"Project is incompatible with this version of Expo Go"* thì SDK hai bên lệch nhau:
+> chạy `npx expo install expo@latest --fix` để kéo project lên đúng SDK của Expo Go.
+> Khi app đã qua giai đoạn thử nghiệm, nên chuyển sang
+> [development build](https://docs.expo.dev/develop/development-builds/introduction/).
 
 > Sau khi đổi `app.json`, `.env` hay version package, chạy lại với `--clear` để xoá
 > cache Metro: `npx expo start --clear`.
@@ -345,7 +345,7 @@ booking-tenis/
 
 ## 13. Quy trình cho thành viên mới (checklist)
 
-- [ ] Cài Node ≥ 20, pnpm ≥ 11, PostgreSQL, Git và **Expo Go (SDK 54)** trên điện thoại.
+- [ ] Cài Node ≥ 20, pnpm ≥ 11, PostgreSQL, Git và **Expo Go (SDK 57)** trên điện thoại.
 - [ ] `git clone` repo, `git checkout dev`.
 - [ ] `cd server` → `pnpm install` → `cp .env.example .env` → điền `DATABASE_URL`.
 - [ ] `pnpm prisma:generate` → `pnpm db:migrate` → `pnpm db:seed`.

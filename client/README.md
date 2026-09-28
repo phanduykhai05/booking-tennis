@@ -7,7 +7,7 @@
 
 ## Công nghệ
 
-- Expo SDK 54, React Native 0.81, React 19, TypeScript
+- Expo SDK 57, React Native 0.86, React 19.2, TypeScript
 - expo-router (điều hướng theo cấu trúc thư mục `app/`)
 - NativeWind 4 + Tailwind CSS 3 (giữ nguyên cách viết `className`)
 - react-native-svg, lucide-react-native, expo-image, react-native-webview
@@ -15,10 +15,11 @@
 
 ## Phiên bản Expo
 
-Project chốt ở **SDK 54** để chạy được với **Expo Go 54.x** — bản mới nhất mà App Store
-còn phát hành cho iOS của nhóm. Muốn lên SDK cao hơn thì phải dùng
+Project chốt ở **SDK 57** — phiên bản **Expo Go 57.x** hiện phát hành trên App Store và
+Play Store, nên chỉ cần quét QR là chạy được ngay trên điện thoại. Khi Expo Go lên SDK
+mới hơn, kéo project theo bằng `npx expo install expo@latest --fix`, hoặc chuyển sang
 [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-thay cho Expo Go (iOS cần macOS hoặc EAS Build).
+để không phụ thuộc vào chu kỳ phát hành của Expo Go.
 
 ## Cấu hình
 

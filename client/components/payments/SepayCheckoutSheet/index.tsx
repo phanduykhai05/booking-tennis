@@ -113,11 +113,20 @@ export default function SepayCheckoutSheet({ checkout, isOpen, onClose, onPaid }
   }, [isPaid, onPaid]);
 
   // QR mới mở thì mọi trạng thái của giao dịch trước phải được xoá sạch.
-  useEffect(() => {
-    hasReportedPaid.current = false;
+  // Điều chỉnh ngay trong lúc render (React tự render lại trước khi commit) thay vì trong
+  // effect, để nhịp poll đầu tiên của giao dịch mới không đọc phải state của giao dịch cũ.
+  const [syncedPaymentId, setSyncedPaymentId] = useState(paymentId);
+
+  if (syncedPaymentId !== paymentId) {
+    setSyncedPaymentId(paymentId);
     setStatus("unpaid");
     setOutstanding(0);
     setCopiedField("");
+  }
+
+  // Cờ chống báo trùng là ref nên chỉ được ghi trong effect, không đụng tới lúc render.
+  useEffect(() => {
+    hasReportedPaid.current = false;
   }, [paymentId]);
 
   const copy = async (field: string, value: string) => {
