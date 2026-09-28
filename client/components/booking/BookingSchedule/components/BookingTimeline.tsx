@@ -36,6 +36,16 @@ const slotWidth = 96;
 const rowHeight = 96;
 const headerHeight = 56;
 
+/** Chỗ dựa khi lịch trỏ tới một tài khoản không có trong danh sách khách đang tải về. */
+const unknownCustomer = (id: string): BookingCustomer => ({
+  email: "",
+  id,
+  joinedAt: "",
+  name: "Khách chưa rõ",
+  phone: "",
+  status: "active",
+});
+
 /**
  * Lưới dòng thời gian tự dựng: cột sân nằm ngoài vùng cuộn ngang vì RN không có
  * `position: sticky`, nhờ vậy tên sân luôn hiện khi kéo phần giờ.
@@ -155,21 +165,21 @@ export default function BookingTimeline({
                         );
                       })}
 
-                      {courtBookings.map((booking) => {
-                        const customer = customerMap.get(booking.customerId);
-                        if (!customer) return null;
-
-                        return (
-                          <BookingCard
-                            booking={booking}
-                            content={content}
-                            customer={customer}
-                            key={booking.id}
-                            onSelect={() => onBookingSelect(booking.id)}
-                            position={getBookingPosition(booking, config, slotWidth)}
-                          />
-                        );
-                      })}
+                      {courtBookings.map((booking) => (
+                        /*
+                         * Trước đây thiếu khách trong danh sách thì lịch bị bỏ qua im lặng:
+                         * ô thống kê vẫn đếm nhưng lưới trống, nhìn như mất dữ liệu.
+                         * Giờ vẫn vẽ, chỉ ghi "Khách chưa rõ" ở chỗ tên.
+                         */
+                        <BookingCard
+                          booking={booking}
+                          content={content}
+                          customer={customerMap.get(booking.customerId) ?? unknownCustomer(booking.customerId)}
+                          key={booking.id}
+                          onSelect={() => onBookingSelect(booking.id)}
+                          position={getBookingPosition(booking, config, slotWidth)}
+                        />
+                      ))}
                     </View>
                   );
                 })}

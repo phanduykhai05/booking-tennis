@@ -1,6 +1,8 @@
-import { Bell, Menu, Search } from "lucide-react-native";
-import { Text, TextInput, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Bell, Menu } from "lucide-react-native";
+import { Text, View } from "react-native";
 
+import AdminGlobalSearch from "@/components/layouts/AdminShell/components/AdminGlobalSearch";
 import type { AdminShellContent } from "@/components/layouts/AdminShell/types";
 import Avatar from "@/components/ui/Avatar";
 import Touch from "@/components/ui/Pressable";
@@ -9,11 +11,17 @@ type AdminTopbarProps = {
   content: AdminShellContent;
   isCompact: boolean;
   onMenuOpen: () => void;
+  /** Số thông báo chưa đọc; 0 thì không chấm đỏ. */
+  unreadCount: number;
 };
 
-export default function AdminTopbar({ content, isCompact, onMenuOpen }: AdminTopbarProps) {
+export default function AdminTopbar({ content, isCompact, onMenuOpen, unreadCount }: AdminTopbarProps) {
+  const router = useRouter();
+
   return (
-    <View className="h-16 flex-row items-center gap-3 border-b border-slate-200 bg-white px-4">
+    /* z-50: dropdown kết quả tìm kiếm tràn xuống dưới, không nâng thanh này lên thì
+       phần nội dung bên dưới (anh em cùng cha, render sau) sẽ vẽ đè lên nó. */
+    <View className="z-50 h-16 flex-row items-center gap-3 border-b border-slate-200 bg-white px-4">
       {isCompact ? (
         <Touch
           accessibilityLabel={content.menuLabel}
@@ -23,24 +31,18 @@ export default function AdminTopbar({ content, isCompact, onMenuOpen }: AdminTop
           <Menu color="#334155" size={20} />
         </Touch>
       ) : (
-        <View className="h-11 max-w-md flex-1 flex-row items-center gap-2 rounded-md border border-slate-200 px-3">
-          <Search color="#94a3b8" size={17} />
-          <TextInput
-            accessibilityLabel={content.commandPlaceholder}
-            className="min-w-0 flex-1 text-[14px] text-slate-800"
-            placeholder={content.commandPlaceholder}
-            placeholderTextColor="#94a3b8"
-          />
-        </View>
+        <AdminGlobalSearch placeholder={content.commandPlaceholder} />
       )}
 
       <View className="ml-auto flex-row items-center gap-3">
+        {/* Trước đây nút này không có onPress nên bấm mãi không ra gì. */}
         <Touch
           accessibilityLabel={content.notificationLabel}
           className="h-11 w-11 items-center justify-center rounded-md border border-slate-200"
+          onPress={() => router.push("/notifications")}
         >
           <Bell color="#334155" size={19} />
-          <View className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-rose-500" />
+          {unreadCount > 0 ? <View className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-rose-500" /> : null}
         </Touch>
 
         <View className="flex-row items-center gap-2">

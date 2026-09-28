@@ -77,6 +77,12 @@ export class AdminController {
     return this.adminService.updateCustomerStatus(customerId, dto.status);
   }
 
+  @ApiOperation({ summary: 'Danh sách sự kiện bán vé' })
+  @Get('events')
+  events() {
+    return this.adminService.events();
+  }
+
   @ApiOperation({ summary: 'Tạo sự kiện bán vé, gắn vào sân và khung giờ' })
   @Post('events')
   createEvent(@Body() dto: AdminEventDto) {

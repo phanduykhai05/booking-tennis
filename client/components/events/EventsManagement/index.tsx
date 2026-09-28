@@ -23,14 +23,27 @@ import MetricGrid from "@/components/ui/MetricGrid";
 import Touch from "@/components/ui/Pressable";
 import SearchField from "@/components/ui/SearchField";
 import Select from "@/components/ui/Select";
-import { adminEventTickets } from "@/lib/api/admin";
+import { adminEventList, adminEventTickets } from "@/lib/api/admin";
 import { ApiError } from "@/lib/api/http";
 import { useSession } from "@/lib/api/session";
+import { useAsync } from "@/lib/useAsync";
 import { formatCurrency, formatMinutes, matchesQuery } from "@/lib/format";
 
 export default function EventsManagement() {
-  const { courts, createEvent, deleteEvent, events, updateEvent, venues } = useAdminData();
+  const { courts, createEvent, deleteEvent, updateEvent, venues } = useAdminData();
   const { token } = useSession();
+  // Danh sách sự kiện tải riêng ở đây để payload dùng chung của khu admin không phải cõng theo.
+  const {
+    data: eventData,
+    isLoading: isLoadingEvents,
+    reload: reloadEvents,
+  } = useAsync<VenueEvent[]>(
+    () => (token ? adminEventList(token) : Promise.resolve([])),
+    [token],
+    "Không tải được danh sách sự kiện",
+  );
+
+  const events = eventData ?? [];
   const [query, setQuery] = useState("");
   const [venueFilter, setVenueFilter] = useState("all");
   const [editingEvent, setEditingEvent] = useState<VenueEvent | null>(null);
@@ -59,6 +72,7 @@ export default function EventsManagement() {
       if (editingEvent) await updateEvent(editingEvent.id, payload);
       else await createEvent(payload);
 
+      reloadEvents();
       setIsPanelOpen(false);
       setEditingEvent(null);
     } catch (error) {
@@ -163,7 +177,7 @@ export default function EventsManagement() {
             accessibilityLabel={`${eventsContent.deleteLabel} ${event.title}`}
             className="h-9 w-9 items-center justify-center rounded-md border border-rose-200"
             disabled={event.ticketCount > 0}
-            onPress={() => void deleteEvent(event.id)}
+            onPress={() => void deleteEvent(event.id).then(reloadEvents)}
           >
             <Trash2 color={event.ticketCount > 0 ? "#cbd5e1" : "#e11d48"} size={16} />
           </Touch>
@@ -276,12 +290,16 @@ export default function EventsManagement() {
           </>
         }
       >
-        <DataTable
-          columns={columns}
-          emptyText={eventsContent.emptyLabel}
-          rowKey={(event) => event.id}
-          rows={visibleEvents}
-        />
+        {isLoadingEvents ? (
+          <LoadingState label="Đang tải danh sách sự kiện…" />
+        ) : (
+          <DataTable
+            columns={columns}
+            emptyText={eventsContent.emptyLabel}
+            rowKey={(event) => event.id}
+            rows={visibleEvents}
+          />
+        )}
       </AdminTableCard>
 
       <EventFormPanel

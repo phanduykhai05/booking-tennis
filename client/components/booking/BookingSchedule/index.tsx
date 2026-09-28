@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import { View, useWindowDimensions } from "react-native";
 
@@ -23,8 +24,10 @@ import type {
   CreateBookingInput,
 } from "@/components/booking/BookingSchedule/types";
 import { shiftDate } from "@/components/booking/BookingSchedule/utils";
+import Select from "@/components/ui/Select";
 import Card from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
+import { todayInAppTimezone } from "@/lib/date";
 import { matchesQuery } from "@/lib/format";
 
 const initialFilters: BookingFilterState = {
@@ -37,18 +40,56 @@ export default function BookingSchedule() {
   const { success } = useToast();
   const { width } = useWindowDimensions();
   const { bookings, courts, createBooking, customers, updateBookingStatus, venues } = useAdminData();
-  const [date, setDate] = useState(bookingScheduleConfig.initialDate);
-  const [filters, setFilters] = useState(initialFilters);
+
+  /**
+   * Mở từ ô tìm nhanh: `code` là mã lịch cần xem, `venue` là cơ sở muốn xem trước.
+   * Với `code` thì nhảy thẳng tới đúng ngày và đúng cơ sở của lịch đó, nếu không người
+   * dùng bấm vào kết quả xong vẫn phải tự dò ngày.
+   */
+  const { code, venue: venueParam } = useLocalSearchParams<{ code?: string; venue?: string }>();
+  const target = code ? bookings.find((booking) => booking.code === code) : undefined;
+
+  // Trước đây mở cố định một ngày trong quá khứ nên lịch mới đặt không bao giờ hiện ra.
+  const [date, setDate] = useState(() => target?.bookingDate ?? todayInAppTimezone());
+  const [pickedVenueId, setPickedVenueId] = useState(() => target?.venueId ?? venueParam ?? "");
+  const [filters, setFilters] = useState(() => (code ? { ...initialFilters, query: code } : initialFilters));
   const [selection, setSelection] = useState<BookingSelection | null>(null);
   const [viewMode, setViewMode] = useState<BookingViewMode>("timeline");
 
   const customerMap = useMemo(() => new Map(customers.map((customer) => [customer.id, customer])), [customers]);
 
-  const dateBookings = useMemo(() => bookings.filter((booking) => booking.bookingDate === date), [bookings, date]);
+  /**
+   * Lưới lịch vẽ mỗi sân một hàng. Không lọc theo cơ sở thì toàn bộ 147 sân của 30 cơ sở
+   * đổ vào một màn (hơn 10.000 phần tử DOM) khiến trang giật và bấm không ăn, đồng thời
+   * tỷ lệ lấp đầy bị chia cho cả sân của cơ sở khác nên luôn hiển thị sai.
+   */
+  const venueId = pickedVenueId || venues[0]?.id || "";
+  const venue = venues.find((item) => item.id === venueId);
+
+  const venueCourts = useMemo(() => courts.filter((court) => court.venueId === venueId), [courts, venueId]);
+
+  /**
+   * Lưới phải bám giờ mở/đóng thật của cơ sở. Dùng khung cứng 06:00-22:00 thì lịch nằm
+   * ngoài khoảng đó (ví dụ cơ sở mở 05:30) bị đẩy ra khỏi vùng nhìn thấy và coi như mất.
+   */
+  const scheduleConfig = useMemo(
+    () => ({
+      endMinute: venue?.closingMinute ?? bookingScheduleConfig.endMinute,
+      initialDate: date,
+      slotMinutes: bookingScheduleConfig.slotMinutes,
+      startMinute: venue?.openingMinute ?? bookingScheduleConfig.startMinute,
+    }),
+    [date, venue?.closingMinute, venue?.openingMinute],
+  );
+
+  const dateBookings = useMemo(
+    () => bookings.filter((booking) => booking.bookingDate === date && booking.venueId === venueId),
+    [bookings, date, venueId],
+  );
 
   const visibleCourts = useMemo(
-    () => courts.filter((court) => filters.courtId === "all" || court.id === filters.courtId),
-    [courts, filters.courtId],
+    () => venueCourts.filter((court) => filters.courtId === "all" || court.id === filters.courtId),
+    [filters.courtId, venueCourts],
   );
 
   const filteredBookings = useMemo(() => {
@@ -97,7 +138,7 @@ export default function BookingSchedule() {
     <View className="gap-5">
       <AdminPageHeader
         actions={<BookingViewSwitcher onChange={setViewMode} value={viewMode} />}
-        description={`Theo dõi công suất sân, khách hàng và trạng thái thanh toán tại ${venues[0]?.name ?? bookingScheduleContent.venueName}.`}
+        description={`Theo dõi công suất sân, khách hàng và trạng thái thanh toán tại ${venue?.name ?? bookingScheduleContent.venueName}.`}
         eyebrow="Vận hành sân"
         title={bookingScheduleContent.title}
       />
@@ -111,10 +152,20 @@ export default function BookingSchedule() {
             onNext={() => setDate((current) => shiftDate(current, 1))}
             onPrevious={() => setDate((current) => shiftDate(current, -1))}
           />
+          <Select
+            accessibilityLabel={bookingScheduleContent.venueFilterLabel}
+            onChange={(value) => {
+              setPickedVenueId(value);
+              setFilters((current) => ({ ...current, courtId: "all" }));
+            }}
+            options={venues.map((item) => ({ label: item.name, value: item.id }))}
+            value={venueId}
+            width={220}
+          />
           <View className="min-w-0 flex-1">
             <BookingFilters
               content={bookingScheduleContent}
-              courts={courts}
+              courts={venueCourts}
               filters={filters}
               onChange={setFilters}
               statusOptions={bookingStatusOptions}
@@ -125,15 +176,15 @@ export default function BookingSchedule() {
 
       <BookingDaySummary
         bookings={dateBookings}
-        closingMinute={venues[0]?.closingMinute ?? bookingScheduleConfig.endMinute}
-        courts={courts}
-        openingMinute={venues[0]?.openingMinute ?? bookingScheduleConfig.startMinute}
+        closingMinute={scheduleConfig.endMinute}
+        courts={venueCourts}
+        openingMinute={scheduleConfig.startMinute}
       />
 
       {viewMode === "timeline" ? (
         <BookingTimeline
           bookings={filteredBookings}
-          config={bookingScheduleConfig}
+          config={scheduleConfig}
           content={bookingScheduleContent}
           courts={visibleCourts}
           customers={customers}
@@ -147,7 +198,7 @@ export default function BookingSchedule() {
         <BookingList
           bookings={filteredBookings}
           content={bookingScheduleContent}
-          courts={courts}
+          courts={venueCourts}
           customers={customers}
           onSelect={(bookingId) => setSelection({ bookingId, kind: "booking" })}
         />

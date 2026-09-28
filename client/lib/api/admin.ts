@@ -7,6 +7,7 @@ import type {
   EventPayload,
   EventTicket,
   PaymentStatus,
+  VenueEvent,
 } from "@/components/admin/AdminData/types";
 import { apiFetch } from "@/lib/api/http";
 
@@ -33,6 +34,8 @@ export const adminUpdatePaymentStatus = (token: string, paymentId: string, statu
 
 export const adminUpdateCustomerStatus = (token: string, customerId: string, status: CustomerStatus) =>
   apiFetch<{ id: string }>(`/admin/customers/${customerId}/status`, { body: { status }, method: "PATCH", token });
+
+export const adminEventList = (token: string) => apiFetch<VenueEvent[]>("/admin/events", { token });
 
 export const adminCreateEvent = (token: string, payload: EventPayload) =>
   apiFetch<{ id: string }>("/admin/events", { body: payload, method: "POST", token });

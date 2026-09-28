@@ -36,32 +36,20 @@ export class AdminService {
 
   /** Trả về đúng hình dạng `AdminDataState` mà AdminDataProvider đang dùng. */
   async data() {
-    const [
-      activityEvents,
-      bookings,
-      courts,
-      customers,
-      events,
-      payments,
-      venues,
-    ] = await Promise.all([
-      this.prisma.activityEvent.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 50,
-      }),
-      this.prisma.booking.findMany({ orderBy: { bookingDate: 'desc' } }),
-      this.prisma.court.findMany({ orderBy: { sortOrder: 'asc' } }),
-      this.prisma.user.findMany({
-        orderBy: { createdAt: 'asc' },
-        where: { role: 'USER' },
-      }),
-      this.prisma.venueEvent.findMany({
-        include: { _count: { select: { tickets: true } } },
-        orderBy: [{ eventDate: 'desc' }, { startMinute: 'asc' }],
-      }),
-      this.prisma.payment.findMany({ orderBy: { createdAt: 'desc' } }),
-      this.prisma.venue.findMany({ orderBy: { name: 'asc' } }),
-    ]);
+    const [activityEvents, bookings, courts, customers, payments, venues] =
+      await Promise.all([
+        this.prisma.activityEvent.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 50,
+        }),
+        this.prisma.booking.findMany({ orderBy: { bookingDate: 'desc' } }),
+        this.prisma.court.findMany({ orderBy: { sortOrder: 'asc' } }),
+        // Không lọc theo role: tài khoản quản trị cũng đặt sân được, mà lưới lịch tra
+        // khách theo danh sách này — thiếu ai thì lịch của người đó biến mất khỏi lưới.
+        this.prisma.user.findMany({ orderBy: { createdAt: 'asc' } }),
+        this.prisma.payment.findMany({ orderBy: { createdAt: 'desc' } }),
+        this.prisma.venue.findMany({ orderBy: { name: 'asc' } }),
+      ]);
 
     return {
       activityEvents: activityEvents.map((event) => ({
@@ -102,20 +90,6 @@ export class AdminService {
         name: customer.fullName,
         phone: customer.phone,
         status: userStatusToApi[customer.status],
-      })),
-      events: events.map((event) => ({
-        capacity: event.capacity,
-        courtId: event.courtId,
-        courtLabel: event.courtLabel,
-        endMinute: event.endMinute,
-        eventDate: toDateString(event.eventDate),
-        id: event.id,
-        price: event.price,
-        soldCount: event.soldCount,
-        startMinute: event.startMinute,
-        ticketCount: event._count.tickets,
-        title: event.title,
-        venueId: event.venueId,
       })),
       payments: payments.map((payment) => ({
         amount: payment.amount,
@@ -406,6 +380,29 @@ export class AdminService {
         `Khung giờ này đã có sự kiện "${clashingEvent.title}"`,
       );
     }
+  }
+
+  /** Chỉ màn Sự kiện cần danh sách này, nên tách khỏi /admin/data cho payload chung nhẹ đi. */
+  async events() {
+    const rows = await this.prisma.venueEvent.findMany({
+      include: { _count: { select: { tickets: true } } },
+      orderBy: [{ eventDate: 'desc' }, { startMinute: 'asc' }],
+    });
+
+    return rows.map((event) => ({
+      capacity: event.capacity,
+      courtId: event.courtId,
+      courtLabel: event.courtLabel,
+      endMinute: event.endMinute,
+      eventDate: toDateString(event.eventDate),
+      id: event.id,
+      price: event.price,
+      soldCount: event.soldCount,
+      startMinute: event.startMinute,
+      ticketCount: event._count.tickets,
+      title: event.title,
+      venueId: event.venueId,
+    }));
   }
 
   async createEvent(dto: AdminEventDto) {

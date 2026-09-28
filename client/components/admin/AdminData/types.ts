@@ -116,12 +116,18 @@ export type ActivityEvent = {
   type: ActivityType;
 };
 
+/**
+ * Dữ liệu vận hành dùng chung cho mọi màn admin.
+ *
+ * Cố ý KHÔNG chứa danh sách sự kiện: chỉ màn Sự kiện cần tới nó, mà seed đang có hơn
+ * 400 sự kiện — gửi kèm mọi lần tải sẽ phình payload chung lên gấp mấy lần vô ích.
+ * Màn Sự kiện tự gọi `adminEventList`.
+ */
 export type AdminDataState = {
   activityEvents: ActivityEvent[];
   bookings: Booking[];
   courts: Court[];
   customers: Customer[];
-  events: VenueEvent[];
   payments: Payment[];
   venues: Venue[];
 };

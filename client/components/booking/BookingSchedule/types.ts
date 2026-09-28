@@ -85,5 +85,6 @@ export type BookingScheduleContent = {
   title: string;
   totalBookingsLabel: string;
   totalCourtsLabel: string;
+  venueFilterLabel: string;
   venueName: string;
 };

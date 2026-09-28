@@ -1,4 +1,5 @@
 import { Calendar, DollarSign, User, Users } from "lucide-react-native";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Text, View } from "react-native";
 
@@ -27,7 +28,9 @@ const statusFilterOptions = [
 
 export default function CustomersManagement() {
   const { bookings, customers, payments, updateCustomerStatus } = useAdminData();
-  const [query, setQuery] = useState("");
+  // Lọc sẵn khi mở từ ô tìm nhanh trên thanh đầu trang.
+  const { q } = useLocalSearchParams<{ q?: string }>();
+  const [query, setQuery] = useState(q ?? "");
   const [status, setStatus] = useState<"all" | CustomerStatus>("all");
 
   const filteredCustomers = customers.filter((customer) => {

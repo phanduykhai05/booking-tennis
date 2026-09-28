@@ -77,5 +77,6 @@ export const bookingScheduleContent: BookingScheduleContent = {
   title: "Quản lý lịch đặt sân",
   totalBookingsLabel: "Lịch trong ngày",
   totalCourtsLabel: "Sân hoạt động",
+  venueFilterLabel: "Lọc theo cơ sở",
   venueName: "TennisHub Cầu Giấy",
 };

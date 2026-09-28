@@ -9,6 +9,9 @@ import AdminTopbar from "@/components/layouts/AdminShell/components/AdminTopbar"
 import { adminNavigationItems, adminShellContent } from "@/components/layouts/AdminShell/mockData";
 import Touch from "@/components/ui/Pressable";
 import Screen from "@/components/ui/Screen";
+import { getNotifications } from "@/lib/api/endpoints";
+import { useSession } from "@/lib/api/session";
+import { useAsync } from "@/lib/useAsync";
 
 type AdminShellProps = {
   children: ReactNode;
@@ -21,8 +24,18 @@ const SIDEBAR_WIDTH = 258;
 export default function AdminShell({ children }: AdminShellProps) {
   const pathname = usePathname();
   const { width } = useWindowDimensions();
+  const { token } = useSession();
   const [isMobileNavigationOpen, setIsMobileNavigationOpen] = useState(false);
   const isCompact = width < SIDEBAR_BREAKPOINT;
+
+  // Chấm đỏ trên chuông phải phản ánh số chưa đọc thật, không bật cứng.
+  const { data: notifications } = useAsync(
+    () => (token ? getNotifications(token) : Promise.resolve([])),
+    [token],
+    "",
+  );
+
+  const unreadCount = (notifications ?? []).filter((item) => !item.isRead).length;
 
   return (
     <Screen backgroundColor="#ffffff" edges={["bottom", "left", "right", "top"]}>
@@ -34,7 +47,12 @@ export default function AdminShell({ children }: AdminShellProps) {
         )}
 
         <View className="min-w-0 flex-1">
-          <AdminTopbar content={adminShellContent} isCompact={isCompact} onMenuOpen={() => setIsMobileNavigationOpen(true)} />
+          <AdminTopbar
+            content={adminShellContent}
+            isCompact={isCompact}
+            onMenuOpen={() => setIsMobileNavigationOpen(true)}
+            unreadCount={unreadCount}
+          />
 
           <ScrollView className="flex-1" contentContainerClassName="p-4 pb-10">
             <AdminBreadcrumbs items={adminNavigationItems} pathname={pathname} />

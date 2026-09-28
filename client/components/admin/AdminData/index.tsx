@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import type { ReactNode } from "react";
 
@@ -35,7 +35,6 @@ const emptyState: AdminDataState = {
   bookings: [],
   courts: [],
   customers: [],
-  events: [],
   payments: [],
   venues: [],
 };
@@ -92,37 +91,49 @@ export default function AdminDataProvider({ children }: AdminDataProviderProps) 
   const isLoading = token ? isFetching : false;
 
   // Mọi thao tác ghi đều gọi API rồi tải lại state để client không tự suy diễn dữ liệu.
-  const runMutation = async <T,>(action: (activeToken: string) => Promise<T>) => {
-    if (!token) throw new ApiError("Bạn cần đăng nhập bằng tài khoản quản trị", 401);
+  const runMutation = useCallback(
+    async <T,>(action: (activeToken: string) => Promise<T>) => {
+      if (!token) throw new ApiError("Bạn cần đăng nhập bằng tài khoản quản trị", 401);
 
-    const result = await action(token);
-    await refresh();
-    return result;
-  };
+      const result = await action(token);
+      await refresh();
+      return result;
+    },
+    [refresh, token],
+  );
 
-  const value: AdminDataContextValue = {
-    ...state,
-    createBooking: (payload: CreateBookingPayload) =>
-      runMutation(async (activeToken) => (await adminCreateBooking(activeToken, payload)).id),
-    createCourt: (payload: CourtPayload) => runMutation((activeToken) => adminCreateCourt(activeToken, payload)).then(() => undefined),
-    createEvent: (payload: EventPayload) =>
-      runMutation((activeToken) => adminCreateEvent(activeToken, payload)).then(() => undefined),
-    deleteEvent: (eventId: string) =>
-      runMutation((activeToken) => adminDeleteEvent(activeToken, eventId)).then(() => undefined),
-    errorMessage,
-    isLoading,
-    refresh,
-    updateBookingStatus: (bookingId: string, status: BookingStatus) =>
-      runMutation((activeToken) => adminUpdateBookingStatus(activeToken, bookingId, status)).then(() => undefined),
-    updateCourt: (courtId: string, payload: CourtPayload) =>
-      runMutation((activeToken) => adminUpdateCourt(activeToken, courtId, payload)).then(() => undefined),
-    updateEvent: (eventId: string, payload: EventPayload) =>
-      runMutation((activeToken) => adminUpdateEvent(activeToken, eventId, payload)).then(() => undefined),
-    updateCustomerStatus: (customerId: string, status: CustomerStatus) =>
-      runMutation((activeToken) => adminUpdateCustomerStatus(activeToken, customerId, status)).then(() => undefined),
-    updatePaymentStatus: (paymentId: string, status: PaymentStatus) =>
-      runMutation((activeToken) => adminUpdatePaymentStatus(activeToken, paymentId, status)).then(() => undefined),
-  };
+  /**
+   * Phải memo: `value` dựng lại mỗi lần render sẽ đổi định danh toàn bộ hàm bên trong,
+   * khiến mọi màn admin đang `useAdminData()` render lại theo — với bảng hàng trăm dòng
+   * thì đó chính là nguyên nhân trang giật và bấm không ăn.
+   */
+  const value = useMemo<AdminDataContextValue>(
+    () => ({
+      ...state,
+      createBooking: (payload: CreateBookingPayload) =>
+        runMutation(async (activeToken) => (await adminCreateBooking(activeToken, payload)).id),
+      createCourt: (payload: CourtPayload) =>
+        runMutation((activeToken) => adminCreateCourt(activeToken, payload)).then(() => undefined),
+      createEvent: (payload: EventPayload) =>
+        runMutation((activeToken) => adminCreateEvent(activeToken, payload)).then(() => undefined),
+      deleteEvent: (eventId: string) =>
+        runMutation((activeToken) => adminDeleteEvent(activeToken, eventId)).then(() => undefined),
+      errorMessage,
+      isLoading,
+      refresh,
+      updateBookingStatus: (bookingId: string, status: BookingStatus) =>
+        runMutation((activeToken) => adminUpdateBookingStatus(activeToken, bookingId, status)).then(() => undefined),
+      updateCourt: (courtId: string, payload: CourtPayload) =>
+        runMutation((activeToken) => adminUpdateCourt(activeToken, courtId, payload)).then(() => undefined),
+      updateEvent: (eventId: string, payload: EventPayload) =>
+        runMutation((activeToken) => adminUpdateEvent(activeToken, eventId, payload)).then(() => undefined),
+      updateCustomerStatus: (customerId: string, status: CustomerStatus) =>
+        runMutation((activeToken) => adminUpdateCustomerStatus(activeToken, customerId, status)).then(() => undefined),
+      updatePaymentStatus: (paymentId: string, status: PaymentStatus) =>
+        runMutation((activeToken) => adminUpdatePaymentStatus(activeToken, paymentId, status)).then(() => undefined),
+    }),
+    [errorMessage, isLoading, refresh, runMutation, state],
+  );
 
   return (
     <AdminDataContext.Provider value={value}>
