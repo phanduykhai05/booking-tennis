@@ -1,4 +1,4 @@
-export type AdminNavigationIcon = "bookings" | "courts" | "customers" | "dashboard" | "payments";
+export type AdminNavigationIcon = "bookings" | "courts" | "customers" | "dashboard" | "events" | "payments";
 
 export type AdminNavigationItem = {
   href: string;

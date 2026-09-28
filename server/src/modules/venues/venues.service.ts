@@ -62,6 +62,7 @@ export class VenuesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(params: {
+    featured?: boolean;
     lat?: number;
     lng?: number;
     q?: string;
@@ -72,6 +73,9 @@ export class VenuesService {
       orderBy: [{ isFeatured: 'desc' }, { name: 'asc' }],
       where: {
         status: 'ACTIVE',
+        ...(params.featured === undefined
+          ? {}
+          : { isFeatured: params.featured }),
         ...(params.sport ? { sportId: params.sport } : {}),
         ...(params.q
           ? {
@@ -275,7 +279,7 @@ export class VenuesService {
       group.courts.map((court) => court.id),
     );
 
-    const [bookings, blocks] = await Promise.all([
+    const [bookings, blocks, events] = await Promise.all([
       this.prisma.booking.findMany({
         include: { court: true },
         where: {
@@ -286,6 +290,13 @@ export class VenuesService {
       }),
       this.prisma.courtBlock.findMany({
         where: { blockDate: bookingDate, courtId: { in: courtIds } },
+      }),
+      // Sự kiện đã gắn sân thật thì chiếm luôn khung giờ đó trên lưới.
+      this.prisma.venueEvent.findMany({
+        where: {
+          courtId: { in: courtIds },
+          eventDate: bookingDate,
+        },
       }),
     ]);
 
@@ -322,6 +333,18 @@ export class VenuesService {
         startMinute: block.startMinute,
         status: block.kind === 'EVENT' ? 'event' : 'locked',
         title: block.title,
+      });
+    }
+
+    for (const event of events) {
+      if (!event.courtId) continue;
+
+      entries.push({
+        courtId: event.courtId,
+        endMinute: event.endMinute,
+        startMinute: event.startMinute,
+        status: 'event',
+        title: event.title,
       });
     }
 

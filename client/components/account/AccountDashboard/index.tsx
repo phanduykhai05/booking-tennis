@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { ChevronRight, Crown, LockKeyhole, LogOut, X } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 
 import DashboardList from "@/components/account/AccountDashboard/components/DashboardList";
@@ -16,18 +16,45 @@ import PublicFooter from "@/components/layouts/PublicFooter";
 import Touch from "@/components/ui/Pressable";
 import Screen from "@/components/ui/Screen";
 import { shadow } from "@/components/ui/theme";
+import { getProfile } from "@/lib/api/endpoints";
 import { useSession } from "@/lib/api/session";
 
-const shortcutHrefs: Partial<Record<string, string>> = {
+const shortcutHrefs: Record<string, string> = {
   booking: "/bookings",
+  course: "/discover?type=course",
   notification: "/notifications",
+  offer: "/discover?type=offer",
+};
+
+/** Mục nào đã có màn hình thật thì điều hướng; mục còn lại chờ contract dữ liệu. */
+const activityHrefs: Record<string, string> = {
+  payments: "/account/payments",
+  tickets: "/account/tickets",
 };
 
 export default function AccountDashboard() {
   const router = useRouter();
-  const { session, signOut } = useSession();
+  const { isReady, session, signOut, token, updateUser } = useSession();
   const [isAlertVisible, setAlertVisible] = useState(true);
   const profile = session?.user;
+
+  // Hồ sơ trong phiên là bản chụp lúc đăng nhập; tải lại từ API để thấy thay đổi mới nhất.
+  // setState nằm trong callback của promise để effect không cập nhật state ngay trong thân hàm.
+  useEffect(() => {
+    if (!isReady || !token) return;
+
+    let isActive = true;
+
+    getProfile(token)
+      .then((fresh) => {
+        if (isActive) updateUser(fresh);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isActive = false;
+    };
+  }, [isReady, token, updateUser]);
 
   return (
     <Screen backgroundColor="#027a45" statusBarStyle="light">
@@ -83,7 +110,13 @@ export default function AccountDashboard() {
 
             <View className="mt-5">
               <Text className="mb-3 text-[16px] font-bold text-[#008447]">{accountDashboardContent.activityTitle}</Text>
-              <DashboardList items={activityItems} />
+              <DashboardList
+                items={activityItems}
+                onSelect={(itemId) => {
+                  const href = activityHrefs[itemId];
+                  if (href) router.push(href);
+                }}
+              />
             </View>
 
             <View className="mt-5">

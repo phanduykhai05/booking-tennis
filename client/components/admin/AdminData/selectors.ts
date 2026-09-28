@@ -28,7 +28,10 @@ export function getDailyAdminSeries(data: AdminDataState) {
   return dates.map((date) => {
     const dateBookings = data.bookings.filter((booking) => booking.bookingDate === date && booking.status !== "cancelled");
     const bookingIds = new Set(dateBookings.map((booking) => booking.id));
-    const revenue = getReceivedRevenue(data.payments.filter((payment) => bookingIds.has(payment.bookingId)));
+    // Giao dịch vé sự kiện không gắn booking nên bookingId rỗng; chuỗi doanh thu theo ngày chỉ tính tiền sân.
+    const revenue = getReceivedRevenue(
+      data.payments.filter((payment) => payment.bookingId !== null && bookingIds.has(payment.bookingId)),
+    );
 
     return { bookings: dateBookings.length, date, revenue };
   });

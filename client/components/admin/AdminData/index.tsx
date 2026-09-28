@@ -9,15 +9,19 @@ import type {
   CourtPayload,
   CreateBookingPayload,
   CustomerStatus,
+  EventPayload,
   PaymentStatus,
 } from "@/components/admin/AdminData/types";
 import { ErrorMessage } from "@/components/ui/Feedback";
 import {
   adminCreateBooking,
   adminCreateCourt,
+  adminCreateEvent,
+  adminDeleteEvent,
   adminUpdateBookingStatus,
   adminUpdateCourt,
   adminUpdateCustomerStatus,
+  adminUpdateEvent,
   adminUpdatePaymentStatus,
   getAdminData,
 } from "@/lib/api/admin";
@@ -31,6 +35,7 @@ const emptyState: AdminDataState = {
   bookings: [],
   courts: [],
   customers: [],
+  events: [],
   payments: [],
   venues: [],
 };
@@ -100,6 +105,10 @@ export default function AdminDataProvider({ children }: AdminDataProviderProps) 
     createBooking: (payload: CreateBookingPayload) =>
       runMutation(async (activeToken) => (await adminCreateBooking(activeToken, payload)).id),
     createCourt: (payload: CourtPayload) => runMutation((activeToken) => adminCreateCourt(activeToken, payload)).then(() => undefined),
+    createEvent: (payload: EventPayload) =>
+      runMutation((activeToken) => adminCreateEvent(activeToken, payload)).then(() => undefined),
+    deleteEvent: (eventId: string) =>
+      runMutation((activeToken) => adminDeleteEvent(activeToken, eventId)).then(() => undefined),
     errorMessage,
     isLoading,
     refresh,
@@ -107,6 +116,8 @@ export default function AdminDataProvider({ children }: AdminDataProviderProps) 
       runMutation((activeToken) => adminUpdateBookingStatus(activeToken, bookingId, status)).then(() => undefined),
     updateCourt: (courtId: string, payload: CourtPayload) =>
       runMutation((activeToken) => adminUpdateCourt(activeToken, courtId, payload)).then(() => undefined),
+    updateEvent: (eventId: string, payload: EventPayload) =>
+      runMutation((activeToken) => adminUpdateEvent(activeToken, eventId, payload)).then(() => undefined),
     updateCustomerStatus: (customerId: string, status: CustomerStatus) =>
       runMutation((activeToken) => adminUpdateCustomerStatus(activeToken, customerId, status)).then(() => undefined),
     updatePaymentStatus: (paymentId: string, status: PaymentStatus) =>

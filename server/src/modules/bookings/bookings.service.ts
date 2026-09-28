@@ -80,7 +80,7 @@ export class BookingsService {
       }
     }
 
-    const [existingBookings, blocks] = await Promise.all([
+    const [existingBookings, blocks, events] = await Promise.all([
       this.prisma.booking.findMany({
         where: {
           bookingDate,
@@ -90,6 +90,9 @@ export class BookingsService {
       }),
       this.prisma.courtBlock.findMany({
         where: { blockDate: bookingDate, courtId: { in: courtIds } },
+      }),
+      this.prisma.venueEvent.findMany({
+        where: { courtId: { in: courtIds }, eventDate: bookingDate },
       }),
     ]);
 
@@ -127,6 +130,24 @@ export class BookingsService {
       if (clashBlock) {
         throw new ConflictException(
           `${courtById.get(slot.courtId)?.name ?? 'Sân'} đang bận: ${clashBlock.title}`,
+        );
+      }
+
+      // Sự kiện gắn sân thật cũng chiếm chỗ; muốn tham gia thì mua vé chứ không đặt sân.
+      const clashEvent = events.find(
+        (event) =>
+          event.courtId === slot.courtId &&
+          overlaps(
+            slot.startMinute,
+            slot.endMinute,
+            event.startMinute,
+            event.endMinute,
+          ),
+      );
+
+      if (clashEvent) {
+        throw new ConflictException(
+          `${courtById.get(slot.courtId)?.name ?? 'Sân'} có sự kiện "${clashEvent.title}" khung ${formatMinutes(clashEvent.startMinute)} - ${formatMinutes(clashEvent.endMinute)}. Vui lòng mua vé để tham gia.`,
         );
       }
     }

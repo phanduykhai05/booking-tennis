@@ -3,9 +3,11 @@ import { CalendarDays } from "lucide-react-native";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 
+import SepayCheckoutSheet from "@/components/payments/SepayCheckoutSheet";
 import BookingDateStrip from "@/components/product/ProductDetail/components/BookingDateStrip";
 import EventCard from "@/components/product/ProductDetail/components/EventCard";
 import PaymentConfirmSheet from "@/components/product/ProductDetail/components/PaymentConfirmSheet";
+import type { TicketPaymentMethod } from "@/components/product/ProductDetail/components/PaymentConfirmSheet";
 import ProductHero from "@/components/product/ProductDetail/components/ProductHero";
 import { productDetailContent } from "@/components/product/ProductDetail/content";
 import type { BookingDateItem, BookingEvent, ProductDetailData } from "@/components/product/ProductDetail/types";
@@ -13,6 +15,7 @@ import Screen from "@/components/ui/Screen";
 import { buyEventTicket } from "@/lib/api/endpoints";
 import { ApiError } from "@/lib/api/http";
 import { useSession } from "@/lib/api/session";
+import type { ApiSepayCheckout } from "@/lib/api/types";
 
 type ProductDetailProps = {
   bookingDates: BookingDateItem[];
@@ -26,11 +29,15 @@ export default function ProductDetail({ bookingDates, onPaid, product }: Product
   const router = useRouter();
   const { session, token } = useSession();
   const [checkout, setCheckout] = useState<CheckoutSelection | null>(null);
+  const [sepayCheckout, setSepayCheckout] = useState<ApiSepayCheckout | null>(null);
+  /** Sự kiện của QR đang mở, và có id ở đây nghĩa là tiền đã vào nhưng sheet còn đang mở. */
+  const [sepayEventId, setSepayEventId] = useState("");
+  const [settledEventId, setSettledEventId] = useState("");
   const [paidEventIds, setPaidEventIds] = useState<string[]>([]);
   const [isSubmitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const completePayment = async (phone: string) => {
+  const completePayment = async (phone: string, method: TicketPaymentMethod) => {
     if (!checkout) return;
 
     if (!token) {
@@ -42,15 +49,27 @@ export default function ProductDetail({ bookingDates, onPaid, product }: Product
     setErrorMessage("");
 
     try {
-      const result = await buyEventTicket(token, checkout.event.id, { phone, quantity: checkout.quantity });
+      const result = await buyEventTicket(token, checkout.event.id, {
+        paymentMethod: method,
+        phone,
+        quantity: checkout.quantity,
+      });
 
       if (!result.success) {
         setErrorMessage(result.error ?? "Không mua được vé");
         return;
       }
 
-      setPaidEventIds((eventIds) => [...new Set([...eventIds, checkout.event.id])]);
       setCheckout(null);
+
+      // SePay: vé mới ở trạng thái chờ, phải quét QR xong mới tính là đã mua.
+      if (method === "sepay" && result.checkout) {
+        setSepayEventId(checkout.event.id);
+        setSepayCheckout(result.checkout);
+        return;
+      }
+
+      setPaidEventIds((eventIds) => [...new Set([...eventIds, checkout.event.id])]);
       onPaid();
     } catch (error) {
       setErrorMessage(error instanceof ApiError ? error.message : "Không mua được vé");
@@ -109,11 +128,30 @@ export default function ProductDetail({ bookingDates, onPaid, product }: Product
           isSubmitting={isSubmitting}
           labels={productDetailContent.checkout}
           onClose={() => setCheckout(null)}
-          onConfirm={(phone) => void completePayment(phone)}
+          onConfirm={(phone, method) => void completePayment(phone, method)}
           quantity={checkout.quantity}
           requiresSignIn={!token}
         />
       ) : null}
+
+      {/*
+        Tải lại dữ liệu ngay lúc nhận tiền sẽ làm màn này unmount, kéo sheet đóng theo
+        trước khi người dùng kịp đọc thông báo. Vì vậy chỉ ghi nhận, đợi đóng sheet mới tải lại.
+      */}
+      <SepayCheckoutSheet
+        checkout={sepayCheckout}
+        isOpen={sepayCheckout !== null}
+        onClose={() => {
+          setSepayCheckout(null);
+
+          if (settledEventId) {
+            setPaidEventIds((eventIds) => [...new Set([...eventIds, settledEventId])]);
+            setSettledEventId("");
+            onPaid();
+          }
+        }}
+        onPaid={() => setSettledEventId(sepayEventId)}
+      />
     </Screen>
   );
 }

@@ -95,7 +95,8 @@ export default function NotificationCenter() {
   return (
     <Screen backgroundColor="#007b42" statusBarStyle="light">
       <View className="flex-1 bg-[#007b42]">
-        <View className="h-14 flex-row items-center justify-between px-3">
+        {/* z-10 để menu cài đặt tràn xuống dưới không bị danh sách bên dưới vẽ đè. */}
+        <View className="z-10 h-14 flex-row items-center justify-between px-3">
           <Touch accessibilityLabel="Quay lại" className="p-2" onPress={() => router.navigate("/home")}>
             <ArrowLeft color="#ffffff" size={22} />
           </Touch>

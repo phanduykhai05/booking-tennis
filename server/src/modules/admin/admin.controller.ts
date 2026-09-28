@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { Roles } from '../../common/auth/auth.decorators';
@@ -6,6 +15,7 @@ import { AdminService } from './admin.service';
 import {
   AdminCourtDto,
   AdminCreateBookingDto,
+  AdminEventDto,
   AdminStatusDto,
 } from './dto/admin.dto';
 
@@ -65,5 +75,29 @@ export class AdminController {
     @Body() dto: AdminStatusDto,
   ) {
     return this.adminService.updateCustomerStatus(customerId, dto.status);
+  }
+
+  @ApiOperation({ summary: 'Tạo sự kiện bán vé, gắn vào sân và khung giờ' })
+  @Post('events')
+  createEvent(@Body() dto: AdminEventDto) {
+    return this.adminService.createEvent(dto);
+  }
+
+  @ApiOperation({ summary: 'Cập nhật sự kiện' })
+  @Put('events/:eventId')
+  updateEvent(@Param('eventId') eventId: string, @Body() dto: AdminEventDto) {
+    return this.adminService.updateEvent(eventId, dto);
+  }
+
+  @ApiOperation({ summary: 'Xoá sự kiện chưa bán vé nào' })
+  @Delete('events/:eventId')
+  deleteEvent(@Param('eventId') eventId: string) {
+    return this.adminService.deleteEvent(eventId);
+  }
+
+  @ApiOperation({ summary: 'Danh sách khách đã mua vé của sự kiện' })
+  @Get('events/:eventId/tickets')
+  eventTickets(@Param('eventId') eventId: string) {
+    return this.adminService.eventTickets(eventId);
   }
 }

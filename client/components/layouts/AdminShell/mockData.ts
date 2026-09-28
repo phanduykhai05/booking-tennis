@@ -19,5 +19,6 @@ export const adminNavigationItems: AdminNavigationItem[] = [
   { href: "/admin/bookings", icon: "bookings", id: "bookings", label: "Lịch đặt sân" },
   { href: "/admin/courts", icon: "courts", id: "courts", label: "Quản lý sân" },
   { href: "/admin/customers", icon: "customers", id: "customers", label: "Khách hàng" },
+  { href: "/admin/events", icon: "events", id: "events", label: "Sự kiện" },
   { href: "/admin/payments", icon: "payments", id: "payments", label: "Thanh toán" },
 ];

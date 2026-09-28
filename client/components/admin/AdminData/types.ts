@@ -5,7 +5,8 @@ export type CustomerStatus = "active" | "inactive";
 export type BookingStatus = "cancelled" | "checked-in" | "completed" | "confirmed" | "pending";
 export type BookingSource = "counter" | "online";
 export type PaymentStatus = "failed" | "paid" | "partial" | "refunded" | "unpaid";
-export type PaymentMethod = "bank-transfer" | "card" | "cash" | "e-wallet";
+export type PaymentMethod = "bank-transfer" | "card" | "cash" | "e-wallet" | "sepay";
+export type TicketStatus = "cancelled" | "paid" | "pending";
 export type ActivityType = "booking-created" | "booking-updated" | "court-updated" | "payment-updated";
 
 export type Venue = {
@@ -55,14 +56,56 @@ export type Booking = {
 
 export type Payment = {
   amount: number;
-  bookingId: string;
+  /** null khi giao dịch trả cho vé sự kiện thay vì lịch đặt sân. */
+  bookingId: string | null;
   createdAt: string;
   customerId: string;
   id: string;
   method: PaymentMethod;
   paidAt?: string;
   status: PaymentStatus;
+  ticketId: string | null;
   transactionCode: string;
+};
+
+export type VenueEvent = {
+  capacity: number;
+  /** Sân thật bị sự kiện chiếm chỗ; null thì sự kiện không khoá khung giờ nào. */
+  courtId: string | null;
+  courtLabel: string;
+  endMinute: number;
+  eventDate: string;
+  id: string;
+  price: number;
+  soldCount: number;
+  startMinute: number;
+  /** Số lượt mua, kể cả vé đang chờ thanh toán. */
+  ticketCount: number;
+  title: string;
+  venueId: string;
+};
+
+export type EventTicket = {
+  createdAt: string;
+  customerId: string;
+  customerName: string;
+  id: string;
+  phone: string;
+  quantity: number;
+  status: TicketStatus;
+  totalPrice: number;
+};
+
+export type EventPayload = {
+  capacity: number;
+  courtId?: string;
+  courtLabel: string;
+  endMinute: number;
+  eventDate: string;
+  price: number;
+  startMinute: number;
+  title: string;
+  venueId: string;
 };
 
 export type ActivityEvent = {
@@ -78,6 +121,7 @@ export type AdminDataState = {
   bookings: Booking[];
   courts: Court[];
   customers: Customer[];
+  events: VenueEvent[];
   payments: Payment[];
   venues: Venue[];
 };
@@ -104,11 +148,14 @@ export type CourtPayload = {
 export type AdminDataContextValue = AdminDataState & {
   createBooking: (payload: CreateBookingPayload) => Promise<string>;
   createCourt: (payload: CourtPayload) => Promise<void>;
+  createEvent: (payload: EventPayload) => Promise<void>;
+  deleteEvent: (eventId: string) => Promise<void>;
   errorMessage: string;
   isLoading: boolean;
   refresh: () => Promise<void>;
   updateBookingStatus: (bookingId: string, status: BookingStatus) => Promise<void>;
   updateCourt: (courtId: string, payload: CourtPayload) => Promise<void>;
+  updateEvent: (eventId: string, payload: EventPayload) => Promise<void>;
   updateCustomerStatus: (customerId: string, status: CustomerStatus) => Promise<void>;
   updatePaymentStatus: (paymentId: string, status: PaymentStatus) => Promise<void>;
 };

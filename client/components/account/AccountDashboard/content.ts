@@ -23,6 +23,8 @@ export const accountShortcuts: DashboardShortcut[] = [
 ];
 
 export const activityItems: DashboardItem[] = [
+  { icon: "ticket", id: "tickets", label: "Vé sự kiện đã mua" },
+  { icon: "wallet", id: "payments", label: "Lịch sử giao dịch" },
   { icon: "group", id: "group", label: "Nhóm của tôi" },
   { icon: "graduation", id: "course-list", label: "Danh sách lịch học" },
   { icon: "member", id: "membership", label: "Gói hội viên" },

@@ -1,24 +1,41 @@
+import { useLocalSearchParams } from "expo-router";
+import { useState } from "react";
+
 import DiscoverFeed from "@/components/discover/DiscoverFeed";
-import type { DiscoverPost } from "@/components/discover/DiscoverFeed/types";
-import { ErrorMessage, LoadingState } from "@/components/ui/Feedback";
+import { apiTypeToFilter, discoverContent, filterToApiType } from "@/components/discover/DiscoverFeed/content";
+import type { DiscoverFilterId, DiscoverPost } from "@/components/discover/DiscoverFeed/types";
+import { ErrorMessage } from "@/components/ui/Feedback";
 import Screen from "@/components/ui/Screen";
 import { getDiscoverPosts } from "@/lib/api/endpoints";
 import { useAsync } from "@/lib/useAsync";
 
 export default function DiscoverScreen() {
-  const { data, errorMessage, isLoading } = useAsync<DiscoverPost[]>(
-    () => getDiscoverPosts(),
-    [],
-    "Không tải được bài viết khám phá",
+  const { type } = useLocalSearchParams<{ type?: string }>();
+  const [activeFilter, setActiveFilter] = useState<DiscoverFilterId>(
+    type ? (apiTypeToFilter[type] ?? "all") : "all",
   );
 
-  if (isLoading || !data) {
+  const apiType = filterToApiType[activeFilter];
+  const { data, errorMessage, isLoading } = useAsync<DiscoverPost[]>(
+    () => getDiscoverPosts(apiType),
+    [apiType],
+    discoverContent.errorMessage,
+  );
+
+  if (errorMessage) {
     return (
       <Screen backgroundColor="#f7f7f7">
-        {errorMessage ? <ErrorMessage text={errorMessage} /> : <LoadingState label="Đang tải bài viết…" />}
+        <ErrorMessage text={errorMessage} />
       </Screen>
     );
   }
 
-  return <DiscoverFeed posts={data} />;
+  return (
+    <DiscoverFeed
+      activeFilter={activeFilter}
+      isLoading={isLoading}
+      onFilterChange={setActiveFilter}
+      posts={data ?? []}
+    />
+  );
 }

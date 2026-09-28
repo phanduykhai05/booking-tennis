@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from "react";
 
 import { sessionStorageKey } from "@/lib/api/config";
-import type { ApiSession } from "@/lib/api/types";
+import type { ApiProfile, ApiSession } from "@/lib/api/types";
 
 type SessionContextValue = {
   /** false trong lúc còn đang đọc AsyncStorage, để phân biệt "chưa đọc xong" với "chưa đăng nhập". */
@@ -12,6 +12,8 @@ type SessionContextValue = {
   signIn: (session: ApiSession) => void;
   signOut: () => void;
   token: string | null;
+  /** Ghi đè hồ sơ đã lưu bằng bản mới nhất từ API, giữ nguyên token đang dùng. */
+  updateUser: (user: ApiProfile) => void;
 };
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -55,9 +57,19 @@ export function SessionProvider({ children }: SessionProviderProps) {
     void AsyncStorage.removeItem(sessionStorageKey);
   }, []);
 
+  const updateUser = useCallback((user: ApiProfile) => {
+    setSession((current) => {
+      if (!current) return current;
+
+      const next = { ...current, user };
+      void AsyncStorage.setItem(sessionStorageKey, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   const value = useMemo<SessionContextValue>(
-    () => ({ isReady, session, signIn, signOut, token: session?.token ?? null }),
-    [isReady, session, signIn, signOut],
+    () => ({ isReady, session, signIn, signOut, token: session?.token ?? null, updateUser }),
+    [isReady, session, signIn, signOut, updateUser],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

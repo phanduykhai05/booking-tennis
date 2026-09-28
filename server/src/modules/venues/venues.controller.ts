@@ -16,6 +16,7 @@ export class VenuesController {
   @ApiQuery({ name: 'q', required: false })
   @ApiQuery({ name: 'lat', required: false })
   @ApiQuery({ name: 'lng', required: false })
+  @ApiQuery({ name: 'featured', required: false, example: 'true' })
   @Get()
   @Public()
   list(
@@ -23,8 +24,10 @@ export class VenuesController {
     @Query('q') q?: string,
     @Query('lat') lat?: string,
     @Query('lng') lng?: string,
+    @Query('featured') featured?: string,
   ) {
     return this.venuesService.list({
+      featured: featured === undefined ? undefined : featured === 'true',
       lat: lat === undefined ? undefined : Number(lat),
       lng: lng === undefined ? undefined : Number(lng),
       q,

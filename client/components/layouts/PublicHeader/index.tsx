@@ -19,7 +19,12 @@ export default function PublicHeader({ onSearchChange, searchValue }: PublicHead
       <HeaderBackdrop />
 
       <View className="w-full max-w-[1275px] self-center px-3 pb-4 pt-4">
-        <View className="flex-row items-start gap-3">
+        {/*
+          zIndex trong React Native chỉ xếp thứ tự giữa các anh em cùng cha, nên `z-50`
+          đặt trong HeaderAccount không thắng được HeaderSearch. Menu tài khoản tràn
+          xuống dưới hàng này, vì vậy phải nâng chính hàng này lên trên khối tìm kiếm.
+        */}
+        <View className="z-50 flex-row items-start gap-3">
           <HeaderLogo brandName={publicHeaderContent.brandName} />
 
           <View className="min-w-0 flex-1 pt-1.5">

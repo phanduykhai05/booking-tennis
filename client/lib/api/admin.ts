@@ -4,6 +4,8 @@ import type {
   CourtPayload,
   CreateBookingPayload,
   CustomerStatus,
+  EventPayload,
+  EventTicket,
   PaymentStatus,
 } from "@/components/admin/AdminData/types";
 import { apiFetch } from "@/lib/api/http";
@@ -31,3 +33,15 @@ export const adminUpdatePaymentStatus = (token: string, paymentId: string, statu
 
 export const adminUpdateCustomerStatus = (token: string, customerId: string, status: CustomerStatus) =>
   apiFetch<{ id: string }>(`/admin/customers/${customerId}/status`, { body: { status }, method: "PATCH", token });
+
+export const adminCreateEvent = (token: string, payload: EventPayload) =>
+  apiFetch<{ id: string }>("/admin/events", { body: payload, method: "POST", token });
+
+export const adminUpdateEvent = (token: string, eventId: string, payload: EventPayload) =>
+  apiFetch<{ id: string }>(`/admin/events/${eventId}`, { body: payload, method: "PUT", token });
+
+export const adminDeleteEvent = (token: string, eventId: string) =>
+  apiFetch<{ id: string }>(`/admin/events/${eventId}`, { method: "DELETE", token });
+
+export const adminEventTickets = (token: string, eventId: string) =>
+  apiFetch<EventTicket[]>(`/admin/events/${eventId}/tickets`, { token });

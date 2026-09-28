@@ -1,18 +1,18 @@
 import { Image } from "expo-image";
 import { BookOpen, Crown, Megaphone, Ticket } from "lucide-react-native";
-import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import type { LucideIcon } from "lucide-react-native";
 
 import images from "@/components/assets/images";
 import DiscoverPostCard from "@/components/discover/DiscoverFeed/components/DiscoverPostCard";
 import { discoverContent, discoverFilters } from "@/components/discover/DiscoverFeed/content";
-import type { DiscoverFilter, DiscoverPost } from "@/components/discover/DiscoverFeed/types";
+import type { DiscoverFilterId, DiscoverPost } from "@/components/discover/DiscoverFeed/types";
 import PublicFooter from "@/components/layouts/PublicFooter";
+import { LoadingState } from "@/components/ui/Feedback";
 import Touch from "@/components/ui/Pressable";
 import Screen from "@/components/ui/Screen";
 
-const filterIcons: Record<DiscoverFilter["id"], LucideIcon | null> = {
+const filterIcons: Record<DiscoverFilterId, LucideIcon | null> = {
   all: null,
   course: BookOpen,
   events: Ticket,
@@ -22,19 +22,22 @@ const filterIcons: Record<DiscoverFilter["id"], LucideIcon | null> = {
 };
 
 type DiscoverFeedProps = {
+  activeFilter: DiscoverFilterId;
+  isLoading?: boolean;
+  onFilterChange: (filter: DiscoverFilterId) => void;
   posts: DiscoverPost[];
 };
 
-function matchesFilter(post: DiscoverPost, filter: DiscoverFilter["id"]) {
-  if (filter === "all") return true;
+/**
+ * "Thông báo" gộp hai loại bài nên API không lọc được bằng một `type`; màn hình
+ * tải toàn bộ rồi lọc lại tại đây. Các bộ lọc còn lại đã được server lọc sẵn.
+ */
+function matchesFilter(post: DiscoverPost, filter: DiscoverFilterId) {
   if (filter === "notifications") return post.type === "course" || post.type === "offer";
-  if (filter === "offers") return post.type === "offer";
-  if (filter === "events") return post.type === "event";
-  return post.type === filter;
+  return true;
 }
 
-export default function DiscoverFeed({ posts }: DiscoverFeedProps) {
-  const [activeFilter, setActiveFilter] = useState<DiscoverFilter["id"]>("all");
+export default function DiscoverFeed({ activeFilter, isLoading = false, onFilterChange, posts }: DiscoverFeedProps) {
   const visiblePosts = posts.filter((post) => matchesFilter(post, activeFilter));
 
   return (
@@ -51,7 +54,7 @@ export default function DiscoverFeed({ posts }: DiscoverFeedProps) {
                 <Touch
                   className={`h-8 flex-row items-center gap-1 rounded-xl border px-3 ${isActive ? "border-[#008447] bg-[#e5f8ee]" : "border-[#d8dcda] bg-white"}`}
                   key={filter.id}
-                  onPress={() => setActiveFilter(filter.id)}
+                  onPress={() => onFilterChange(filter.id)}
                 >
                   {Icon ? <Icon color={isActive ? "#007b44" : "#858a88"} size={15} /> : null}
                   <Text className={`text-[13px] ${isActive ? "font-bold text-[#007b44]" : "text-[#858a88]"}`}>{filter.label}</Text>
@@ -62,7 +65,9 @@ export default function DiscoverFeed({ posts }: DiscoverFeedProps) {
         </View>
 
         <ScrollView contentContainerClassName="pb-32">
-          {visiblePosts.length === 0 ? (
+          {isLoading ? (
+            <LoadingState label={discoverContent.loading} />
+          ) : visiblePosts.length === 0 ? (
             <Text className="py-16 text-center text-[14px] text-[#68716d]">{discoverContent.empty}</Text>
           ) : (
             visiblePosts.map((post, index) => (

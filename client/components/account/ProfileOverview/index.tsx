@@ -1,18 +1,22 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { ArrowLeft, BadgeCheck, CalendarDays, Camera, CircleDot, Dumbbell, Ruler, Target, Trophy } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import type { LucideIcon } from "lucide-react-native";
 
+import ProfileEditSheet from "@/components/account/ProfileOverview/components/ProfileEditSheet";
 import { profileContent, profileDetailItems } from "@/components/account/ProfileOverview/content";
-import type { ProfileDetailItem } from "@/components/account/ProfileOverview/types";
+import type { ProfileDetailItem, ProfileEditSection } from "@/components/account/ProfileOverview/types";
 import aloboIcons from "@/components/assets/icons";
 import images from "@/components/assets/images";
+import { LoadingState } from "@/components/ui/Feedback";
 import Touch from "@/components/ui/Pressable";
 import Screen from "@/components/ui/Screen";
 import { shadow } from "@/components/ui/theme";
+import { getProfile, updateProfile } from "@/lib/api/endpoints";
 import { useSession } from "@/lib/api/session";
+import type { ApiProfileUpdate } from "@/lib/api/types";
 
 const personalIcons: Record<ProfileDetailItem["icon"], LucideIcon> = {
   goal: Target,
@@ -24,11 +28,49 @@ const personalIcons: Record<ProfileDetailItem["icon"], LucideIcon> = {
 export default function ProfileOverview() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"links" | "overview">("overview");
-  const { session } = useSession();
+  const [editSection, setEditSection] = useState<ProfileEditSection | null>(null);
+  const { isReady, session, token, updateUser } = useSession();
   const profile = session?.user;
+
+  // Hồ sơ trong phiên là bản chụp lúc đăng nhập; tải lại từ API để thấy thay đổi mới nhất.
+  // setState nằm trong callback của promise để effect không cập nhật state ngay trong thân hàm.
+  useEffect(() => {
+    if (!isReady || !token) return;
+
+    let isActive = true;
+
+    getProfile(token)
+      .then((fresh) => {
+        if (isActive) updateUser(fresh);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isActive = false;
+    };
+  }, [isReady, token, updateUser]);
+
+  const saveProfile = async (body: ApiProfileUpdate) => {
+    if (!token) return;
+    updateUser(await updateProfile(token, body));
+  };
 
   const orDash = (value: number | string | null | undefined) =>
     value === null || value === undefined || value === "" ? profileContent.notProvided : String(value);
+
+  if (!profile) {
+    return (
+      <Screen backgroundColor="#008447" statusBarStyle="light">
+        <View className="flex-1 bg-[#f7f7f7]">
+          {isReady && !token ? (
+            <Text className="px-6 pt-24 text-center text-[15px] text-[#68716d]">{profileContent.signInRequired}</Text>
+          ) : (
+            <LoadingState label={profileContent.loading} />
+          )}
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen backgroundColor="#008447" statusBarStyle="light">
@@ -119,7 +161,7 @@ export default function ProfileOverview() {
             <View className="mt-3 min-h-[520px] rounded-[10px] bg-white px-3 py-3">
               <View className="flex-row items-center">
                 <Text className="flex-1 text-[15px] font-medium text-[#008447]">{profileContent.physicalTitle}</Text>
-                <Touch accessibilityLabel="Chỉnh sửa thông tin thể chất">
+                <Touch accessibilityLabel="Chỉnh sửa thông tin thể chất" onPress={() => setEditSection("physical")}>
                   <aloboIcons.edit color="#008447" height={20} width={20} />
                 </Touch>
               </View>
@@ -141,14 +183,17 @@ export default function ProfileOverview() {
                 </View>
               </View>
 
-              <Touch className="mt-3 flex-row items-center gap-1">
+              <Touch className="mt-3 flex-row items-start gap-1" onPress={() => setEditSection("note")}>
                 <aloboIcons.note color="#18221e" height={17} width={17} />
-                <Text className="text-[14px] font-medium text-[#18221e]">{profileContent.specialNote}</Text>
+                <View className="min-w-0 flex-1">
+                  <Text className="text-[14px] font-medium text-[#18221e]">{profileContent.specialNote}</Text>
+                  {profile.note ? <Text className="mt-0.5 text-[13px] text-[#68716d]">{profile.note}</Text> : null}
+                </View>
               </Touch>
 
               <View className="mt-3 flex-row items-center">
                 <Text className="flex-1 text-[15px] font-medium text-[#008447]">{profileContent.personalTitle}</Text>
-                <Touch accessibilityLabel="Chỉnh sửa thông tin cá nhân">
+                <Touch accessibilityLabel="Chỉnh sửa thông tin cá nhân" onPress={() => setEditSection("personal")}>
                   <aloboIcons.edit color="#008447" height={20} width={20} />
                 </Touch>
               </View>
@@ -173,6 +218,16 @@ export default function ProfileOverview() {
           )}
         </View>
       </ScrollView>
+
+      {editSection ? (
+        <ProfileEditSheet
+          key={editSection}
+          onClose={() => setEditSection(null)}
+          onSave={saveProfile}
+          profile={profile}
+          section={editSection}
+        />
+      ) : null}
     </Screen>
   );
 }

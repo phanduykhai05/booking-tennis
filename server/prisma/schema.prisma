@@ -77,6 +77,14 @@ enum PaymentMethod {
   CARD
   CASH
   E_WALLET
+  SEPAY
+}
+
+// Vé chỉ tính vào soldCount khi đã PAID, nên thanh toán dở dang không khoá chỗ của người khác.
+enum TicketStatus {
+  CANCELLED
+  PAID
+  PENDING
 }
 
 enum NotificationKind {
@@ -212,6 +220,7 @@ model Court {
   venueId    String
   blocks     CourtBlock[]
   bookings   Booking[]
+  events     VenueEvent[]
 
   @@index([venueId])
   @@index([groupId])
@@ -270,20 +279,31 @@ model Booking {
   @@index([userId])
 }
 
+// Một giao dịch trả cho ĐÚNG một thứ: hoặc lịch đặt sân, hoặc vé sự kiện.
 model Payment {
   id              String        @id @default(cuid())
   amount          Int
-  booking         Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  bookingId       String
+  booking         Booking?      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId       String?
   createdAt       DateTime      @default(now())
+  /** Mã giao dịch phía SePay trả về ở webhook, giữ lại để đối soát khi cần. */
+  gatewayRef      String?
   method          PaymentMethod
   paidAt          DateTime?
+  /** Tổng tiền đã nhận được; cộng dồn qua nhiều lần chuyển nên trả thiếu vẫn bù tiếp được. */
+  paidAmount      Int           @default(0)
   status          PaymentStatus
+  ticket          EventTicket?  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId        String?
   transactionCode String        @unique
+  /** Nội dung chuyển khoản duy nhất in trên mã QR; webhook dò đúng chuỗi này để khớp giao dịch. */
+  transferContent String?       @unique
+  updatedAt       DateTime      @default(now()) @updatedAt
   user            User          @relation(fields: [userId], references: [id], onDelete: Restrict)
   userId          String
 
   @@index([bookingId])
+  @@index([ticketId])
   @@index([userId])
 }
 
@@ -291,6 +311,10 @@ model Payment {
 model VenueEvent {
   id          String        @id @default(cuid())
   capacity    Int
+  /** Sân thật mà sự kiện chiếm chỗ; để trống thì sự kiện không khoá khung giờ nào trên lưới lịch. */
+  court       Court?        @relation(fields: [courtId], references: [id], onDelete: SetNull)
+  courtId     String?
+  /** Nhãn hiển thị ("Sân 1 - 2"); giữ lại cho các sự kiện trải trên nhiều sân. */
   courtLabel  String
   endMinute   Int
   eventDate   DateTime      @db.Date
@@ -303,18 +327,22 @@ model VenueEvent {
   tickets     EventTicket[]
 
   @@index([venueId, eventDate])
+  @@index([courtId, eventDate])
 }
 
 model EventTicket {
-  id         String     @id @default(cuid())
-  createdAt  DateTime   @default(now())
-  event      VenueEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  id         String       @id @default(cuid())
+  createdAt  DateTime     @default(now())
+  event      VenueEvent   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   eventId    String
   phone      String
   quantity   Int
+  status     TicketStatus @default(PAID)
   totalPrice Int
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt  DateTime     @default(now()) @updatedAt
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
+  payments   Payment[]
 
   @@index([eventId])
   @@index([userId])

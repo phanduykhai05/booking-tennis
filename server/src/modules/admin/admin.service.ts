@@ -17,13 +17,18 @@ import {
   paymentMethodToApi,
   paymentStatusFromApi,
   paymentStatusToApi,
+  ticketStatusToApi,
   userStatusFromApi,
   userStatusToApi,
   venueStatusToApi,
 } from '../../common/api-mapping';
 import { toDateString, toDbDate } from '../../common/date.util';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { AdminCourtDto, AdminCreateBookingDto } from './dto/admin.dto';
+import {
+  AdminCourtDto,
+  AdminCreateBookingDto,
+  AdminEventDto,
+} from './dto/admin.dto';
 
 @Injectable()
 export class AdminService {
@@ -31,21 +36,32 @@ export class AdminService {
 
   /** Trả về đúng hình dạng `AdminDataState` mà AdminDataProvider đang dùng. */
   async data() {
-    const [activityEvents, bookings, courts, customers, payments, venues] =
-      await Promise.all([
-        this.prisma.activityEvent.findMany({
-          orderBy: { createdAt: 'desc' },
-          take: 50,
-        }),
-        this.prisma.booking.findMany({ orderBy: { bookingDate: 'desc' } }),
-        this.prisma.court.findMany({ orderBy: { sortOrder: 'asc' } }),
-        this.prisma.user.findMany({
-          orderBy: { createdAt: 'asc' },
-          where: { role: 'USER' },
-        }),
-        this.prisma.payment.findMany({ orderBy: { createdAt: 'desc' } }),
-        this.prisma.venue.findMany({ orderBy: { name: 'asc' } }),
-      ]);
+    const [
+      activityEvents,
+      bookings,
+      courts,
+      customers,
+      events,
+      payments,
+      venues,
+    ] = await Promise.all([
+      this.prisma.activityEvent.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      }),
+      this.prisma.booking.findMany({ orderBy: { bookingDate: 'desc' } }),
+      this.prisma.court.findMany({ orderBy: { sortOrder: 'asc' } }),
+      this.prisma.user.findMany({
+        orderBy: { createdAt: 'asc' },
+        where: { role: 'USER' },
+      }),
+      this.prisma.venueEvent.findMany({
+        include: { _count: { select: { tickets: true } } },
+        orderBy: [{ eventDate: 'desc' }, { startMinute: 'asc' }],
+      }),
+      this.prisma.payment.findMany({ orderBy: { createdAt: 'desc' } }),
+      this.prisma.venue.findMany({ orderBy: { name: 'asc' } }),
+    ]);
 
     return {
       activityEvents: activityEvents.map((event) => ({
@@ -87,6 +103,20 @@ export class AdminService {
         phone: customer.phone,
         status: userStatusToApi[customer.status],
       })),
+      events: events.map((event) => ({
+        capacity: event.capacity,
+        courtId: event.courtId,
+        courtLabel: event.courtLabel,
+        endMinute: event.endMinute,
+        eventDate: toDateString(event.eventDate),
+        id: event.id,
+        price: event.price,
+        soldCount: event.soldCount,
+        startMinute: event.startMinute,
+        ticketCount: event._count.tickets,
+        title: event.title,
+        venueId: event.venueId,
+      })),
       payments: payments.map((payment) => ({
         amount: payment.amount,
         bookingId: payment.bookingId,
@@ -96,6 +126,7 @@ export class AdminService {
         method: paymentMethodToApi[payment.method],
         paidAt: payment.paidAt?.toISOString(),
         status: paymentStatusToApi[payment.status],
+        ticketId: payment.ticketId,
         transactionCode: payment.transactionCode,
       })),
       venues: venues.map((venue) => ({
@@ -266,15 +297,43 @@ export class AdminService {
     if (!mapped)
       throw new BadRequestException('Trạng thái thanh toán không hợp lệ');
 
-    const payment = await this.prisma.payment.update({
-      data: { paidAt: mapped === 'PAID' ? new Date() : null, status: mapped },
+    const before = await this.prisma.payment.findUnique({
       where: { id: paymentId },
     });
 
-    await this.prisma.booking.update({
-      data: { paymentStatus: mapped },
-      where: { id: payment.bookingId },
+    if (!before) throw new NotFoundException('Không tìm thấy giao dịch');
+
+    const payment = await this.prisma.payment.update({
+      data: {
+        paidAmount: mapped === 'PAID' ? before.amount : before.paidAmount,
+        paidAt: mapped === 'PAID' ? new Date() : null,
+        status: mapped,
+      },
+      where: { id: paymentId },
     });
+
+    if (payment.bookingId) {
+      await this.prisma.booking.update({
+        data: { paymentStatus: mapped },
+        where: { id: payment.bookingId },
+      });
+    }
+
+    // Vé sự kiện: đánh dấu tay là đã trả thì phải chốt vé và cộng số đã bán,
+    // nếu không vé sẽ treo ở PENDING và giữ chỗ vĩnh viễn.
+    if (payment.ticketId && before.status !== 'PAID' && mapped === 'PAID') {
+      await this.prisma.$transaction(async (tx) => {
+        const ticket = await tx.eventTicket.update({
+          data: { status: 'PAID' },
+          where: { id: payment.ticketId! },
+        });
+
+        await tx.venueEvent.update({
+          data: { soldCount: { increment: ticket.quantity } },
+          where: { id: ticket.eventId },
+        });
+      });
+    }
 
     await this.logActivity(
       'PAYMENT_UPDATED',
@@ -296,6 +355,166 @@ export class AdminService {
     });
 
     return { id: customer.id };
+  }
+
+  /** Chặn sự kiện đè lên lịch đã đặt hoặc lên sự kiện khác trên cùng một sân. */
+  private async assertCourtFree(dto: AdminEventDto, ignoreEventId?: string) {
+    if (dto.endMinute <= dto.startMinute) {
+      throw new BadRequestException('Giờ kết thúc phải sau giờ bắt đầu');
+    }
+
+    if (!dto.courtId) return;
+
+    const court = await this.prisma.court.findUnique({
+      where: { id: dto.courtId },
+    });
+
+    if (!court || court.venueId !== dto.venueId) {
+      throw new BadRequestException('Sân không thuộc địa điểm đã chọn');
+    }
+
+    const eventDate = toDbDate(dto.eventDate);
+
+    const clashingBooking = await this.prisma.booking.findFirst({
+      where: {
+        bookingDate: eventDate,
+        courtId: dto.courtId,
+        endMinute: { gt: dto.startMinute },
+        startMinute: { lt: dto.endMinute },
+        status: { not: 'CANCELLED' },
+      },
+    });
+
+    if (clashingBooking) {
+      throw new BadRequestException(
+        `Khung giờ này đã có lịch đặt ${clashingBooking.code}`,
+      );
+    }
+
+    const clashingEvent = await this.prisma.venueEvent.findFirst({
+      where: {
+        courtId: dto.courtId,
+        endMinute: { gt: dto.startMinute },
+        eventDate,
+        id: ignoreEventId ? { not: ignoreEventId } : undefined,
+        startMinute: { lt: dto.endMinute },
+      },
+    });
+
+    if (clashingEvent) {
+      throw new BadRequestException(
+        `Khung giờ này đã có sự kiện "${clashingEvent.title}"`,
+      );
+    }
+  }
+
+  async createEvent(dto: AdminEventDto) {
+    await this.assertCourtFree(dto);
+
+    const event = await this.prisma.venueEvent.create({
+      data: {
+        capacity: dto.capacity,
+        courtId: dto.courtId ?? null,
+        courtLabel: dto.courtLabel,
+        endMinute: dto.endMinute,
+        eventDate: toDbDate(dto.eventDate),
+        price: dto.price,
+        startMinute: dto.startMinute,
+        title: dto.title,
+        venueId: dto.venueId,
+      },
+    });
+
+    await this.logActivity(
+      'COURT_UPDATED',
+      event.id,
+      `Đã tạo sự kiện ${event.title}.`,
+    );
+
+    return { id: event.id };
+  }
+
+  async updateEvent(eventId: string, dto: AdminEventDto) {
+    const current = await this.prisma.venueEvent.findUnique({
+      where: { id: eventId },
+    });
+
+    if (!current) throw new NotFoundException('Không tìm thấy sự kiện');
+
+    if (dto.capacity < current.soldCount) {
+      throw new BadRequestException(
+        `Đã bán ${current.soldCount} vé, không thể hạ sức chứa xuống ${dto.capacity}`,
+      );
+    }
+
+    await this.assertCourtFree(dto, eventId);
+
+    const event = await this.prisma.venueEvent.update({
+      data: {
+        capacity: dto.capacity,
+        courtId: dto.courtId ?? null,
+        courtLabel: dto.courtLabel,
+        endMinute: dto.endMinute,
+        eventDate: toDbDate(dto.eventDate),
+        price: dto.price,
+        startMinute: dto.startMinute,
+        title: dto.title,
+        venueId: dto.venueId,
+      },
+      where: { id: eventId },
+    });
+
+    await this.logActivity(
+      'COURT_UPDATED',
+      event.id,
+      `Đã cập nhật sự kiện ${event.title}.`,
+    );
+
+    return { id: event.id };
+  }
+
+  async deleteEvent(eventId: string) {
+    const event = await this.prisma.venueEvent.findUnique({
+      include: { _count: { select: { tickets: true } } },
+      where: { id: eventId },
+    });
+
+    if (!event) throw new NotFoundException('Không tìm thấy sự kiện');
+
+    if (event._count.tickets > 0) {
+      throw new BadRequestException(
+        'Sự kiện đã có vé bán ra, không thể xoá. Hãy hạ sức chứa hoặc đổi ngày.',
+      );
+    }
+
+    await this.prisma.venueEvent.delete({ where: { id: eventId } });
+    await this.logActivity(
+      'COURT_UPDATED',
+      eventId,
+      `Đã xoá sự kiện ${event.title}.`,
+    );
+
+    return { id: eventId };
+  }
+
+  /** Danh sách người đã mua vé của một sự kiện. */
+  async eventTickets(eventId: string) {
+    const tickets = await this.prisma.eventTicket.findMany({
+      include: { user: true },
+      orderBy: { createdAt: 'desc' },
+      where: { eventId },
+    });
+
+    return tickets.map((ticket) => ({
+      createdAt: ticket.createdAt.toISOString(),
+      customerId: ticket.userId,
+      customerName: ticket.user.fullName,
+      id: ticket.id,
+      phone: ticket.phone,
+      quantity: ticket.quantity,
+      status: ticketStatusToApi[ticket.status],
+      totalPrice: ticket.totalPrice,
+    }));
   }
 
   private logActivity(

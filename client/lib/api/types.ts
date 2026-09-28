@@ -106,6 +106,82 @@ export type ApiProfile = {
 
 export type ApiSession = { token: string; user: ApiProfile };
 
+/** Phần hồ sơ mà người dùng tự sửa được; khớp với UpdateProfileDto của server. */
+export type ApiProfileUpdate = Partial<
+  Pick<ApiProfile, "birthYear" | "email" | "fullName" | "gender" | "heightCm" | "note" | "weightKg">
+>;
+
+export type ApiTicketStatus = "cancelled" | "paid" | "pending";
+
+export type ApiEventTicket = {
+  createdAt: string;
+  eventDate: string;
+  eventId: string;
+  id: string;
+  phone: string;
+  priceLabel: string;
+  quantity: number;
+  status: ApiTicketStatus;
+  timeEnd: string;
+  timeStart: string;
+  title: string;
+  totalPrice: number;
+  venueId: string;
+  venueName: string;
+};
+
+export type ApiPaymentMethod = "bank-transfer" | "card" | "cash" | "e-wallet" | "sepay";
+export type ApiPaymentStatus = "failed" | "paid" | "partial" | "refunded" | "unpaid";
+
+export type ApiPayment = {
+  amount: number;
+  amountLabel: string;
+  /** Mã lịch đặt sân, hoặc tên sự kiện khi giao dịch trả cho vé. */
+  bookingCode: string;
+  bookingDate: string;
+  courtName: string;
+  createdAt: string;
+  id: string;
+  kind: "booking" | "other" | "ticket";
+  method: ApiPaymentMethod;
+  paidAt: string | null;
+  status: ApiPaymentStatus;
+  transactionCode: string;
+  venueName: string;
+};
+
+/** Thông tin dựng màn quét QR SePay. */
+export type ApiSepayCheckout = {
+  accountName: string;
+  accountNumber: string;
+  /** Số còn phải chuyển; đã trừ phần đã nhận nếu trước đó khách trả thiếu. */
+  amount: number;
+  bankCode: string;
+  expiresAt: string;
+  method: ApiPaymentMethod;
+  paidAmount: number;
+  paymentId: string;
+  qrUrl: string;
+  status: ApiPaymentStatus;
+  totalAmount: number;
+  transactionCode: string;
+  /** Nội dung chuyển khoản bắt buộc; sai chuỗi này thì webhook không khớp được giao dịch. */
+  transferContent: string;
+};
+
+export type ApiPaymentProgress = {
+  /** Số còn phải chuyển, không phải tổng giá trị giao dịch. */
+  amount: number;
+  expiresAt: string;
+  isExpired: boolean;
+  paidAmount: number;
+  paidAt: string | null;
+  paymentId: string;
+  status: ApiPaymentStatus;
+  totalAmount: number;
+  transactionCode: string;
+};
+
 export type ApiNotification = {
   createdAt: string;
   id: string;

@@ -10,6 +10,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 import { VenuesModule } from './modules/venues/venues.module';
 
 @Module({
@@ -21,6 +22,7 @@ import { VenuesModule } from './modules/venues/venues.module';
     AdminModule,
     BookingsModule,
     CatalogModule,
+    PaymentsModule,
     VenuesModule,
   ],
   controllers: [AppController],

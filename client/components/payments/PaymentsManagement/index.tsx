@@ -48,8 +48,11 @@ export default function PaymentsManagement() {
   const bookingMap = new Map(bookings.map((booking) => [booking.id, booking]));
   const customerMap = new Map(customers.map((customer) => [customer.id, customer]));
 
+  /** Giao dịch vé sự kiện không gắn booking nào, nên bookingId có thể rỗng. */
+  const bookingOf = (payment: Payment) => (payment.bookingId === null ? undefined : bookingMap.get(payment.bookingId));
+
   const filteredPayments = payments.filter((payment) => {
-    const booking = bookingMap.get(payment.bookingId);
+    const booking = bookingOf(payment);
     const customer = customerMap.get(payment.customerId);
     const matchesStatus = status === "all" || payment.status === status;
     const matchesText =
@@ -60,7 +63,7 @@ export default function PaymentsManagement() {
   });
 
   const outstandingAmount = payments.reduce((total, payment) => {
-    const booking = bookingMap.get(payment.bookingId);
+    const booking = bookingOf(payment);
 
     return payment.status === "unpaid" || payment.status === "partial"
       ? total + Math.max((booking?.totalPrice ?? 0) - payment.amount, 0)
@@ -76,9 +79,12 @@ export default function PaymentsManagement() {
     },
     {
       key: "booking",
-      render: (payment) => (
-        <Text className="text-[14px] text-emerald-600">{bookingMap.get(payment.bookingId)?.code ?? "—"}</Text>
-      ),
+      render: (payment) =>
+        payment.ticketId ? (
+          <Text className="text-[14px] text-violet-600">{paymentsContent.ticketLabel}</Text>
+        ) : (
+          <Text className="text-[14px] text-emerald-600">{bookingOf(payment)?.code ?? "—"}</Text>
+        ),
       title: "Booking",
       width: 130,
     },

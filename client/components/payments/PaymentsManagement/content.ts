@@ -9,7 +9,9 @@ export const paymentsContent = {
     card: "Thẻ",
     cash: "Tiền mặt",
     "e-wallet": "Ví điện tử",
+    sepay: "SePay",
   } satisfies Record<PaymentMethod, string>,
+  ticketLabel: "Vé sự kiện",
   searchPlaceholder: "Mã giao dịch, booking hoặc khách hàng",
   statusLabels: {
     failed: "Thất bại",

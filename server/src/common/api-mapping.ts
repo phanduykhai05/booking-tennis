@@ -14,6 +14,7 @@ import {
   NotificationKind,
   PaymentMethod,
   PaymentStatus,
+  TicketStatus,
   UserStatus,
   VenueBadgeTone,
   VenueStatus,
@@ -52,7 +53,14 @@ export const paymentMethodToApi = {
   CARD: 'card',
   CASH: 'cash',
   E_WALLET: 'e-wallet',
+  SEPAY: 'sepay',
 } as const satisfies Record<PaymentMethod, string>;
+
+export const ticketStatusToApi = {
+  CANCELLED: 'cancelled',
+  PAID: 'paid',
+  PENDING: 'pending',
+} as const satisfies Record<TicketStatus, string>;
 
 export const courtStatusToApi = {
   AVAILABLE: 'available',
@@ -114,6 +122,7 @@ export const courtStatusFromApi = invert(courtStatusToApi);
 export const courtSurfaceFromApi = invert(courtSurfaceToApi);
 export const userStatusFromApi = invert(userStatusToApi);
 export const bookingSourceFromApi = invert(bookingSourceToApi);
+export const ticketStatusFromApi = invert(ticketStatusToApi);
 
 export type ApiBookingStatus = (typeof bookingStatusToApi)[BookingStatus];
 export type ApiPaymentStatus = (typeof paymentStatusToApi)[PaymentStatus];

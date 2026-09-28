@@ -11,6 +11,7 @@ import ScheduleHeader from "@/components/booking/CourtScheduleBooking/components
 import ScheduleNotice from "@/components/booking/CourtScheduleBooking/components/ScheduleNotice";
 import ScheduleScrollSlider from "@/components/booking/CourtScheduleBooking/components/ScheduleScrollSlider";
 import ScheduleStatePanel from "@/components/booking/CourtScheduleBooking/components/ScheduleStatePanel";
+import SepayCheckoutSheet from "@/components/payments/SepayCheckoutSheet";
 import { courtScheduleContent } from "@/components/booking/CourtScheduleBooking/content";
 import type { CourtScheduleData } from "@/components/booking/CourtScheduleBooking/types";
 import {
@@ -21,9 +22,10 @@ import {
   slotKey,
 } from "@/components/booking/CourtScheduleBooking/utils";
 import Screen from "@/components/ui/Screen";
-import { createBooking, getVenueSchedule } from "@/lib/api/endpoints";
+import { createBooking, createSepayCheckout, getVenueSchedule } from "@/lib/api/endpoints";
 import { ApiError } from "@/lib/api/http";
 import { useSession } from "@/lib/api/session";
+import type { ApiSepayCheckout } from "@/lib/api/types";
 
 type CourtScheduleBookingProps = {
   backHref: string;
@@ -43,6 +45,8 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
   const [isPriceSheetOpen, setPriceSheetOpen] = useState(false);
   const [isConfirmSheetOpen, setConfirmSheetOpen] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
+  const [sepayCheckout, setSepayCheckout] = useState<ApiSepayCheckout | null>(null);
+  const [isSepaySettled, setSepaySettled] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [scrollRatio, setScrollRatio] = useState(0);
   const gridRef = useRef<ScheduleGridHandle>(null);
@@ -122,7 +126,7 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
     setErrorMessage("");
 
     try {
-      await createBooking(token, {
+      const result = await createBooking(token, {
         date,
         slots: selectionRanges.map((range) => ({
           courtId: range.courtId,
@@ -136,6 +140,20 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
       setConfirmSheetOpen(false);
       setSuccessMessage(courtScheduleContent.confirmSheet.successMessage);
       await loadSchedule(date);
+
+      // Mỗi khung giờ là một booking riêng; trả tiền gộp thì cần nhiều QR, nên
+      // chỉ mở sẵn QR khi người dùng đặt đúng một khung.
+      //
+      // try riêng: lịch đã đặt xong rồi, QR chỉ là bước trả tiền thêm. Gộp chung
+      // try ở trên thì SePay lỗi (hoặc chưa cấu hình) sẽ xoá thông báo thành công
+      // và báo đặt lịch thất bại, khiến khách đặt lại lần nữa.
+      if (result.bookings.length === 1) {
+        try {
+          setSepayCheckout(await createSepayCheckout(token, { bookingId: result.bookings[0].id }));
+        } catch {
+          // Không mở được QR thì khách vẫn trả được tại quầy; lịch đặt không đổi.
+        }
+      }
     } catch (error) {
       setErrorMessage(error instanceof ApiError ? error.message : courtScheduleContent.errorMessage);
       setConfirmSheetOpen(false);
@@ -211,6 +229,20 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
           ranges={selectionRanges}
           requiresSignIn={!token}
           total={total}
+        />
+
+        {/* Tải lại lưới lịch sau khi đóng sheet, để thông báo nhận tiền không bị màn loading nuốt mất. */}
+        <SepayCheckoutSheet
+          checkout={sepayCheckout}
+          isOpen={sepayCheckout !== null}
+          onClose={() => {
+            setSepayCheckout(null);
+            if (isSepaySettled) {
+              setSepaySettled(false);
+              void loadSchedule(date);
+            }
+          }}
+          onPaid={() => setSepaySettled(true)}
         />
       </View>
     </Screen>

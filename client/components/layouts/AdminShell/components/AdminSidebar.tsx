@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { Calendar, CreditCard, LayoutDashboard, MapPin, Users } from "lucide-react-native";
+import { Calendar, CreditCard, LayoutDashboard, MapPin, Ticket, Users } from "lucide-react-native";
 import { Text, View } from "react-native";
 import type { LucideIcon } from "lucide-react-native";
 
@@ -20,6 +20,7 @@ const icons: Record<AdminNavigationIcon, LucideIcon> = {
   courts: MapPin,
   customers: Users,
   dashboard: LayoutDashboard,
+  events: Ticket,
   payments: CreditCard,
 };
 

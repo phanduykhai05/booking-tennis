@@ -13,6 +13,8 @@ import Touch from "@/components/ui/Pressable";
 import Sheet from "@/components/ui/Sheet";
 import { formatCurrency } from "@/lib/format";
 
+export type TicketPaymentMethod = "cash" | "sepay";
+
 type PaymentConfirmSheetProps = {
   accountInitial: string;
   accountName: string;
@@ -22,10 +24,15 @@ type PaymentConfirmSheetProps = {
   isSubmitting: boolean;
   labels: CheckoutLabels;
   onClose: () => void;
-  onConfirm: (phone: string) => void;
+  onConfirm: (phone: string, method: TicketPaymentMethod) => void;
   quantity: number;
   requiresSignIn: boolean;
 };
+
+const paymentMethods: { description: string; id: TicketPaymentMethod; label: string }[] = [
+  { description: "Quét mã QR, hệ thống tự xác nhận khi tiền vào.", id: "sepay", label: "Chuyển khoản SePay" },
+  { description: "Trả trực tiếp khi đến sân.", id: "cash", label: "Tiền mặt tại quầy" },
+];
 
 export default function PaymentConfirmSheet({
   accountInitial,
@@ -44,6 +51,7 @@ export default function PaymentConfirmSheet({
   const [shouldSavePhone, setShouldSavePhone] = useState(true);
   const [country, setCountry] = useState<Country>(defaultCountry);
   const [isCountryPickerOpen, setCountryPickerOpen] = useState(false);
+  const [method, setMethod] = useState<TicketPaymentMethod>("sepay");
   const hasValidPhone = phone.replace(/\D/g, "").length >= 9;
 
   return (
@@ -60,7 +68,7 @@ export default function PaymentConfirmSheet({
               fullWidth
               isLoading={isSubmitting}
               label={labels.confirm}
-              onPress={() => onConfirm(phone)}
+              onPress={() => onConfirm(phone, method)}
             />
           </View>
         </View>
@@ -113,6 +121,36 @@ export default function PaymentConfirmSheet({
             </View>
             <Text className="flex-1 text-[13px] text-[#49544f]">{labels.addPhone}</Text>
           </Touch>
+        </View>
+
+        <View>
+          <Text className="mb-1.5 text-[15px] font-medium text-[#172720]">Phương thức thanh toán</Text>
+          <View className="gap-2">
+            {paymentMethods.map((option) => {
+              const isActive = method === option.id;
+
+              return (
+                <Touch
+                  accessibilityRole="radio"
+                  className={`flex-row items-start gap-2.5 rounded-lg border px-3 py-2.5 ${isActive ? "border-[#008447] bg-[#edfcf2]" : "border-[#d7ddda] bg-white"}`}
+                  key={option.id}
+                  onPress={() => setMethod(option.id)}
+                >
+                  <View
+                    className={`mt-0.5 h-[18px] w-[18px] items-center justify-center rounded-full border-2 ${isActive ? "border-[#008447]" : "border-[#aeb9b3]"}`}
+                  >
+                    {isActive ? <View className="h-2.5 w-2.5 rounded-full bg-[#008447]" /> : null}
+                  </View>
+                  <View className="min-w-0 flex-1">
+                    <Text className={`text-[14px] font-semibold ${isActive ? "text-[#007b45]" : "text-[#172720]"}`}>
+                      {option.label}
+                    </Text>
+                    <Text className="mt-0.5 text-[12px] text-[#68716d]">{option.description}</Text>
+                  </View>
+                </Touch>
+              );
+            })}
+          </View>
         </View>
 
         <View className="gap-2 border-b border-[#e1e6e3] pb-3">

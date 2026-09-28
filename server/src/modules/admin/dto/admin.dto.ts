@@ -6,7 +6,9 @@ import {
   IsOptional,
   IsString,
   Matches,
+  Max,
   Min,
+  MinLength,
 } from 'class-validator';
 
 import {
@@ -92,4 +94,56 @@ export class AdminStatusDto {
   })
   @IsIn([...bookingStatuses, ...paymentStatuses, ...userStatuses])
   status: string;
+}
+
+export class AdminEventDto {
+  @ApiProperty({ example: 'venue-01' })
+  @IsString()
+  venueId: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Sân thật mà sự kiện chiếm chỗ; bỏ trống thì không khoá khung giờ nào.',
+    example: 'court-01',
+  })
+  @IsOptional()
+  @IsString()
+  courtId?: string;
+
+  @ApiProperty({ example: 'SOCIAL SÁNG' })
+  @IsString()
+  @MinLength(2, { message: 'Tên sự kiện phải có ít nhất 2 ký tự' })
+  title: string;
+
+  @ApiProperty({ example: 'Sân 1 - 2' })
+  @IsString()
+  courtLabel: string;
+
+  @ApiProperty({ example: '2026-10-05' })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'Ngày phải theo định dạng YYYY-MM-DD',
+  })
+  eventDate: string;
+
+  @ApiProperty({ example: 540, description: 'Phút tính từ 00:00' })
+  @IsInt({ message: 'Giờ bắt đầu phải là số nguyên' })
+  @Min(0)
+  @Max(1440)
+  startMinute: number;
+
+  @ApiProperty({ example: 720 })
+  @IsInt({ message: 'Giờ kết thúc phải là số nguyên' })
+  @Min(0)
+  @Max(1440)
+  endMinute: number;
+
+  @ApiProperty({ example: 60000 })
+  @IsInt({ message: 'Giá vé phải là số nguyên' })
+  @Min(0)
+  price: number;
+
+  @ApiProperty({ example: 10 })
+  @IsInt({ message: 'Sức chứa phải là số nguyên' })
+  @Min(1, { message: 'Sức chứa phải từ 1 trở lên' })
+  capacity: number;
 }

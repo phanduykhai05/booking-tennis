@@ -11,14 +11,17 @@ const icons: Record<DashboardItem["icon"], typeof aloboIcons.home> = {
   group: aloboIcons.profileGroup,
   member: aloboIcons.profileMembership,
   settings: aloboIcons.profileSetting,
+  ticket: aloboIcons.profileClass,
   version: aloboIcons.profileInfo,
+  wallet: aloboIcons.profileMembership,
 };
 
 type DashboardListProps = {
   items: DashboardItem[];
+  onSelect?: (itemId: string) => void;
 };
 
-export default function DashboardList({ items }: DashboardListProps) {
+export default function DashboardList({ items, onSelect }: DashboardListProps) {
   return (
     <View className="overflow-hidden rounded-xl bg-white">
       {items.map((item, index) => {
@@ -28,6 +31,7 @@ export default function DashboardList({ items }: DashboardListProps) {
           <Touch
             className={`h-[45px] flex-row items-center gap-3 px-3 ${index + 1 < items.length ? "border-b border-[#edf0ee]" : ""}`}
             key={item.id}
+            onPress={() => onSelect?.(item.id)}
           >
             <Icon color="#4e5154" height={20} width={20} />
             <Text className="flex-1 text-[15px] text-[#4e5154]">{item.label}</Text>
