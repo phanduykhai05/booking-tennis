@@ -26,7 +26,7 @@ const pinColors: Record<SportCategoryIcon, string> = {
 
 export default function MapFilters({ activeId, filters, onSelect }: MapFiltersProps) {
   return (
-    <div className="absolute left-0 right-0 top-[72px]">
+    <div className="absolute left-0 right-0 top-[72px] lg:left-[596px] lg:top-[18px]">
       <div className="grow shrink flex-row overflow-x-auto overflow-y-hidden [scrollbar-width:none]">
         <div className="flex-row gap-2 px-3">
           {filters.map((filter) => {

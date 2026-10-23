@@ -16,7 +16,7 @@ type MapSearchProps = {
 
 export default function MapSearch({ brandName, inputLabel, onChange, onSubmit, placeholder, submitLabel, value }: MapSearchProps) {
   return (
-    <div className="absolute left-3 right-3 top-3 h-12 flex-row items-center rounded-full bg-white px-3" style={shadow.raised}>
+    <div className="absolute left-3 right-3 top-3 h-12 flex-row items-center rounded-full bg-white px-3 lg:left-[9px] lg:right-auto lg:h-14 lg:w-[566px]" style={shadow.raised}>
       <div className="mr-2">
         <HeaderLogo brandName={brandName} size={28} />
       </div>
