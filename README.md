@@ -29,6 +29,35 @@ lẫn server, nguyên tắc làm việc, luồng dữ liệu và mục đích c�
 Toàn bộ dữ liệu (sân, giá, lịch, người dùng…) nằm ở **PostgreSQL**, truy cập qua **API
 NestJS**. Phía web **không còn dùng mock data** — mọi màn hình đọc dữ liệu thật từ API.
 
+### Giao diện
+
+Ảnh chụp từ dữ liệu seed, tài khoản demo `0900000001` (người dùng) và `0847968368` (quản trị).
+Ảnh nằm ở [`docs/screenshots/`](docs/screenshots/); chụp lại khi giao diện đổi.
+
+**Điện thoại (390px)**
+
+| Trang chủ | Bản đồ | Khám phá | Nổi bật |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/mobile-home.jpg" width="200" alt="Trang chủ trên điện thoại"> | <img src="docs/screenshots/mobile-map.jpg" width="200" alt="Bản đồ sân trên điện thoại"> | <img src="docs/screenshots/mobile-discover.jpg" width="200" alt="Khám phá trên điện thoại"> | <img src="docs/screenshots/mobile-popular.jpg" width="200" alt="Sân nổi bật trên điện thoại"> |
+
+| Chi tiết sân | Đặt lịch theo sân | Tài khoản | Đăng nhập |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/mobile-venue.jpg" width="200" alt="Chi tiết sân trên điện thoại"> | <img src="docs/screenshots/mobile-schedule.jpg" width="200" alt="Lưới đặt lịch theo sân"> | <img src="docs/screenshots/mobile-account.jpg" width="200" alt="Tài khoản trên điện thoại"> | <img src="docs/screenshots/mobile-login.jpg" width="200" alt="Đăng nhập trên điện thoại"> |
+
+**Desktop (1440px)**
+
+| Trang chủ | Bản đồ |
+|:---:|:---:|
+| <img src="docs/screenshots/desktop-home.jpg" alt="Trang chủ trên desktop"> | <img src="docs/screenshots/desktop-map.jpg" alt="Bản đồ sân trên desktop"> |
+
+| Tài khoản + lịch đã đặt | Quản trị — tổng quan |
+|:---:|:---:|
+| <img src="docs/screenshots/desktop-account.jpg" alt="Tài khoản và lịch đã đặt trên desktop"> | <img src="docs/screenshots/desktop-admin-dashboard.jpg" alt="Tổng quan khu quản trị"> |
+
+| Quản trị — lịch đặt sân |
+|:---:|
+| <img src="docs/screenshots/desktop-admin-bookings.jpg" alt="Quản lý lịch đặt sân trong khu quản trị"> |
+
 ---
 
 ## 3. Kiến trúc tổng quan
