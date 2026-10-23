@@ -1,18 +1,29 @@
-# Quy ước cho client (Expo / React Native)
+# Quy ước cho client (Vite + React + PWA)
 
-Đây là ứng dụng Expo, **không phải Next.js**. Trước khi viết code:
+Đây là ứng dụng web **Vite + React 19**, cài được như **PWA** (vite-plugin-pwa). Không còn Expo/React Native.
+Trước khi viết code:
 
-- Điều hướng theo file trong `app/` bằng **expo-router** (`useRouter`, `Link`, `Redirect`).
-  Không dùng `next/link`, `next/navigation`, `next/image`.
-- Mọi phần tử là component React Native (`View`, `Text`, `Pressable`, `ScrollView`…),
-  không dùng thẻ DOM. Ngoại lệ duy nhất: file có đuôi `.web.tsx` (chỉ vào bundle web).
-- Chữ luôn nằm trong `<Text>`; RN không render chuỗi trần.
-- Style viết bằng `className` của NativeWind. Các tiện ích chỉ có trên web
-  (`grid`, `sticky`, `fixed`, `last:`, `group-hover:`, `focus-visible:`, `backdrop-*`)
-  không hoạt động trên native — dùng flex, `absolute`, hoặc prop thay thế.
-- Icon lấy từ `lucide-react-native`; icon bộ alobo lấy từ `@/components/assets/icons`.
-  Ảnh bitmap lấy từ `@/components/assets/images`.
+- Điều hướng bằng **react-router** (`useNavigate`, `useParams`, `Link`, `Navigate`). Bảng route nằm ở
+  `router.tsx`; mỗi trang là một file trong `app/` (default export), tải lười theo route.
+- Phần tử là thẻ DOM thường (`div`, `span`, `button`, `input`…), style bằng class **Tailwind v3**.
+- `global.css` cho mọi `div`/`button` mặc định bố cục kiểu React Native cũ (flex dọc, `relative`,
+  không co lại) với độ ưu tiên 0 — class Tailwind vẫn ghi đè được. Muốn bố cục ngang thì thêm `flex-row`.
+- Trang không tự cuộn; mỗi màn hình cuộn trong vùng `overflow-y-auto` của nó.
+- Dùng component dùng chung ở `@/components/ui` (`Touch`, `Button`, `Sheet`, `TextField`, `Spinner`…)
+  thay vì tự dựng lại.
+- Icon lấy từ `lucide-react`; icon bộ alobo lấy từ `@/components/assets/icons` (file .svg import thành
+  component nhờ vite-plugin-svgr). Ảnh bitmap lấy từ `@/components/assets/images` (giá trị là URL).
 - Không dùng `Intl` cho tiền/ngày: dùng `@/lib/format` và `@/lib/date`.
+- Biến môi trường phía client phải bắt đầu bằng `VITE_` (ví dụ `VITE_API_URL`) và được nhúng lúc build.
+
+## Lệnh
+
+```bash
+pnpm dev          # http://localhost:8081
+pnpm build        # typecheck + build ra dist/ (kèm manifest và service worker PWA)
+pnpm preview      # chạy thử bản build
+pnpm lint
+```
 
 ## Team workflow
 

@@ -35,15 +35,15 @@ NestJS**. Phía web **không còn dùng mock data** — mọi màn hình đọc 
 
 ```
 ┌─────────────────────┐        HTTP /api        ┌──────────────────────┐        ┌──────────────┐
-│  client (Expo/RN)   │  ───────────────────▶   │   server (NestJS)    │  ───▶  │  PostgreSQL  │
-│  app + web /admin   │  ◀───────────────────   │   cổng 4000          │        │ booking_tenis│
-│  React Native 0.86  │        JSON             │   Prisma 7 (ORM)     │        └──────────────┘
+│ client (Vite + PWA) │  ───────────────────▶   │   server (NestJS)    │  ───▶  │  PostgreSQL  │
+│  web + /admin       │  ◀───────────────────   │   cổng 4000          │        │ booking_tenis│
+│  React 19, Tailwind │        JSON             │   Prisma 7 (ORM)     │        └──────────────┘
 └─────────────────────┘                         └──────────────────────┘
 ```
 
 | Tầng | Công nghệ | Thư mục |
 |------|-----------|---------|
-| Frontend | Expo SDK 57, React Native 0.86, expo-router, TypeScript, NativeWind 4 | [`client/`](client/) |
+| Frontend | Vite 8, React 19, react-router 8, TypeScript, Tailwind 3, PWA (vite-plugin-pwa) | [`client/`](client/) |
 | Backend | NestJS 11, Prisma 7, class-validator, JWT, Swagger | [`server/`](server/) |
 | Cơ sở dữ liệu | PostgreSQL 18 | (schema ở [`server/prisma/schema.prisma`](server/prisma/schema.prisma)) |
 
@@ -57,8 +57,6 @@ Cài sẵn trên máy trước khi bắt đầu:
 - **pnpm** ≥ 11 — cài bằng `npm install -g pnpm`
 - **PostgreSQL** ≥ 14 (dự án đang chạy trên 18). Nhớ mật khẩu user `postgres`.
 - **Git**
-- **Expo Go** trên điện thoại (Android/iOS) — dùng để chạy app người dùng.
-  Bản Expo Go phải là **SDK 57** (khớp với project); xem mục 6.2.
 
 Kiểm tra nhanh:
 
@@ -101,11 +99,11 @@ cp .env.example .env
 
 | Biến | Ý nghĩa | Ví dụ |
 |------|---------|-------|
-| `EXPO_PUBLIC_API_URL` | Gốc API mà app gọi tới | `http://localhost:4000/api` |
+| `VITE_API_URL` | Gốc API mà web gọi tới (nhúng vào bundle lúc build) | `http://localhost:4000/api` |
 
-> ⚠️ Chỉ biến bắt đầu bằng `EXPO_PUBLIC_` mới lộ ra phía client. Khi chạy trên **điện
-> thoại thật hoặc giả lập**, `localhost` trỏ về chính thiết bị đó — phải đổi thành IP
-> LAN của máy chạy backend, ví dụ `http://192.168.1.10:4000/api`.
+> ⚠️ Chỉ biến bắt đầu bằng `VITE_` mới lộ ra phía client. Mở web từ **điện thoại** trong
+> mạng LAN thì `localhost` trỏ về chính điện thoại — đổi thành IP LAN của máy chạy backend,
+> ví dụ `http://192.168.1.10:4000/api`, rồi chạy client bằng `pnpm dev:lan`.
 
 ---
 
@@ -132,24 +130,15 @@ pnpm start:dev              # chạy API ở http://localhost:4000/api (tự rel
 ```bash
 cd client
 pnpm install                # cài dependencies (chạy 1 lần)
-pnpm start                  # mở Expo Dev Server, quét QR bằng Expo Go
+pnpm dev                    # chạy web ở http://localhost:8081
 ```
 
-- **Người dùng (app)**: quét mã QR bằng Expo Go, hoặc `pnpm android` / `pnpm ios`.
-- **Quản trị (web)**: `pnpm web` rồi mở <http://localhost:8081/admin/dashboard>.
-
-> **Expo Go phải cùng SDK với project.** Project chốt **SDK 57** — phiên bản app Expo Go
-> đang phát hành trên App Store / Play Store. Nếu Expo Go báo
-> *"Project is incompatible with this version of Expo Go"* thì SDK hai bên lệch nhau:
-> chạy `npx expo install expo@latest --fix` để kéo project lên đúng SDK của Expo Go.
-> Khi app đã qua giai đoạn thử nghiệm, nên chuyển sang
-> [development build](https://docs.expo.dev/develop/development-builds/introduction/).
-
-> Sau khi đổi `app.json`, `.env` hay version package, chạy lại với `--clear` để xoá
-> cache Metro: `npx expo start --clear`.
+- **Người dùng**: mở <http://localhost:8081>. Trên điện thoại có thể "Thêm vào màn hình chính"
+  để cài như app (PWA); muốn thử cài PWA ở máy dev thì chạy `pnpm build && pnpm preview`.
+- **Quản trị**: mở <http://localhost:8081/admin/dashboard>.
 
 > Thứ tự đúng: **server chạy trước** rồi mới tới client, vì các màn hình dùng dữ liệu từ
-> API. Nếu app trắng/lỗi tải → kiểm tra server đã chạy và `EXPO_PUBLIC_API_URL` đã trỏ
+> API. Nếu web trắng/lỗi tải → kiểm tra server đã chạy và `VITE_API_URL` đã trỏ
 > đúng IP chưa.
 
 ---
@@ -236,12 +225,12 @@ Chi tiết đầy đủ ở [`client/CODING_GUIDELINES.md`](client/CODING_GUIDEL
    `components/<feature>/<Component>/` gồm `index.tsx` (container), `components/` con,
    `content.ts`, `types.ts`.
 3. **Import nội bộ dùng alias `@/…`**, không dùng `../../…`.
-4. **Client là React Native**: dùng `View`/`Text`/`Pressable`, không dùng thẻ DOM;
-   chữ luôn nằm trong `<Text>`. Code chỉ chạy trên trình duyệt đặt ở file `*.web.tsx`.
+4. **Client là web Vite + React**: thẻ DOM + class Tailwind, dùng bộ UI ở `components/ui`.
+   `div`/`button` mặc định bố cục flex dọc như React Native cũ (xem `client/global.css`).
 5. **Trước khi bàn giao / commit** phải chạy sạch:
    ```bash
    # client
-   cd client && pnpm typecheck && pnpm lint && npx expo export --platform android
+   cd client && pnpm build && pnpm lint
    # server
    cd server && pnpm exec tsc --noEmit -p tsconfig.build.json && pnpm lint
    ```
@@ -256,7 +245,7 @@ Chi tiết đầy đủ ở [`client/CODING_GUIDELINES.md`](client/CODING_GUIDEL
 - **Mỗi người làm trên nhánh riêng** tách từ `dev`, ví dụ `feat/ten-tinh-nang`, xong
   tạo Pull Request vào `dev`.
 - Không commit trực tiếp lên `main`.
-- Không commit `.env`, `node_modules`, `dist`, `.expo`, `src/generated` (đã có
+- Không commit `.env`, `node_modules`, `dist`, `src/generated` (đã có
   `.gitignore` lo việc này).
 - Commit message rõ ràng: `feat: ...`, `fix: ...`, `refactor: ...`.
 
@@ -266,20 +255,21 @@ Chi tiết đầy đủ ở [`client/CODING_GUIDELINES.md`](client/CODING_GUIDEL
 
 ```
 booking-tenis/
-├── client/                     # Ứng dụng Expo (app người dùng + web admin)
-│   ├── app/                    # Route của expo-router
+├── client/                     # Web Vite + PWA (người dùng + quản trị)
+│   ├── router.tsx              # bảng route (react-router)
+│   ├── app/                    # Trang, mỗi file một route
 │   │   ├── index.tsx, home, map, discover, notifications, account/
 │   │   ├── product/[slug]/     # Chi tiết sân + /schedule (đặt lịch trực quan)
 │   │   ├── login, register, forgot-password
-│   │   ├── admin/              # Khu vực quản trị (dùng trên web)
-│   │   └── +html.tsx           # vỏ HTML bản web (manifest PWA)
+│   │   ├── admin/              # Khu vực quản trị
+│   │   └── _layout.tsx         # khung chung (session, toast, cài PWA)
 │   ├── components/             # Component theo feature
 │   │   └── ui/                 # bộ UI dùng chung (thay Ant Design)
 │   ├── lib/
 │   │   ├── api/                # endpoints.ts, http.ts, session.tsx, types.ts
 │   │   ├── format.ts           # tiền/số/bỏ dấu (không dùng Intl)
 │   │   └── date.ts             # tiện ích ngày/giờ (theo giờ VN)
-│   ├── app.json                # cấu hình Expo
+│   ├── vite.config.ts          # Vite + PWA (manifest, service worker)
 │   └── .env.example            # mẫu cấu hình client
 │
 ├── server/                     # API NestJS
@@ -318,13 +308,12 @@ booking-tenis/
 
 | Lệnh | Tác dụng |
 |------|----------|
-| `pnpm start` | Chạy Expo Dev Server (thêm `--clear` khi đổi config) |
-| `pnpm android` / `pnpm ios` | Mở thẳng trên máy/giả lập |
-| `pnpm web` | Chạy bản web — dùng cho khu quản trị `/admin` |
+| `pnpm dev` | Chạy web ở <http://localhost:8081> |
+| `pnpm dev:lan` | Như trên, mở cho máy khác trong LAN |
+| `pnpm build` | Typecheck + build ra `dist/` (kèm manifest, service worker PWA) |
+| `pnpm preview` | Chạy thử bản build (thử cài PWA) |
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm lint` | Kiểm tra code (ESLint) |
-| `npx expo export --platform android` | Dựng bundle, bắt lỗi resolve/transform |
-| `npx expo-doctor` | Kiểm tra cấu hình và version package |
 
 ---
 
@@ -332,12 +321,11 @@ booking-tenis/
 
 | Triệu chứng | Nguyên nhân & cách xử lý |
 |-------------|--------------------------|
-| App trắng / không tải được sân | Server chưa chạy hoặc sai `EXPO_PUBLIC_API_URL` (trên máy thật phải dùng IP LAN). Mở `/api/health` kiểm tra. |
+| App trắng / không tải được sân | Server chưa chạy hoặc sai `VITE_API_URL` (mở từ điện thoại phải dùng IP LAN). Mở `/api/health` kiểm tra. |
 | `Can't reach database server` | Postgres chưa bật, hoặc `DATABASE_URL` sai mật khẩu/cổng. |
 | `PrismaClient ... did not initialize` | Chưa chạy `pnpm prisma:generate`. |
-| Lỗi CORS trên bản web | `CORS_ORIGIN` trong `server/.env` chưa khớp cổng Expo Web (mặc định 8081). |
-| `Project is incompatible with this version of Expo Go` | Expo Go trên máy khác SDK với project. Cập nhật Expo Go, hoặc báo leader để hạ SDK project cho khớp. |
-| Bundling lỗi lạ sau khi đổi version/config | Cache Metro cũ. Dừng server rồi `npx expo start --clear`. |
+| Lỗi CORS trên bản web | `CORS_ORIGIN` trong `server/.env` chưa khớp cổng web Vite (mặc định 8081). |
+| Web vẫn hiện bản cũ sau khi deploy | Service worker PWA còn giữ cache: tải lại trang (bản mới tự cập nhật) hoặc xoá dữ liệu trang trong trình duyệt. |
 | Đăng nhập xong vẫn hiện nút Đăng nhập | App: lắc máy → Reload. Web: hard-refresh (Ctrl+F5). |
 | Sửa `schema.prisma` xong lỗi type | Chạy lại `pnpm prisma:generate`. |
 
@@ -345,13 +333,13 @@ booking-tenis/
 
 ## 13. Quy trình cho thành viên mới (checklist)
 
-- [ ] Cài Node ≥ 20, pnpm ≥ 11, PostgreSQL, Git và **Expo Go (SDK 57)** trên điện thoại.
+- [ ] Cài Node ≥ 20, pnpm ≥ 11, PostgreSQL, Git.
 - [ ] `git clone` repo, `git checkout dev`.
 - [ ] `cd server` → `pnpm install` → `cp .env.example .env` → điền `DATABASE_URL`.
 - [ ] `pnpm prisma:generate` → `pnpm db:migrate` → `pnpm db:seed`.
 - [ ] `pnpm start:dev` → kiểm tra `/api/health`.
 - [ ] `cd client` → `pnpm install` → `cp .env.example .env`.
-- [ ] `pnpm start` → quét QR bằng Expo Go (hoặc `pnpm web` cho khu admin).
+- [ ] `pnpm dev` → mở <http://localhost:8081> (khu admin ở `/admin/dashboard`).
 - [ ] Đăng nhập thử tài khoản demo, vào thử màn đặt lịch.
 - [ ] Đọc [`client/CODING_GUIDELINES.md`](client/CODING_GUIDELINES.md) trước khi code.
 - [ ] Tạo nhánh riêng từ `dev`, làm task, mở Pull Request.
