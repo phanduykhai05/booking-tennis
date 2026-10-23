@@ -6,7 +6,7 @@
     Chạy từ máy dev (Windows). Script KHÔNG chứa secret nào - mọi secret nằm trên server.
     Các bước:
       1. Typecheck client + server (bỏ qua bằng -SkipChecks)
-      2. Build bản web tĩnh với EXPO_PUBLIC_API_URL=/api rồi copy client/public/* vào dist
+      2. Build bản web (Vite + PWA) với VITE_API_URL=/api ra client/dist
       3. Kiểm tra bundle đã nhúng /api và không còn localhost:4000
       4. Đóng gói server/ (KHÔNG kèm .env) + client/dist, đẩy lên /tmp của server bằng scp
       5. Gửi deploy/remote-deploy.sh qua base64 và chạy trên server
@@ -111,26 +111,23 @@ if ($SkipWeb) {
     Push-Location (Join-Path $repoRoot 'client')
     try {
         # Duong dan tuong doi de cung mot artifact chay duoc ca LAN lan URL cong khai.
-        $env:EXPO_PUBLIC_API_URL = '/api'
-        Invoke-Native -FailMessage 'expo export that bai' -Command {
-            & npx expo export --platform web --output-dir dist
-        }
+        $env:VITE_API_URL = '/api'
+        # vite build tu chep public/ (icon) va sinh manifest + service worker cua PWA vao dist/.
+        Invoke-Native -FailMessage 'vite build that bai' -Command { & pnpm build }
 
-        # public/ (manifest.json, apple-touch-icon, icon-*) phai de len dist moi nhat.
-        Copy-Item '.\public\*' '.\dist\' -Recurse -Force
-
-        $jsFile = Get-ChildItem '.\dist\_expo\static\js\web' -Filter '*.js' | Select-Object -First 1
-        if (-not $jsFile) { Stop-Deploy 'Khong thay bundle JS trong dist/_expo/static/js/web' }
-        $js = [IO.File]::ReadAllText($jsFile.FullName)
+        $jsFiles = Get-ChildItem '.\dist\assets' -Filter '*.js'
+        if (-not $jsFiles) { Stop-Deploy 'Khong thay bundle JS trong dist/assets' }
+        $js = ($jsFiles | ForEach-Object { [IO.File]::ReadAllText($_.FullName) }) -join "`n"
 
         if ($js.IndexOf('localhost:4000') -ge 0) {
             Stop-Deploy 'Bundle van chua localhost:4000 - tren dien thoai se bao "Khong ket noi duoc may chu"'
         }
-        if ($js.IndexOf('"/api"') -lt 0) {
-            Stop-Deploy 'Bundle khong chua "/api" - kiem tra bien EXPO_PUBLIC_API_URL'
+        # Vite in chuoi bang dau backtick (`/api`), nen chap nhan moi loai dau nhay.
+        if ($js -notmatch '[`"'']/api[`"'']') {
+            Stop-Deploy 'Bundle khong chua "/api" - kiem tra bien VITE_API_URL'
         }
     } finally {
-        Remove-Item Env:\EXPO_PUBLIC_API_URL -ErrorAction SilentlyContinue
+        Remove-Item Env:\VITE_API_URL -ErrorAction SilentlyContinue
         Pop-Location
     }
     Write-Ok 'Bundle nhung dung /api, khong con localhost:4000'

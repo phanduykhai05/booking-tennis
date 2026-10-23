@@ -50,10 +50,9 @@ nên nếu deploy hỏng thì app cũ vẫn còn nguyên trong `dist/` cho tới
 **Trên máy dev (`deploy.ps1`):**
 
 1. Typecheck `client` (`tsc --noEmit`) + `server` (`tsc --noEmit -p tsconfig.json`).
-2. Build web: `EXPO_PUBLIC_API_URL=/api npx expo export --platform web --output-dir dist`
-   → rồi copy `client/public/*` đè lên `dist/` để `manifest.json` và icon luôn mới nhất.
+2. Build web: `VITE_API_URL=/api pnpm build` (Vite tự chép `public/`, sinh manifest và service worker PWA vào `dist/`).
 3. Kiểm tra bundle đã nhúng `/api` và **không còn** `localhost:4000` (đúng lỗi từng làm app không kết nối được).
-4. `tar` `server/` (loại `node_modules`, `dist`, `.git`, `.env`, `.expo`) + `client/dist`.
+4. `tar` `server/` (loại `node_modules`, `dist`, `.git`, `.env`) + `client/dist`.
 5. `scp` hai file `.tgz` lên `/tmp/` của server, rồi gửi `remote-deploy.sh` qua base64 để chạy.
 
 **Trên server (`remote-deploy.sh`):**
