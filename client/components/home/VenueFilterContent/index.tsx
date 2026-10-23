@@ -33,8 +33,11 @@ export default function VenueFilterContent({ sports, venues }: VenueFilterConten
 
   return (
     <div>
-      <NearbyFilters activeId={activeNearbyFilter} onChange={selectNearbyFilter} />
-      <SportCategories activeId={activeSport} categories={sports} onSelect={selectSport} />
+      {/* Bản gốc không hiện chip "gần tôi" và hàng môn thể thao ở desktop. */}
+      <div className="lg:hidden">
+        <NearbyFilters activeId={activeNearbyFilter} onChange={selectNearbyFilter} />
+        <SportCategories activeId={activeSport} categories={sports} onSelect={selectSport} />
+      </div>
 
       <NearbyVenues sport={activeSport} venues={venues} />
     </div>

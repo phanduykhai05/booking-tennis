@@ -38,7 +38,7 @@ export default function HomeScreen() {
 
   return (
     <Screen backgroundColor="#0f9b58" statusBarStyle="light">
-      <div className="flex-1 bg-[#f2f4f6]">
+      <div className="flex-1 bg-[#f7f7f7]">
         <PublicHeader onSearchChange={setSearchValue} searchValue={searchValue} />
 
         <div
@@ -46,7 +46,7 @@ export default function HomeScreen() {
           onScroll={(event) => setIsScrolled(event.currentTarget.scrollTop > VISIBLE_AFTER)}
           ref={scrollRef}
         >
-          <div className="pb-32">
+          <div className="pb-32 lg:pt-[33px]">
             {isLoading ? (
               <LoadingState label="Đang tải danh sách sân…" />
             ) : errorMessage ? (
