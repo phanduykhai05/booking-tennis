@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
 
 import type { UserRole } from '../../generated/prisma/enums';
+import { PrismaService } from '../prisma/prisma.service';
 import { AuthUser, IS_PUBLIC_KEY, ROLES_KEY } from './auth.decorators';
 
 type JwtPayload = { phone: string; role: UserRole; sub: string };
@@ -19,6 +20,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly reflector: Reflector,
+    private readonly prisma: PrismaService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -34,12 +36,26 @@ export class JwtAuthGuard implements CanActivate {
     if (token) {
       try {
         const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
-        (request as Request & { user?: AuthUser }).user = {
-          id: payload.sub,
-          phone: payload.phone,
-          role: payload.role,
-        };
-      } catch {
+        // Đọc lại từ DB mỗi request: tài khoản bị khoá hoặc hạ quyền phải mất tác dụng ngay,
+        // không đợi token cũ (sống 7 ngày) hết hạn.
+        const current = await this.prisma.user.findUnique({
+          select: { role: true, status: true },
+          where: { id: payload.sub },
+        });
+
+        if (current?.status === 'ACTIVE') {
+          (request as Request & { user?: AuthUser }).user = {
+            id: payload.sub,
+            phone: payload.phone,
+            role: current.role,
+          };
+        } else if (!isPublic) {
+          throw new UnauthorizedException(
+            'Tài khoản đã bị khoá hoặc không còn tồn tại',
+          );
+        }
+      } catch (error) {
+        if (error instanceof UnauthorizedException) throw error;
         if (!isPublic)
           throw new UnauthorizedException('Phiên đăng nhập đã hết hạn');
       }
