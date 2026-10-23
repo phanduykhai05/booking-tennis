@@ -1,5 +1,3 @@
-import { View } from "react-native";
-
 import VenueCover from "@/components/home/NearbyVenues/components/VenueCover";
 import VenueSummary from "@/components/home/NearbyVenues/components/VenueSummary";
 import type { NearbyVenuesContent, Venue } from "@/components/home/NearbyVenues/types";
@@ -13,9 +11,9 @@ type VenueCardProps = {
 
 export default function VenueCard({ content, onOpen, venue }: VenueCardProps) {
   return (
-    <View className="overflow-hidden rounded-xl bg-white" style={shadow.card}>
+    <div className="overflow-hidden rounded-xl bg-white" style={shadow.card}>
       <VenueCover content={content} onOpen={onOpen} venue={venue} />
       <VenueSummary content={content} onOpen={onOpen} venue={venue} />
-    </View>
+    </div>
   );
 }

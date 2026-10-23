@@ -1,6 +1,5 @@
-import { useRouter } from "expo-router";
+import { useNavigate } from "react-router";
 import { useMemo, useRef, useState } from "react";
-import { Text, View } from "react-native";
 
 import type { SportCategoryIcon } from "@/components/home/SportCategories/types";
 import MapControls from "@/components/map/CourtMap/components/MapControls";
@@ -20,7 +19,7 @@ type MapExperienceProps = {
 };
 
 export default function MapExperience({ brandName, content, filters, markers }: MapExperienceProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const mapRef = useRef<OpenStreetMapCanvasHandle>(null);
   const [showVenueLayer, setShowVenueLayer] = useState(true);
   const [query, setQuery] = useState("");
@@ -54,11 +53,11 @@ export default function MapExperience({ brandName, content, filters, markers }: 
   };
 
   return (
-    <View className="flex-1">
+    <div className="flex-1">
       <OpenStreetMapCanvas
         geolocationUnavailableMessage={content.geolocationUnavailableMessage}
         markers={visibleMarkers}
-        onMarkerPress={(markerId) => router.push(`/product/${markerId}`)}
+        onMarkerPress={(markerId) => navigate(`/product/${markerId}`)}
         ref={mapRef}
         showVenueLayer={showVenueLayer}
         tileErrorMessage={content.tileErrorMessage}
@@ -89,16 +88,16 @@ export default function MapExperience({ brandName, content, filters, markers }: 
       />
 
       {notice ? (
-        <View className="absolute left-6 right-6 top-[120px] items-center">
-          <Text className="rounded-full bg-white/95 px-4 py-1.5 text-[13px] font-medium text-slate-700" style={shadow.card}>
+        <div className="absolute left-6 right-6 top-[120px] items-center">
+          <span className="rounded-full bg-white/95 px-4 py-1.5 text-[13px] font-medium text-slate-700" style={shadow.card}>
             {notice}
-          </Text>
-        </View>
+          </span>
+        </div>
       ) : null}
 
-      <Text className="absolute bottom-24 left-3 rounded bg-white/85 px-1.5 py-0.5 text-[11px] text-slate-600">
+      <span className="absolute bottom-24 left-3 rounded bg-white/85 px-1.5 py-0.5 text-[11px] text-slate-600">
         {content.mapAttribution} · {visibleMarkers.length} sân
-      </Text>
-    </View>
+      </span>
+    </div>
   );
 }

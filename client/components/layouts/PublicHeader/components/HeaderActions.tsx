@@ -1,5 +1,4 @@
-import { useRouter } from "expo-router";
-import { Text, View } from "react-native";
+import { useNavigate } from "react-router";
 
 import type { HeaderAction } from "@/components/layouts/PublicHeader/types";
 import Touch from "@/components/ui/Pressable";
@@ -19,20 +18,20 @@ const variantLabel: Record<HeaderAction["id"], string> = {
 };
 
 export default function HeaderActions({ actions }: HeaderActionsProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   return (
-    <View className="w-full max-w-[300px] flex-row gap-2.5">
+    <div className="w-full max-w-[300px] flex-row gap-2.5">
       {actions.map((action) => (
         <Touch
           accessibilityRole="link"
           className={`h-9 flex-1 items-center justify-center rounded-lg px-4 ${variantContainer[action.id]}`}
           key={action.id}
-          onPress={() => action.href && router.push(action.href)}
+          onPress={() => action.href && navigate(action.href)}
         >
-          <Text className={`text-[14px] font-semibold ${variantLabel[action.id]}`}>{action.label}</Text>
+          <span className={`text-[14px] font-semibold ${variantLabel[action.id]}`}>{action.label}</span>
         </Touch>
       ))}
-    </View>
+    </div>
   );
 }

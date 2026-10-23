@@ -1,5 +1,4 @@
-import { ChevronRight } from "lucide-react-native";
-import { Text, View } from "react-native";
+import { ChevronRight } from "lucide-react";
 
 import aloboIcons from "@/components/assets/icons";
 import type { DashboardItem } from "@/components/account/AccountDashboard/types";
@@ -23,7 +22,7 @@ type DashboardListProps = {
 
 export default function DashboardList({ items, onSelect }: DashboardListProps) {
   return (
-    <View className="overflow-hidden rounded-xl bg-white">
+    <div className="overflow-hidden rounded-xl bg-white">
       {items.map((item, index) => {
         const Icon = icons[item.icon];
 
@@ -34,11 +33,11 @@ export default function DashboardList({ items, onSelect }: DashboardListProps) {
             onPress={() => onSelect?.(item.id)}
           >
             <Icon color="#4e5154" height={20} width={20} />
-            <Text className="flex-1 text-[15px] text-[#4e5154]">{item.label}</Text>
+            <span className="flex-1 text-[15px] text-[#4e5154]">{item.label}</span>
             <ChevronRight color="#373c3a" size={18} />
           </Touch>
         );
       })}
-    </View>
+    </div>
   );
 }

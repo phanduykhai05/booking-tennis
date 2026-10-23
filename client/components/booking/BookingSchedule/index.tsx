@@ -1,6 +1,5 @@
-import { useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
-import { View, useWindowDimensions } from "react-native";
+import { useSearchParams } from "react-router";
 
 import { useAdminData } from "@/components/admin/AdminData";
 import AdminPageHeader from "@/components/admin/shared/AdminPageHeader";
@@ -29,6 +28,7 @@ import Card from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
 import { todayInAppTimezone } from "@/lib/date";
 import { matchesQuery } from "@/lib/format";
+import { useWindowDimensions } from "@/lib/useWindowDimensions";
 
 const initialFilters: BookingFilterState = {
   courtId: "all",
@@ -46,7 +46,9 @@ export default function BookingSchedule() {
    * Với `code` thì nhảy thẳng tới đúng ngày và đúng cơ sở của lịch đó, nếu không người
    * dùng bấm vào kết quả xong vẫn phải tự dò ngày.
    */
-  const { code, venue: venueParam } = useLocalSearchParams<{ code?: string; venue?: string }>();
+  const [searchParams] = useSearchParams();
+  const code = searchParams.get("code") ?? undefined;
+  const venueParam = searchParams.get("venue") ?? undefined;
   const target = code ? bookings.find((booking) => booking.code === code) : undefined;
 
   // Trước đây mở cố định một ngày trong quá khứ nên lịch mới đặt không bao giờ hiện ra.
@@ -135,7 +137,7 @@ export default function BookingSchedule() {
   };
 
   return (
-    <View className="gap-5">
+    <div className="gap-5">
       <AdminPageHeader
         actions={<BookingViewSwitcher onChange={setViewMode} value={viewMode} />}
         description={`Theo dõi công suất sân, khách hàng và trạng thái thanh toán tại ${venue?.name ?? bookingScheduleContent.venueName}.`}
@@ -144,7 +146,7 @@ export default function BookingSchedule() {
       />
 
       <Card>
-        <View className={width >= 1100 ? "flex-row items-center gap-3" : "gap-3"}>
+        <div className={width >= 1100 ? "flex-row items-center gap-3" : "gap-3"}>
           <BookingDateSelector
             content={bookingScheduleContent}
             date={date}
@@ -162,7 +164,7 @@ export default function BookingSchedule() {
             value={venueId}
             width={220}
           />
-          <View className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1">
             <BookingFilters
               content={bookingScheduleContent}
               courts={venueCourts}
@@ -170,8 +172,8 @@ export default function BookingSchedule() {
               onChange={setFilters}
               statusOptions={bookingStatusOptions}
             />
-          </View>
-        </View>
+          </div>
+        </div>
       </Card>
 
       <BookingDaySummary
@@ -216,6 +218,6 @@ export default function BookingSchedule() {
         onStatusChange={handleStatusChange}
         selection={selection}
       />
-    </View>
+    </div>
   );
 }

@@ -1,6 +1,5 @@
-import { useRouter } from "expo-router";
 import { useState } from "react";
-import { View } from "react-native";
+import { useNavigate } from "react-router";
 
 import images from "@/components/assets/images";
 import ContinueButton from "@/components/onboarding/Onboarding/components/ContinueButton";
@@ -12,7 +11,7 @@ import { onboardingContent } from "@/components/onboarding/Onboarding/mockData";
 import Screen from "@/components/ui/Screen";
 
 export default function Onboarding() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState(0);
 
   const { continueLabel, skipLabel, slides } = onboardingContent;
@@ -21,7 +20,7 @@ export default function Onboarding() {
 
   const handleContinue = () => {
     if (isLastSlide) {
-      router.replace("/");
+      navigate("/", { replace: true });
       return;
     }
 
@@ -30,22 +29,22 @@ export default function Onboarding() {
 
   return (
     <Screen backgroundColor="#ffffff" edges={["bottom", "top"]}>
-      <View className="flex-1">
-        <View className="flex-row justify-end px-4 pt-4">
-          <SkipLink label={skipLabel} onPress={() => router.replace("/")} />
-        </View>
+      <div className="flex-1">
+        <div className="flex-row justify-end px-4 pt-4">
+          <SkipLink label={skipLabel} onPress={() => navigate("/", { replace: true })} />
+        </div>
 
-        <View className="flex-1 items-center justify-center gap-8">
+        <div className="flex-1 items-center justify-center gap-8">
           <SlideMedia image={images.onboarding[activeIndex]} />
           <SlideText description={activeSlide.description} title={activeSlide.title} />
-        </View>
+        </div>
 
-        <View className="pb-4">
+        <div className="pb-4">
           <StepDots activeIndex={activeIndex} onSelect={setActiveIndex} total={slides.length} />
-        </View>
+        </div>
 
         <ContinueButton label={continueLabel} onPress={handleContinue} />
-      </View>
+      </div>
     </Screen>
   );
 }

@@ -1,5 +1,4 @@
-import { ArrowUp } from "lucide-react-native";
-import { View } from "react-native";
+import { ArrowUp } from "lucide-react";
 
 import Touch from "@/components/ui/Pressable";
 import { shadow } from "@/components/ui/theme";
@@ -15,7 +14,7 @@ export default function ScrollToTop({ isVisible, label, onPress }: ScrollToTopPr
   if (!isVisible) return null;
 
   return (
-    <View className="absolute bottom-[92px] right-4 z-20">
+    <div className="absolute bottom-[92px] right-4 z-20">
       <Touch
         accessibilityLabel={label}
         accessibilityRole="button"
@@ -25,6 +24,6 @@ export default function ScrollToTop({ isVisible, label, onPress }: ScrollToTopPr
       >
         <ArrowUp color="#0f9b58" size={20} strokeWidth={2} />
       </Touch>
-    </View>
+    </div>
   );
 }

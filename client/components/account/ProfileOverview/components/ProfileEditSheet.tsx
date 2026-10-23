@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Text, View } from "react-native";
 
 import { profileContent } from "@/components/account/ProfileOverview/content";
 import type { ProfileEditSection } from "@/components/account/ProfileOverview/types";
@@ -116,7 +115,7 @@ export default function ProfileEditSheet({ onClose, onSave, profile, section }: 
       onClose={onClose}
       title={title}
     >
-      <View className="gap-4">
+      <div className="gap-4">
         {section === "physical" ? (
           <>
             <TextField
@@ -167,27 +166,27 @@ export default function ProfileEditSheet({ onClose, onSave, profile, section }: 
               value={birthYear}
             />
 
-            <View>
-              <Text className="mb-2.5 text-[16px] font-bold text-[#034f30]">{profileContent.genderLabel}</Text>
-              <View className="flex-row gap-2">
+            <div>
+              <span className="mb-2.5 text-[16px] font-bold text-[#034f30]">{profileContent.genderLabel}</span>
+              <div className="flex-row gap-2">
                 {genderOptions.map((option) => (
                   <Touch
                     className={`h-10 flex-1 items-center justify-center rounded-md border ${gender === option ? "border-[#008447] bg-[#e5f8ee]" : "border-[#d6d6d6] bg-white"}`}
                     key={option}
                     onPress={() => setGender(gender === option ? "" : option)}
                   >
-                    <Text className={`text-[14px] ${gender === option ? "font-bold text-[#007b44]" : "text-[#68716d]"}`}>
+                    <span className={`text-[14px] ${gender === option ? "font-bold text-[#007b44]" : "text-[#68716d]"}`}>
                       {option}
-                    </Text>
+                    </span>
                   </Touch>
                 ))}
-              </View>
-            </View>
+              </div>
+            </div>
           </>
         )}
 
         {errorMessage ? <ErrorMessage text={errorMessage} /> : null}
-      </View>
+      </div>
     </Sheet>
   );
 }

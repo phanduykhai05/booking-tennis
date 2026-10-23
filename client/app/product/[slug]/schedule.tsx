@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { useParams, useSearchParams } from "react-router";
 
 import CourtScheduleBooking from "@/components/booking/CourtScheduleBooking";
 import type { CourtScheduleData } from "@/components/booking/CourtScheduleBooking/types";
@@ -9,7 +9,8 @@ import { todayInAppTimezone } from "@/lib/date";
 import { useAsync } from "@/lib/useAsync";
 
 export default function ProductScheduleScreen() {
-  const { date: requestedDate, slug } = useLocalSearchParams<{ date?: string; slug: string }>();
+  const { slug = "" } = useParams<{ slug: string }>();
+  const requestedDate = useSearchParams()[0].get("date");
   const date = typeof requestedDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) ? requestedDate : todayInAppTimezone();
 
   const { data, errorMessage, isLoading } = useAsync<CourtScheduleData>(

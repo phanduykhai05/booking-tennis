@@ -1,4 +1,4 @@
-import { Eye, EyeOff } from "lucide-react-native";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 import Touch from "@/components/ui/Pressable";

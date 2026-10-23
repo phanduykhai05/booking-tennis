@@ -1,14 +1,12 @@
-import { Image } from "expo-image";
-import { Copy } from "lucide-react-native";
+import { Copy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
-import * as Clipboard from "expo-clipboard";
 
 import { sepayContent } from "@/components/payments/SepayCheckoutSheet/content";
 import Button from "@/components/ui/Button";
 import { ErrorMessage, NoticeMessage, SuccessMessage } from "@/components/ui/Feedback";
 import Touch from "@/components/ui/Pressable";
 import Sheet from "@/components/ui/Sheet";
+import Spinner from "@/components/ui/Spinner";
 import { getPaymentProgress } from "@/lib/api/endpoints";
 import { useSession } from "@/lib/api/session";
 import type { ApiPaymentStatus, ApiSepayCheckout } from "@/lib/api/types";
@@ -130,8 +128,12 @@ export default function SepayCheckoutSheet({ checkout, isOpen, onClose, onPaid }
   }, [paymentId]);
 
   const copy = async (field: string, value: string) => {
-    await Clipboard.setStringAsync(value);
-    setCopiedField(field);
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedField(field);
+    } catch {
+      // Trình duyệt chặn clipboard (trang không HTTPS, chưa cấp quyền): khách vẫn đọc và gõ tay được.
+    }
   };
 
   // Hết hạn chỉ tính khi chưa nhận được đồng nào; đã trả một phần thì vẫn cho bù tiếp.
@@ -162,46 +164,47 @@ export default function SepayCheckoutSheet({ checkout, isOpen, onClose, onPaid }
       title={sepayContent.title}
     >
       {!checkout ? (
-        <View className="items-center gap-3 py-10">
-          <ActivityIndicator color="#0f9b58" size="large" />
-          <Text className="text-[14px] text-[#68716d]">{sepayContent.loading}</Text>
-        </View>
+        <div className="items-center gap-3 py-10">
+          <Spinner color="#0f9b58" size="large" />
+          <span className="text-[14px] text-[#68716d]">{sepayContent.loading}</span>
+        </div>
       ) : (
-        <View className="gap-3">
+        <div className="gap-3">
           {isPaid ? <SuccessMessage text={sepayContent.paid} /> : null}
           {status === "partial" ? <NoticeMessage text={sepayContent.partial(formatCurrency(amountDue))} /> : null}
           {isExpired ? <ErrorMessage text={sepayContent.expired} /> : null}
 
           {canStillPay ? (
             <>
-              <Text className="text-[14px] leading-5 text-[#3c4742]">{sepayContent.qrHint}</Text>
-              <View className="items-center">
-                <Image
-                  contentFit="contain"
-                  source={{ uri: buildQrUrl(checkout, amountDue) }}
+              <span className="text-[14px] leading-5 text-[#3c4742]">{sepayContent.qrHint}</span>
+              <div className="items-center">
+                <img
+                  alt=""
+                  className="object-contain"
+                  src={buildQrUrl(checkout, amountDue)}
                   style={{ borderRadius: 12, height: 240, width: 240 }}
                 />
-              </View>
-              <View className="flex-row items-center justify-center gap-2">
-                <ActivityIndicator color="#0f9b58" size="small" />
-                <Text className="text-[13px] text-[#68716d]">{sepayContent.waiting}</Text>
-              </View>
+              </div>
+              <div className="flex-row items-center justify-center gap-2">
+                <Spinner color="#0f9b58" size="small" />
+                <span className="text-[13px] text-[#68716d]">{sepayContent.waiting}</span>
+              </div>
               {msLeft > 0 ? (
-                <Text className="text-center text-[13px] font-semibold text-[#008447]">
+                <span className="text-center text-[13px] font-semibold text-[#008447]">
                   {sepayContent.expiresIn(countdownLabel(msLeft))}
-                </Text>
+                </span>
               ) : null}
             </>
           ) : null}
 
-          <View className="mt-1 overflow-hidden rounded-xl border border-[#e1e6e3]">
+          <div className="mt-1 overflow-hidden rounded-xl border border-[#e1e6e3]">
             {rows.map((row, index) => (
-              <View
+              <div
                 className={`flex-row items-center gap-2 px-3 py-2.5 ${index + 1 < rows.length ? "border-b border-[#eef1ef]" : ""}`}
                 key={row.id}
               >
-                <Text className="w-[120px] text-[13px] text-[#68716d]">{row.label}</Text>
-                <Text className="min-w-0 flex-1 text-[14px] font-semibold text-[#172720]">{row.value}</Text>
+                <span className="w-[120px] text-[13px] text-[#68716d]">{row.label}</span>
+                <span className="min-w-0 flex-1 text-[14px] font-semibold text-[#172720]">{row.value}</span>
                 <Touch
                   accessibilityLabel={`${sepayContent.copy} ${row.label}`}
                   className="p-1"
@@ -209,14 +212,14 @@ export default function SepayCheckoutSheet({ checkout, isOpen, onClose, onPaid }
                 >
                   <Copy color={copiedField === row.id ? "#008447" : "#8a9690"} size={16} />
                 </Touch>
-              </View>
+              </div>
             ))}
-          </View>
+          </div>
 
-          {copiedField ? <Text className="text-right text-[12px] text-[#008447]">{sepayContent.copied}</Text> : null}
+          {copiedField ? <span className="text-right text-[12px] text-[#008447]">{sepayContent.copied}</span> : null}
 
           <NoticeMessage text={sepayContent.contentWarning} />
-        </View>
+        </div>
       )}
     </Sheet>
   );

@@ -17,20 +17,20 @@ export const focusZoom = 15;
  * Esri World Street Map: CDN toàn cầu, không cần API key, nhãn theo tiếng địa phương.
  * Lưu ý thứ tự toạ độ là {z}/{y}/{x}, khác chuẩn {z}/{x}/{y} của các nguồn còn lại.
  *
- * Đổi nhà cung cấp bằng `EXPO_PUBLIC_MAP_TILE_URL` (và `EXPO_PUBLIC_MAP_TILE_ATTRIBUTION`)
- * mà không phải sửa code — nhớ build lại vì biến EXPO_PUBLIC_* nhúng cứng lúc build.
+ * Đổi nhà cung cấp bằng `VITE_MAP_TILE_URL` (và `VITE_MAP_TILE_ATTRIBUTION`)
+ * mà không phải sửa code — nhớ build lại vì biến VITE_* nhúng cứng lúc build.
  * Các nguồn không cần key khác đã đo được: `tile.openstreetmap.de/{z}/{x}/{y}.png`,
  * `a.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png`.
  */
 export const tileUrl =
-  process.env.EXPO_PUBLIC_MAP_TILE_URL ??
+  import.meta.env.VITE_MAP_TILE_URL ??
   "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
 
 /** Chỉ dùng khi URL có `{s}`; nguồn không có placeholder này thì Leaflet bỏ qua. */
 export const tileSubdomains = "abc";
 
 export const tileAttribution =
-  process.env.EXPO_PUBLIC_MAP_TILE_ATTRIBUTION ?? "Tiles © Esri";
+  import.meta.env.VITE_MAP_TILE_ATTRIBUTION ?? "Tiles © Esri";
 
 export const maxZoom = 19;
 
@@ -51,8 +51,7 @@ export const markerColor = (marker: CourtMapMarker) =>
   marker.isFeatured ? "#e11d48" : sportColors[marker.sport];
 
 /**
- * Ghim bản đồ dạng chuỗi HTML, dùng chung cho bản native (Leaflet trong WebView)
- * và bản web (Leaflet chạy thẳng trên DOM) để hai nền tảng không lệch giao diện.
+ * Ghim bản đồ dạng chuỗi HTML, đưa vào divIcon của Leaflet.
  */
 export const pinHtml = (color: string) =>
   '<span style="display:flex;align-items:center;justify-content:center;width:30px;height:38px;filter:drop-shadow(0 2px 2px rgba(15,23,42,.28))">' +

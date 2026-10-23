@@ -1,6 +1,4 @@
-import { Image } from "expo-image";
 import { useState } from "react";
-import { View } from "react-native";
 
 import images from "@/components/assets/images";
 import NearbyFilters from "@/components/home/NearbyFilters";
@@ -37,21 +35,17 @@ export default function VenueFilterContent({ showPromotion = false, sports, venu
   };
 
   return (
-    <View>
+    <div>
       <NearbyFilters activeId={activeNearbyFilter} onChange={selectNearbyFilter} />
       <SportCategories activeId={activeSport} categories={sports} onSelect={selectSport} />
 
       {showPromotion && !isFiltering ? (
-        <View className="px-4 pb-2">
-          <Image
-            contentFit="cover"
-            source={images.alobo.acaCover}
-            style={{ aspectRatio: 2.2, borderRadius: 12, width: "100%" }}
-          />
-        </View>
+        <div className="px-4 pb-2">
+          <img alt="" className="object-cover" src={images.alobo.acaCover} style={{ aspectRatio: 2.2, borderRadius: 12, width: "100%" }} />
+        </div>
       ) : null}
 
       <NearbyVenues sport={activeSport} venues={venues} />
-    </View>
+    </div>
   );
 }

@@ -1,4 +1,3 @@
-import { View } from "react-native";
 
 import type {
   BookingCourt,
@@ -19,7 +18,7 @@ type BookingFiltersProps = {
 
 export default function BookingFilters({ content, courts, filters, onChange, statusOptions }: BookingFiltersProps) {
   return (
-    <View className="flex-row flex-wrap items-center gap-2">
+    <div className="flex-row flex-wrap items-center gap-2">
       <SearchField
         accessibilityLabel={content.searchLabel}
         onChange={(query) => onChange({ ...filters, query })}
@@ -46,6 +45,6 @@ export default function BookingFilters({ content, courts, filters, onChange, sta
         value={filters.courtId}
         width={190}
       />
-    </View>
+    </div>
   );
 }

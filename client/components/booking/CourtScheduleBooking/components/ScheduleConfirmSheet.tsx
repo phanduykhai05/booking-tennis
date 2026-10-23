@@ -1,5 +1,4 @@
-import { CalendarDays, Clock } from "lucide-react-native";
-import { Text, View } from "react-native";
+import { CalendarDays, Clock } from "lucide-react";
 
 import type { CourtScheduleContent, SelectedSlot } from "@/components/booking/CourtScheduleBooking/types";
 import { formatCurrency, formatDateLabel, formatMinutes } from "@/components/booking/CourtScheduleBooking/utils";
@@ -34,11 +33,11 @@ export default function ScheduleConfirmSheet({
     <Sheet
       closeLabel={content.confirmSheet.backLabel}
       footer={
-        <View className="flex-row gap-3">
-          <View className="flex-1">
+        <div className="flex-row gap-3">
+          <div className="flex-1">
             <Button fullWidth label={content.confirmSheet.backLabel} onPress={onClose} tone="outline" />
-          </View>
-          <View className="flex-[2]">
+          </div>
+          <div className="flex-[2]">
             <Button
               disabled={ranges.length === 0}
               fullWidth
@@ -46,52 +45,52 @@ export default function ScheduleConfirmSheet({
               label={content.confirmSheet.confirmLabel}
               onPress={onConfirm}
             />
-          </View>
-        </View>
+          </div>
+        </div>
       }
       isOpen={isOpen}
       onClose={onClose}
       title={content.confirmSheet.title}
     >
-      <View className="mb-3 flex-row items-center gap-1.5">
+      <div className="mb-3 flex-row items-center gap-1.5">
         <CalendarDays color="#8a9690" size={16} />
-        <Text className="text-[14px] font-medium text-[#124a31]">{formatDateLabel(date)}</Text>
-      </View>
+        <span className="text-[14px] font-medium text-[#124a31]">{formatDateLabel(date)}</span>
+      </div>
 
       {ranges.length === 0 ? (
-        <Text className="py-6 text-center text-[14px] text-[#68716d]">{content.confirmSheet.emptyMessage}</Text>
+        <span className="py-6 text-center text-[14px] text-[#68716d]">{content.confirmSheet.emptyMessage}</span>
       ) : (
-        <View className="gap-2">
+        <div className="gap-2">
           {ranges.map((range) => (
-            <View
+            <div
               className="flex-row items-center gap-2 rounded-lg border border-[#d9e8e0] bg-[#f7fdfa] px-3 py-2"
               key={`${range.courtId}-${range.startMinute}`}
             >
               <Clock color="#8a9690" size={16} />
-              <View className="min-w-0 flex-1">
-                <Text className="text-[14px] font-semibold text-[#0b5133]" numberOfLines={1}>
+              <div className="min-w-0 flex-1">
+                <span className="text-[14px] font-semibold text-[#0b5133] truncate">
                   {range.courtName}
-                </Text>
-                <Text className="text-[13px] text-[#49544f]">
+                </span>
+                <span className="text-[13px] text-[#49544f]">
                   {formatMinutes(range.startMinute)} - {formatMinutes(range.endMinute)}
-                </Text>
-              </View>
-              <Text className="text-[14px] font-semibold text-[#124a31]">{formatCurrency(range.price)}</Text>
-            </View>
+                </span>
+              </div>
+              <span className="text-[14px] font-semibold text-[#124a31]">{formatCurrency(range.price)}</span>
+            </div>
           ))}
-        </View>
+        </div>
       )}
 
       {requiresSignIn ? (
-        <View className="mt-3">
+        <div className="mt-3">
           <NoticeMessage text={content.confirmSheet.signInMessage} />
-        </View>
+        </div>
       ) : null}
 
-      <View className="mt-3 flex-row items-center border-t border-[#e1e6e3] pt-3">
-        <Text className="flex-1 text-[15px] font-medium text-[#172720]">{content.totalLabel}</Text>
-        <Text className="text-[18px] font-bold text-[#007b45]">{formatCurrency(total)}</Text>
-      </View>
+      <div className="mt-3 flex-row items-center border-t border-[#e1e6e3] pt-3">
+        <span className="flex-1 text-[15px] font-medium text-[#172720]">{content.totalLabel}</span>
+        <span className="text-[18px] font-bold text-[#007b45]">{formatCurrency(total)}</span>
+      </div>
     </Sheet>
   );
 }

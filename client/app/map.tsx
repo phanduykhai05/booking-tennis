@@ -1,5 +1,3 @@
-import { View } from "react-native";
-
 import type { SportCategoryIcon } from "@/components/home/SportCategories/types";
 import PublicFooter, { publicFooterHeight } from "@/components/layouts/PublicFooter";
 import CourtMap from "@/components/map/CourtMap";
@@ -30,17 +28,17 @@ export default function MapScreen() {
 
   return (
     <Screen backgroundColor="#d9f4ea">
-      <View className="flex-1" style={{ paddingBottom: publicFooterHeight }}>
+      <div className="flex-1" style={{ paddingBottom: publicFooterHeight }}>
         {isLoading ? (
           <LoadingState label="Đang tải bản đồ…" />
         ) : errorMessage ? (
-          <View className="p-4">
+          <div className="p-4">
             <ErrorMessage text={errorMessage} />
-          </View>
+          </div>
         ) : (
           <CourtMap markers={data ?? []} />
         )}
-      </View>
+      </div>
       <PublicFooter activeItemId="map" />
     </Screen>
   );

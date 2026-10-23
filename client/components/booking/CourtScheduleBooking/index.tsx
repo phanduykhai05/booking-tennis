@@ -1,6 +1,5 @@
-import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { useNavigate } from "react-router";
 
 import CourtPriceSheet from "@/components/booking/CourtScheduleBooking/components/CourtPriceSheet";
 import ScheduleConfirmSheet from "@/components/booking/CourtScheduleBooking/components/ScheduleConfirmSheet";
@@ -35,7 +34,7 @@ type CourtScheduleBookingProps = {
 };
 
 export default function CourtScheduleBooking({ backHref, initialDate, initialSchedule, venueId }: CourtScheduleBookingProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { token } = useSession();
   const [date, setDate] = useState(initialDate);
   const [schedule, setSchedule] = useState(initialSchedule);
@@ -123,7 +122,7 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
 
   const confirmSelection = async () => {
     if (!token) {
-      router.push("/login");
+      navigate("/login");
       return;
     }
 
@@ -169,7 +168,7 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
 
   return (
     <Screen backgroundColor="#0b6b3e" edges={["bottom", "top"]} statusBarStyle="light">
-      <View className="flex-1 bg-[#f2fbf5]">
+      <div className="flex-1 bg-[#f2fbf5]">
         <ScheduleHeader
           backHref={backHref}
           content={courtScheduleContent}
@@ -186,7 +185,7 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
           text={courtScheduleContent.notice.text}
         />
 
-        <ScrollView className="flex-1">
+        <div className="grow shrink overflow-y-auto overflow-x-hidden flex-1">
           {isLoading ? (
             <ScheduleStatePanel message={courtScheduleContent.loadingMessage} />
           ) : (
@@ -202,9 +201,9 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
               timeSlots={timeSlots}
             />
           )}
-        </ScrollView>
+        </div>
 
-        <View className="bg-[#f2fbf5] pt-2">
+        <div className="bg-[#f2fbf5] pt-2">
           <ScheduleScrollSlider label={courtScheduleContent.scrollLabel} onSeek={seekGrid} ratio={scrollRatio} />
           <ScheduleFooter
             content={courtScheduleContent}
@@ -214,7 +213,7 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
             successMessage={successMessage}
             total={total}
           />
-        </View>
+        </div>
 
         <CourtPriceSheet
           content={courtScheduleContent}
@@ -249,7 +248,7 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
           }}
           onPaid={() => setSepaySettled(true)}
         />
-      </View>
+      </div>
     </Screen>
   );
 }

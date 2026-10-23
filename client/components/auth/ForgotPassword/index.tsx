@@ -1,7 +1,6 @@
-import { useRouter } from "expo-router";
-import { CircleX } from "lucide-react-native";
+import { CircleX } from "lucide-react";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { useNavigate } from "react-router";
 
 import AuthLayout from "@/components/auth/AuthLayout";
 import LookupMethodSelector from "@/components/auth/ForgotPassword/components/LookupMethodSelector";
@@ -19,7 +18,7 @@ import { ApiError } from "@/lib/api/http";
 const minPasswordLength = 6;
 
 export default function ForgotPassword() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [method, setMethod] = useState<AccountLookupMethod>("email");
   const [value, setValue] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -88,7 +87,7 @@ export default function ForgotPassword() {
     try {
       await resetPassword({ account, code: code.trim(), password });
       setSuccessMessage(forgotPasswordContent.resetSuccess);
-      router.replace("/login");
+      navigate("/login", { replace: true });
     } catch (error) {
       setErrorMessage(error instanceof ApiError ? error.message : forgotPasswordContent.resetErrorMessage);
     } finally {
@@ -107,13 +106,13 @@ export default function ForgotPassword() {
       maxWidth={364}
       title={forgotPasswordContent.title}
     >
-      <View className="rounded-[9px] bg-white px-4 py-4" style={shadow.raised}>
-        <Text className="text-[15px] leading-5 text-[#064b30]">
+      <div className="rounded-[9px] bg-white px-4 py-4" style={shadow.raised}>
+        <span className="text-[15px] leading-5 text-[#064b30]">
           {isResetStep ? forgotPasswordContent.resetDescription : forgotPasswordContent.description}
-        </Text>
+        </span>
 
         {isResetStep ? (
-          <View className="mt-4 gap-5">
+          <div className="mt-4 gap-5">
             <TextField
               autoFocus
               keyboardType="number-pad"
@@ -140,9 +139,9 @@ export default function ForgotPassword() {
               textContentType="newPassword"
               value={confirmPassword}
             />
-          </View>
+          </div>
         ) : (
-          <View className="mt-4 gap-7">
+          <div className="mt-4 gap-7">
             <LookupMethodSelector
               activeMethod={method}
               emailLabel={forgotPasswordContent.email}
@@ -166,29 +165,29 @@ export default function ForgotPassword() {
               textContentType={isEmailLookup ? "emailAddress" : "telephoneNumber"}
               value={value}
             />
-          </View>
+          </div>
         )}
 
         {errorMessage ? (
-          <View className="mt-6">
+          <div className="mt-6">
             <ErrorMessage text={errorMessage} />
-          </View>
+          </div>
         ) : null}
 
         {successMessage ? (
-          <View className="mt-6">
+          <div className="mt-6">
             <SuccessMessage text={successMessage} />
-          </View>
+          </div>
         ) : null}
 
         {account ? (
-          <View className="mt-6 gap-2">
+          <div className="mt-6 gap-2">
             <SuccessMessage text={sentCode ? `${forgotPasswordContent.codeSent} ${sentCode}` : forgotPasswordContent.codeRequested} />
             <NoticeMessage text={forgotPasswordContent.expiresNote(expiresInMinutes)} />
-          </View>
+          </div>
         ) : null}
 
-        <View className="mt-10 gap-3">
+        <div className="mt-10 gap-3">
           <Button
             fullWidth
             isLoading={isSubmitting}
@@ -197,27 +196,27 @@ export default function ForgotPassword() {
           />
 
           {isResetStep ? (
-            <View className="flex-row justify-between">
+            <div className="flex-row justify-between">
               <Touch disabled={isSubmitting} onPress={() => void requestCode()}>
-                <Text className="text-[14px] font-semibold text-[#007b49] underline">{forgotPasswordContent.resendLabel}</Text>
+                <span className="text-[14px] font-semibold text-[#007b49] underline">{forgotPasswordContent.resendLabel}</span>
               </Touch>
               <Touch disabled={isSubmitting} onPress={backToLookup}>
-                <Text className="text-[14px] font-semibold text-[#68716d] underline">{forgotPasswordContent.backToLookup}</Text>
+                <span className="text-[14px] font-semibold text-[#68716d] underline">{forgotPasswordContent.backToLookup}</span>
               </Touch>
-            </View>
+            </div>
           ) : null}
-        </View>
-      </View>
+        </div>
+      </div>
 
-      <View className="mt-11">
-        <Text className="text-[15px] leading-5 text-white">{forgotPasswordContent.supportDescription}</Text>
+      <div className="mt-11">
+        <span className="text-[15px] leading-5 text-white">{forgotPasswordContent.supportDescription}</span>
         <SupportActions
           fanpageLabel={forgotPasswordContent.fanpage}
           fanpageUrl={forgotPasswordContent.fanpageUrl}
           zaloLabel={forgotPasswordContent.zalo}
           zaloUrl={forgotPasswordContent.zaloUrl}
         />
-      </View>
+      </div>
     </AuthLayout>
   );
 }

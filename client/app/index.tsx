@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import { ScrollView, View } from "react-native";
 
 import type { Venue } from "@/components/home/NearbyVenues/types";
 import type { SportCategory } from "@/components/home/SportCategories/types";
@@ -19,7 +18,7 @@ const VISIBLE_AFTER = 320;
 type HomeData = { sports: SportCategory[]; venues: Venue[] };
 
 export default function HomeScreen() {
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchValue, setSearchValue] = useState("");
 
@@ -39,34 +38,34 @@ export default function HomeScreen() {
 
   return (
     <Screen backgroundColor="#0f9b58" statusBarStyle="light">
-      <View className="flex-1 bg-[#f2f4f6]">
+      <div className="flex-1 bg-[#f2f4f6]">
         <PublicHeader onSearchChange={setSearchValue} searchValue={searchValue} />
 
-        <ScrollView
-          contentContainerClassName="pb-32"
-          keyboardShouldPersistTaps="handled"
-          onScroll={(event) => setIsScrolled(event.nativeEvent.contentOffset.y > VISIBLE_AFTER)}
+        <div
+          className="grow shrink overflow-y-auto overflow-x-hidden"
+          onScroll={(event) => setIsScrolled(event.currentTarget.scrollTop > VISIBLE_AFTER)}
           ref={scrollRef}
-          scrollEventThrottle={64}
         >
-          {isLoading ? (
-            <LoadingState label="Đang tải danh sách sân…" />
-          ) : errorMessage ? (
-            <View className="p-4">
-              <ErrorMessage text={errorMessage} />
-            </View>
-          ) : (
-            <VenueFilterContent sports={data?.sports ?? []} venues={visibleVenues} />
-          )}
-        </ScrollView>
+          <div className="pb-32">
+            {isLoading ? (
+              <LoadingState label="Đang tải danh sách sân…" />
+            ) : errorMessage ? (
+              <div className="p-4">
+                <ErrorMessage text={errorMessage} />
+              </div>
+            ) : (
+              <VenueFilterContent sports={data?.sports ?? []} venues={visibleVenues} />
+            )}
+          </div>
+        </div>
 
         <ScrollToTop
           isVisible={isScrolled}
           label={scrollToTopLabel}
-          onPress={() => scrollRef.current?.scrollTo({ animated: true, y: 0 })}
+          onPress={() => scrollRef.current?.scrollTo({ behavior: "smooth", top: 0 })}
         />
         <PublicFooter activeItemId="home" />
-      </View>
+      </div>
     </Screen>
   );
 }

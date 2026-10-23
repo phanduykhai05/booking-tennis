@@ -1,6 +1,5 @@
-import { CalendarDays, Check, ChevronDown, Ticket } from "lucide-react-native";
+import { CalendarDays, Check, ChevronDown, Ticket } from "lucide-react";
 import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
 
 import CountryPicker from "@/components/auth/CountryPicker";
 import { defaultCountry } from "@/components/auth/CountryPicker/countries";
@@ -58,11 +57,11 @@ export default function PaymentConfirmSheet({
     <Sheet
       closeLabel={labels.cancel}
       footer={
-        <View className="flex-row gap-3">
-          <View className="flex-1">
+        <div className="flex-row gap-3">
+          <div className="flex-1">
             <Button fullWidth label={labels.cancel} onPress={onClose} tone="outline" />
-          </View>
-          <View className="flex-[2.1]">
+          </div>
+          <div className="flex-[2.1]">
             <Button
               disabled={!hasValidPhone}
               fullWidth
@@ -70,30 +69,30 @@ export default function PaymentConfirmSheet({
               label={labels.confirm}
               onPress={() => onConfirm(phone, method)}
             />
-          </View>
-        </View>
+          </div>
+        </div>
       }
       isOpen={isOpen}
       onClose={onClose}
       title={labels.title}
     >
-      <View className="gap-3">
-        <View>
-          <Text className="mb-1.5 text-[16px] font-semibold text-[#007b45]">{labels.userInfo}</Text>
-          <View className="h-14 flex-row items-center gap-2 rounded-lg border border-[#9bd9b8] bg-[#edfcf2] px-2.5">
-            <View className="h-9 w-9 items-center justify-center rounded-full bg-[#6570d7]">
-              <Text className="text-[18px] font-medium uppercase text-white">{accountInitial}</Text>
-            </View>
-            <Text className="text-[15px] font-medium text-[#172720]">{accountName}</Text>
-          </View>
-        </View>
+      <div className="gap-3">
+        <div>
+          <span className="mb-1.5 text-[16px] font-semibold text-[#007b45]">{labels.userInfo}</span>
+          <div className="h-14 flex-row items-center gap-2 rounded-lg border border-[#9bd9b8] bg-[#edfcf2] px-2.5">
+            <div className="h-9 w-9 items-center justify-center rounded-full bg-[#6570d7]">
+              <span className="text-[18px] font-medium uppercase text-white">{accountInitial}</span>
+            </div>
+            <span className="text-[15px] font-medium text-[#172720]">{accountName}</span>
+          </div>
+        </div>
 
-        <View>
-          <Text className="mb-1 text-[15px] font-medium text-[#172720]">
+        <div>
+          <span className="mb-1 text-[15px] font-medium text-[#172720]">
             {labels.phone}
-            <Text className="text-[#e63345]">*</Text>
-          </Text>
-          <View className="h-10 flex-row overflow-hidden rounded-lg border border-[#d7ddda] bg-white">
+            <span className="text-[#e63345]">*</span>
+          </span>
+          <div className="h-10 flex-row overflow-hidden rounded-lg border border-[#d7ddda] bg-white">
             <Touch
               accessibilityLabel={`Chọn quốc gia, hiện tại ${country.name}`}
               className="w-[58px] flex-row items-center justify-center gap-1 border-r border-[#e4e7e5]"
@@ -102,82 +101,83 @@ export default function PaymentConfirmSheet({
               <CountryFlag code={country.code} size={16} />
               <ChevronDown color="#172720" size={14} />
             </Touch>
-            <TextInput
-              accessibilityLabel={labels.phone}
-              className="min-w-0 flex-1 px-2 text-[15px] text-[#172720]"
-              keyboardType="phone-pad"
-              onChangeText={setPhone}
+            <input
+              aria-label={labels.phone}
+              className="min-w-0 flex-1 bg-transparent px-2 text-[15px] text-[#172720] outline-none placeholder:text-[#929794]"
+              inputMode="tel"
+              onChange={(event) => setPhone(event.target.value)}
               placeholder={labels.phonePlaceholder}
-              placeholderTextColor="#929794"
+              type="tel"
               value={phone}
             />
-          </View>
+          </div>
 
           <Touch className="mt-2 flex-row items-center gap-2" onPress={() => setShouldSavePhone((value) => !value)}>
-            <View
+            <div
               className={`h-[17px] w-[17px] items-center justify-center rounded-[2px] border ${shouldSavePhone ? "border-[#008447] bg-[#008447]" : "border-[#aeb9b3] bg-white"}`}
             >
               {shouldSavePhone ? <Check color="#ffffff" size={13} strokeWidth={3} /> : null}
-            </View>
-            <Text className="flex-1 text-[13px] text-[#49544f]">{labels.addPhone}</Text>
+            </div>
+            <span className="flex-1 text-[13px] text-[#49544f]">{labels.addPhone}</span>
           </Touch>
-        </View>
+        </div>
 
-        <View>
-          <Text className="mb-1.5 text-[15px] font-medium text-[#172720]">Phương thức thanh toán</Text>
-          <View className="gap-2">
+        <div>
+          <span className="mb-1.5 text-[15px] font-medium text-[#172720]">Phương thức thanh toán</span>
+          <div className="gap-2">
             {paymentMethods.map((option) => {
               const isActive = method === option.id;
 
               return (
                 <Touch
-                  accessibilityRole="radio"
+                  aria-checked={isActive}
+                  role="radio"
                   className={`flex-row items-start gap-2.5 rounded-lg border px-3 py-2.5 ${isActive ? "border-[#008447] bg-[#edfcf2]" : "border-[#d7ddda] bg-white"}`}
                   key={option.id}
                   onPress={() => setMethod(option.id)}
                 >
-                  <View
+                  <div
                     className={`mt-0.5 h-[18px] w-[18px] items-center justify-center rounded-full border-2 ${isActive ? "border-[#008447]" : "border-[#aeb9b3]"}`}
                   >
-                    {isActive ? <View className="h-2.5 w-2.5 rounded-full bg-[#008447]" /> : null}
-                  </View>
-                  <View className="min-w-0 flex-1">
-                    <Text className={`text-[14px] font-semibold ${isActive ? "text-[#007b45]" : "text-[#172720]"}`}>
+                    {isActive ? <div className="h-2.5 w-2.5 rounded-full bg-[#008447]" /> : null}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className={`text-[14px] font-semibold ${isActive ? "text-[#007b45]" : "text-[#172720]"}`}>
                       {option.label}
-                    </Text>
-                    <Text className="mt-0.5 text-[12px] text-[#68716d]">{option.description}</Text>
-                  </View>
+                    </span>
+                    <span className="mt-0.5 text-[12px] text-[#68716d]">{option.description}</span>
+                  </div>
                 </Touch>
               );
             })}
-          </View>
-        </View>
+          </div>
+        </div>
 
-        <View className="gap-2 border-b border-[#e1e6e3] pb-3">
-          <View className="flex-row gap-2">
+        <div className="gap-2 border-b border-[#e1e6e3] pb-3">
+          <div className="flex-row gap-2">
             <CalendarDays color="#8a9690" size={15} style={{ marginTop: 2 }} />
-            <View className="flex-1">
-              <Text className="text-[14px] text-[#8a918e]">{labels.event}</Text>
-              <Text className="text-[14px] font-semibold text-[#172720]">{event.title}</Text>
-            </View>
-          </View>
-          <View className="flex-row gap-2">
+            <div className="flex-1">
+              <span className="text-[14px] text-[#8a918e]">{labels.event}</span>
+              <span className="text-[14px] font-semibold text-[#172720]">{event.title}</span>
+            </div>
+          </div>
+          <div className="flex-row gap-2">
             <Ticket color="#8a9690" size={15} style={{ marginTop: 2 }} />
-            <View className="flex-1">
-              <Text className="text-[14px] text-[#8a918e]">{labels.ticket}</Text>
-              <Text className="text-[14px] font-semibold text-[#008447]">{quantity} vé</Text>
-            </View>
-          </View>
-        </View>
+            <div className="flex-1">
+              <span className="text-[14px] text-[#8a918e]">{labels.ticket}</span>
+              <span className="text-[14px] font-semibold text-[#008447]">{quantity} vé</span>
+            </div>
+          </div>
+        </div>
 
-        <View className="flex-row items-center">
-          <Text className="flex-1 text-[16px] font-medium text-[#172720]">{labels.total}</Text>
-          <Text className="text-[18px] font-bold text-[#007b45]">{formatCurrency(event.priceValue * quantity)}</Text>
-        </View>
+        <div className="flex-row items-center">
+          <span className="flex-1 text-[16px] font-medium text-[#172720]">{labels.total}</span>
+          <span className="text-[18px] font-bold text-[#007b45]">{formatCurrency(event.priceValue * quantity)}</span>
+        </div>
 
         {requiresSignIn ? <NoticeMessage text={labels.signInMessage} /> : null}
         <ErrorMessage text={errorMessage} />
-      </View>
+      </div>
 
       <CountryPicker
         isOpen={isCountryPickerOpen}

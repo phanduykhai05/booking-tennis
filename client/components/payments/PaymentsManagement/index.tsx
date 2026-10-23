@@ -1,7 +1,6 @@
-import { Clock, CreditCard, DollarSign, Undo2 } from "lucide-react-native";
-import { useLocalSearchParams } from "expo-router";
+import { Clock, CreditCard, DollarSign, Undo2 } from "lucide-react";
+import { useSearchParams } from "react-router";
 import { useState } from "react";
-import { Text, View } from "react-native";
 
 import { useAdminData } from "@/components/admin/AdminData";
 import { getReceivedRevenue } from "@/components/admin/AdminData/selectors";
@@ -44,7 +43,8 @@ function formatDate(value: string) {
 export default function PaymentsManagement() {
   const { bookings, customers, payments, updatePaymentStatus } = useAdminData();
   // Lọc sẵn khi mở từ ô tìm nhanh trên thanh đầu trang.
-  const { q } = useLocalSearchParams<{ q?: string }>();
+  const [searchParams] = useSearchParams();
+  const q = searchParams.get("q");
   const [query, setQuery] = useState(q ?? "");
   const [status, setStatus] = useState<"all" | PaymentStatus>("all");
 
@@ -76,7 +76,7 @@ export default function PaymentsManagement() {
   const columns: Column<Payment>[] = [
     {
       key: "transactionCode",
-      render: (payment) => <Text className="text-[14px] font-bold text-slate-900">{payment.transactionCode}</Text>,
+      render: (payment) => <span className="text-[14px] font-bold text-slate-900">{payment.transactionCode}</span>,
       title: "Giao dịch",
       width: 160,
     },
@@ -84,9 +84,9 @@ export default function PaymentsManagement() {
       key: "booking",
       render: (payment) =>
         payment.ticketId ? (
-          <Text className="text-[14px] text-violet-600">{paymentsContent.ticketLabel}</Text>
+          <span className="text-[14px] text-violet-600">{paymentsContent.ticketLabel}</span>
         ) : (
-          <Text className="text-[14px] text-emerald-600">{bookingOf(payment)?.code ?? "—"}</Text>
+          <span className="text-[14px] text-emerald-600">{bookingOf(payment)?.code ?? "—"}</span>
         ),
       title: "Booking",
       width: 130,
@@ -97,10 +97,10 @@ export default function PaymentsManagement() {
         const customer = customerMap.get(payment.customerId);
 
         return (
-          <View>
-            <Text className="text-[14px] text-slate-800">{customer?.name ?? "—"}</Text>
-            <Text className="text-[12px] text-slate-500">{customer?.phone}</Text>
-          </View>
+          <div>
+            <span className="text-[14px] text-slate-800">{customer?.name ?? "—"}</span>
+            <span className="text-[12px] text-slate-500">{customer?.phone}</span>
+          </div>
         );
       },
       title: "Khách hàng",
@@ -108,20 +108,20 @@ export default function PaymentsManagement() {
     },
     {
       key: "method",
-      render: (payment) => <Text className="text-[14px] text-slate-700">{paymentsContent.methodLabels[payment.method]}</Text>,
+      render: (payment) => <span className="text-[14px] text-slate-700">{paymentsContent.methodLabels[payment.method]}</span>,
       title: "Phương thức",
       width: 150,
     },
     {
       key: "createdAt",
-      render: (payment) => <Text className="text-[14px] text-slate-700">{formatDate(payment.createdAt)}</Text>,
+      render: (payment) => <span className="text-[14px] text-slate-700">{formatDate(payment.createdAt)}</span>,
       sorter: (first, second) => first.createdAt.localeCompare(second.createdAt),
       title: "Ngày",
       width: 130,
     },
     {
       key: "amount",
-      render: (payment) => <Text className="text-[14px] font-bold text-slate-900">{formatCurrency(payment.amount)}</Text>,
+      render: (payment) => <span className="text-[14px] font-bold text-slate-900">{formatCurrency(payment.amount)}</span>,
       sorter: (first, second) => first.amount - second.amount,
       title: "Số tiền",
       width: 150,
@@ -150,7 +150,7 @@ export default function PaymentsManagement() {
   ];
 
   return (
-    <View className="gap-5">
+    <div className="gap-5">
       <AdminPageHeader description={paymentsContent.description} eyebrow="Tài chính booking" title={paymentsContent.title} />
 
       <MetricGrid minItemWidth={230}>
@@ -203,6 +203,6 @@ export default function PaymentsManagement() {
       >
         <DataTable columns={columns} emptyText={paymentsContent.emptyLabel} rowKey={(payment) => payment.id} rows={filteredPayments} />
       </AdminTableCard>
-    </View>
+    </div>
   );
 }

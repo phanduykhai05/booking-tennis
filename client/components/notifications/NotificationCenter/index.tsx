@@ -1,8 +1,7 @@
-import { useRouter } from "expo-router";
-import { ArrowLeft, BellRing, CalendarDays, CheckCheck, Gift, Settings2 } from "lucide-react-native";
+import { useNavigate } from "react-router";
+import { ArrowLeft, BellRing, CalendarDays, CheckCheck, Gift, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
-import type { LucideIcon } from "lucide-react-native";
+import type { LucideIcon } from "lucide-react";
 
 import { notificationContent } from "@/components/notifications/NotificationCenter/content";
 import type { AppNotification } from "@/components/notifications/NotificationCenter/types";
@@ -33,7 +32,7 @@ function formatTime(createdAt: string) {
 }
 
 export default function NotificationCenter() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { isReady, token } = useSession();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isFetching, setIsFetching] = useState(true);
@@ -94,14 +93,14 @@ export default function NotificationCenter() {
 
   return (
     <Screen backgroundColor="#007b42" statusBarStyle="light">
-      <View className="flex-1 bg-[#007b42]">
+      <div className="flex-1 bg-[#007b42]">
         {/* z-10 để menu cài đặt tràn xuống dưới không bị danh sách bên dưới vẽ đè. */}
-        <View className="z-10 h-14 flex-row items-center justify-between px-3">
-          <Touch accessibilityLabel="Quay lại" className="p-2" onPress={() => router.navigate("/home")}>
+        <div className="z-10 h-14 flex-row items-center justify-between px-3">
+          <Touch accessibilityLabel="Quay lại" className="p-2" onPress={() => navigate("/home")}>
             <ArrowLeft color="#ffffff" size={22} />
           </Touch>
-          <Text className="text-[17px] font-semibold text-white">{notificationContent.title}</Text>
-          <View className="flex-row items-center gap-1">
+          <span className="text-[17px] font-semibold text-white">{notificationContent.title}</span>
+          <div className="flex-row items-center gap-1">
             <Touch
               accessibilityLabel={notificationContent.allRead}
               className="p-2"
@@ -117,60 +116,62 @@ export default function NotificationCenter() {
             >
               <Settings2 color="#ffffff" size={20} />
             </Touch>
-          </View>
+          </div>
 
           {isSettingsOpen ? (
-            <View className="absolute right-3 top-12 z-10 w-52 rounded-lg bg-white p-3" style={shadow.raised}>
-              <Text className="text-[13px] font-bold text-[#007b42]">{notificationContent.settings}</Text>
-              <Text className="mt-1 text-[13px] text-[#66736c]">Nhận thông báo lịch đặt sân và ưu đãi mới.</Text>
-            </View>
+            <div className="absolute right-3 top-12 z-10 w-52 rounded-lg bg-white p-3" style={shadow.raised}>
+              <span className="text-[13px] font-bold text-[#007b42]">{notificationContent.settings}</span>
+              <span className="mt-1 text-[13px] text-[#66736c]">Nhận thông báo lịch đặt sân và ưu đãi mới.</span>
+            </div>
           ) : null}
-        </View>
+        </div>
 
         {isLoading ? (
           <LoadingState label={notificationContent.loading} />
         ) : notifications.length === 0 ? (
-          <Text className="px-6 pt-24 text-center text-[15px] text-white">{emptyMessage}</Text>
+          <span className="px-6 pt-24 text-center text-[15px] text-white">{emptyMessage}</span>
         ) : (
-          <ScrollView contentContainerClassName="gap-5 px-3 pb-8 pt-3">
-            {groups.map((group) => (
-              <View key={group.heading}>
-                <Text className="mb-2 px-1 text-[14px] font-semibold text-white/85">{group.heading}</Text>
-                <View className="overflow-hidden rounded-xl bg-white" style={shadow.card}>
-                  {group.items.map((notification, index) => {
-                    const Icon = notificationIcons[notification.kind];
+          <div className="grow shrink overflow-y-auto overflow-x-hidden">
+            <div className="gap-5 px-3 pb-8 pt-3">
+              {groups.map((group) => (
+                <div key={group.heading}>
+                  <span className="mb-2 px-1 text-[14px] font-semibold text-white/85">{group.heading}</span>
+                  <div className="overflow-hidden rounded-xl bg-white" style={shadow.card}>
+                    {group.items.map((notification, index) => {
+                      const Icon = notificationIcons[notification.kind];
 
-                    return (
-                      <Touch
-                        className={`flex-row gap-3 px-3 py-3 ${index + 1 < group.items.length ? "border-b border-[#e7eeea]" : ""}`}
-                        key={notification.id}
-                        onPress={() => void markRead(notification.id)}
-                      >
-                        <View
-                          className={`h-10 w-10 shrink-0 items-center justify-center rounded-full ${notification.kind === "promotion" ? "bg-[#fff3d7]" : notification.kind === "booking" ? "bg-[#e1f7eb]" : "bg-[#eaf0ff]"}`}
+                      return (
+                        <Touch
+                          className={`flex-row gap-3 px-3 py-3 ${index + 1 < group.items.length ? "border-b border-[#e7eeea]" : ""}`}
+                          key={notification.id}
+                          onPress={() => void markRead(notification.id)}
                         >
-                          <Icon
-                            color={notification.kind === "promotion" ? "#df9000" : notification.kind === "booking" ? "#008447" : "#5269c7"}
-                            size={20}
-                          />
-                        </View>
-                        <View className="min-w-0 flex-1">
-                          <Text className="pr-4 text-[14px] font-bold text-[#1b2f25]">{notification.title}</Text>
-                          <Text className="mt-1 text-[12px] leading-4 text-[#65726b]">{notification.message}</Text>
-                          <Text className="mt-1.5 text-[11px] text-[#87918c]">{notification.time}</Text>
-                        </View>
-                        {!notification.isRead ? (
-                          <View accessibilityLabel="Chưa đọc" className="absolute right-3 top-4 h-2 w-2 rounded-full bg-[#ef3d55]" />
-                        ) : null}
-                      </Touch>
-                    );
-                  })}
-                </View>
-              </View>
-            ))}
-          </ScrollView>
+                          <div
+                            className={`h-10 w-10 shrink-0 items-center justify-center rounded-full ${notification.kind === "promotion" ? "bg-[#fff3d7]" : notification.kind === "booking" ? "bg-[#e1f7eb]" : "bg-[#eaf0ff]"}`}
+                          >
+                            <Icon
+                              color={notification.kind === "promotion" ? "#df9000" : notification.kind === "booking" ? "#008447" : "#5269c7"}
+                              size={20}
+                            />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <span className="pr-4 text-[14px] font-bold text-[#1b2f25]">{notification.title}</span>
+                            <span className="mt-1 text-[12px] leading-4 text-[#65726b]">{notification.message}</span>
+                            <span className="mt-1.5 text-[11px] text-[#87918c]">{notification.time}</span>
+                          </div>
+                          {!notification.isRead ? (
+                            <div aria-label="Chưa đọc" className="absolute right-3 top-4 h-2 w-2 rounded-full bg-[#ef3d55]" />
+                          ) : null}
+                        </Touch>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
-      </View>
+      </div>
     </Screen>
   );
 }

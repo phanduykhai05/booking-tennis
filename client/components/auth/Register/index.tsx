@@ -1,6 +1,5 @@
-import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { useNavigate } from "react-router";
 
 import AuthLayout from "@/components/auth/AuthLayout";
 import PasswordField from "@/components/auth/Register/components/PasswordField";
@@ -20,7 +19,7 @@ export default function Register() {
   const [values, setValues] = useState<RegisterFormValues>(initialRegisterValues);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setSubmitting] = useState(false);
-  const router = useRouter();
+  const navigate = useNavigate();
   const { signIn } = useSession();
 
   const setField = (field: keyof RegisterFormValues, value: string) => {
@@ -45,7 +44,7 @@ export default function Register() {
           ...(values.email ? { email: values.email } : {}),
         }),
       );
-      router.replace("/home");
+      navigate("/home", { replace: true });
     } catch (error) {
       setErrorMessage(error instanceof ApiError ? error.message : registerContent.errorMessage);
     } finally {
@@ -55,8 +54,8 @@ export default function Register() {
 
   return (
     <AuthLayout backHref="/" backLabel="Quay lại" headerHeight={128} title={registerContent.title}>
-      <View className="rounded-[9px] bg-white px-4 pb-9 pt-8" style={shadow.raised}>
-        <View className="gap-[25px]">
+      <div className="rounded-[9px] bg-white px-4 pb-9 pt-8" style={shadow.raised}>
+        <div className="gap-[25px]">
           <PhoneField label={registerContent.phone} onChange={(value) => setField("phone", value)} value={values.phone} />
 
           {registerFields.map((field) => (
@@ -83,30 +82,30 @@ export default function Register() {
             placeholder="Nhập lại mật khẩu"
             value={values.passwordConfirmation}
           />
-        </View>
+        </div>
 
         {errorMessage ? (
-          <View className="mt-6">
+          <div className="mt-6">
             <ErrorMessage text={errorMessage} />
-          </View>
+          </div>
         ) : null}
 
-        <View className="mt-10">
+        <div className="mt-10">
           <Button
             fullWidth
             isLoading={isSubmitting}
             label={isSubmitting ? registerContent.registering : registerContent.register}
             onPress={() => void submit()}
           />
-        </View>
+        </div>
 
-        <View className="mt-7 flex-row justify-center gap-1">
-          <Text className="text-[14px] text-[#323232]">{registerContent.alreadyHaveAccount}</Text>
-          <Touch onPress={() => router.replace("/login")}>
-            <Text className="text-[14px] font-bold text-[#007b49] underline">{registerContent.signIn}</Text>
+        <div className="mt-7 flex-row justify-center gap-1">
+          <span className="text-[14px] text-[#323232]">{registerContent.alreadyHaveAccount}</span>
+          <Touch onPress={() => navigate("/login", { replace: true })}>
+            <span className="text-[14px] font-bold text-[#007b49] underline">{registerContent.signIn}</span>
           </Touch>
-        </View>
-      </View>
+        </div>
+      </div>
     </AuthLayout>
   );
 }

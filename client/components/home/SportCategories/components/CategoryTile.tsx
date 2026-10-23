@@ -1,6 +1,3 @@
-import { LinearGradient } from "expo-linear-gradient";
-import { Text, View } from "react-native";
-
 import CategoryPin from "@/components/home/SportCategories/components/CategoryPin";
 import type { SportCategory, SportCategoryIcon } from "@/components/home/SportCategories/types";
 import Touch from "@/components/ui/Pressable";
@@ -29,21 +26,27 @@ export default function CategoryTile({ category, isActive, onSelect }: CategoryT
   const theme = tileTheme[category.icon];
 
   return (
-    <Touch accessibilityRole="button" className="w-[74px] shrink-0 items-center gap-2" onPress={onSelect}>
-      <View
+    <Touch className="w-[74px] shrink-0 items-center gap-2" onPress={onSelect}>
+      <div
         className={`h-14 w-14 items-center justify-center overflow-hidden rounded-[18px] ${isActive ? "border-2 border-[#008447]" : ""}`}
         style={{ backgroundColor: theme.background }}
       >
         {/* Ánh sáng nhẹ từ trên xuống, dùng chung cho mọi màu nên không phải khai báo gradient riêng từng môn. */}
-        <LinearGradient
-          colors={["rgba(255,255,255,0.65)", "rgba(255,255,255,0)"]}
-          style={{ bottom: 0, left: 0, position: "absolute", right: 0, top: 0 }}
+        <div
+          style={{
+            backgroundImage: "linear-gradient(180deg, rgba(255,255,255,0.65), rgba(255,255,255,0))",
+            bottom: 0,
+            left: 0,
+            position: "absolute",
+            right: 0,
+            top: 0,
+          }}
         />
         <CategoryPin color={theme.pin} icon={category.icon} scale={0.86} />
-      </View>
-      <Text className={`text-center text-[12px] font-medium ${isActive ? "text-[#007b45]" : "text-slate-600"}`}>
+      </div>
+      <span className={`text-center text-[12px] font-medium ${isActive ? "text-[#007b45]" : "text-slate-600"}`}>
         {category.label}
-      </Text>
+      </span>
     </Touch>
   );
 }

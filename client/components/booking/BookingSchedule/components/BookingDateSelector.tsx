@@ -1,5 +1,4 @@
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
-import { View } from "react-native";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import type { BookingScheduleContent } from "@/components/booking/BookingSchedule/types";
 import { formatDateLabel } from "@/components/booking/BookingSchedule/utils";
@@ -16,7 +15,7 @@ type BookingDateSelectorProps = {
 
 export default function BookingDateSelector({ content, date, onChange, onNext, onPrevious }: BookingDateSelectorProps) {
   return (
-    <View className="flex-row items-center gap-2">
+    <div className="flex-row items-center gap-2">
       <Touch
         accessibilityLabel={content.previousDateLabel}
         className="h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white"
@@ -40,6 +39,6 @@ export default function BookingDateSelector({ content, date, onChange, onNext, o
       >
         <ChevronRight color="#334155" size={17} />
       </Touch>
-    </View>
+    </div>
   );
 }

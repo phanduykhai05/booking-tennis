@@ -1,7 +1,6 @@
-import { useRouter } from "expo-router";
-import { CalendarDays } from "lucide-react-native";
+import { CalendarDays } from "lucide-react";
 import { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { useNavigate } from "react-router";
 
 import SepayCheckoutSheet from "@/components/payments/SepayCheckoutSheet";
 import BookingDateStrip from "@/components/product/ProductDetail/components/BookingDateStrip";
@@ -26,7 +25,7 @@ type ProductDetailProps = {
 type CheckoutSelection = { event: BookingEvent; quantity: number };
 
 export default function ProductDetail({ bookingDates, onPaid, product }: ProductDetailProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { session, token } = useSession();
   const [checkout, setCheckout] = useState<CheckoutSelection | null>(null);
   const [sepayCheckout, setSepayCheckout] = useState<ApiSepayCheckout | null>(null);
@@ -41,7 +40,7 @@ export default function ProductDetail({ bookingDates, onPaid, product }: Product
     if (!checkout) return;
 
     if (!token) {
-      router.push("/login");
+      navigate("/login");
       return;
     }
 
@@ -80,43 +79,45 @@ export default function ProductDetail({ bookingDates, onPaid, product }: Product
 
   return (
     <Screen backgroundColor="#012215" statusBarStyle="light">
-      <ScrollView className="flex-1 bg-[#efefef]" contentContainerClassName="pb-8">
-        <ProductHero
-          address={product.address}
-          bookLabel={productDetailContent.book}
-          onBook={() => router.push(`/product/${product.slug}/schedule`)}
-          venue={product.venue}
-        />
-        <BookingDateStrip dates={bookingDates} />
-
-        <View className="px-2.5 pt-2.5">
-          <View className="mb-2 flex-row items-center gap-1">
-            <CalendarDays color="#005ecd" size={16} />
-            <Text className="text-[14px] font-bold text-[#1b3128]">{productDetailContent.upcomingTitle}</Text>
-            <Text className="text-[14px] text-[#777777]">
-              {product.events.length} {productDetailContent.eventCountLabel}
-            </Text>
-          </View>
-
-          {product.events.length === 0 ? (
-            <Text className="rounded-lg bg-white px-3 py-6 text-center text-[14px] text-[#68716d]">
-              {productDetailContent.emptyEvents}
-            </Text>
-          ) : (
-            <View className="gap-3">
-              {product.events.map((event) => (
-                <EventCard
-                  actions={productDetailContent.actions}
-                  event={event}
-                  isPaid={paidEventIds.includes(event.id)}
-                  key={event.id}
-                  onPayment={(selectedEvent, quantity) => setCheckout({ event: selectedEvent, quantity })}
-                />
-              ))}
-            </View>
-          )}
-        </View>
-      </ScrollView>
+      <div className="grow shrink overflow-y-auto overflow-x-hidden flex-1 bg-[#efefef]">
+        <div className="pb-8">
+          <ProductHero
+            address={product.address}
+            bookLabel={productDetailContent.book}
+            onBook={() => navigate(`/product/${product.slug}/schedule`)}
+            venue={product.venue}
+          />
+          <BookingDateStrip dates={bookingDates} />
+  
+          <div className="px-2.5 pt-2.5">
+            <div className="mb-2 flex-row items-center gap-1">
+              <CalendarDays color="#005ecd" size={16} />
+              <span className="text-[14px] font-bold text-[#1b3128]">{productDetailContent.upcomingTitle}</span>
+              <span className="text-[14px] text-[#777777]">
+                {product.events.length} {productDetailContent.eventCountLabel}
+              </span>
+            </div>
+  
+            {product.events.length === 0 ? (
+              <span className="rounded-lg bg-white px-3 py-6 text-center text-[14px] text-[#68716d]">
+                {productDetailContent.emptyEvents}
+              </span>
+            ) : (
+              <div className="gap-3">
+                {product.events.map((event) => (
+                  <EventCard
+                    actions={productDetailContent.actions}
+                    event={event}
+                    isPaid={paidEventIds.includes(event.id)}
+                    key={event.id}
+                    onPayment={(selectedEvent, quantity) => setCheckout({ event: selectedEvent, quantity })}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {checkout ? (
         <PaymentConfirmSheet

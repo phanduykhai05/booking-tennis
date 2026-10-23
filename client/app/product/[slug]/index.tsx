@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { useParams } from "react-router";
 
 import ProductDetail from "@/components/product/ProductDetail";
 import { buildBookingDates } from "@/components/product/ProductDetail/content";
@@ -10,7 +10,7 @@ import { todayInAppTimezone } from "@/lib/date";
 import { useAsync } from "@/lib/useAsync";
 
 export default function ProductScreen() {
-  const { slug } = useLocalSearchParams<{ slug: string }>();
+  const { slug = "" } = useParams<{ slug: string }>();
 
   const { data, errorMessage, isLoading, reload } = useAsync<ApiVenueDetail>(
     () => getVenue(slug),

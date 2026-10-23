@@ -1,7 +1,6 @@
-import { useRouter } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { useNavigate } from "react-router";
 
 import BookingHistoryCard from "@/components/booking/BookingHistory/components/BookingHistoryCard";
 import DateFilter from "@/components/booking/BookingHistory/components/DateFilter";
@@ -15,7 +14,7 @@ import { useSession } from "@/lib/api/session";
 import type { ApiBooking } from "@/lib/api/types";
 
 export default function BookingHistory() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { isReady, token } = useSession();
   const [bookings, setBookings] = useState<ApiBooking[]>([]);
   const [isFetching, setIsFetching] = useState(true);
@@ -70,50 +69,52 @@ export default function BookingHistory() {
 
   return (
     <Screen backgroundColor="#007346" statusBarStyle="light">
-      <View className="flex-1 bg-white">
-        <View className="h-[59px] flex-row items-center justify-center bg-[#00925a]">
+      <div className="flex-1 bg-white">
+        <div className="h-[59px] flex-row items-center justify-center bg-[#00925a]">
           <Touch
             accessibilityLabel="Quay lại trang tài khoản"
             className="absolute left-5 rounded p-1"
-            onPress={() => router.navigate("/account")}
+            onPress={() => navigate("/account")}
           >
             <ArrowLeft color="#ffffff" size={21} strokeWidth={2.6} />
           </Touch>
-          <Text className="text-[17px] font-bold text-white">{bookingHistoryContent.title}</Text>
-        </View>
+          <span className="text-[17px] font-bold text-white">{bookingHistoryContent.title}</span>
+        </div>
 
-        <View className="flex-row justify-end px-[10px] pt-[9px]">
+        <div className="flex-row justify-end px-[10px] pt-[9px]">
           <DateFilter
             allDatesLabel={bookingHistoryContent.allDates}
             dates={dates}
             onChange={setSelectedDate}
             value={selectedDate}
           />
-        </View>
+        </div>
 
         {errorMessage ? (
-          <View className="mx-[10px] mt-2">
+          <div className="mx-[10px] mt-2">
             <ErrorMessage text={errorMessage} />
-          </View>
+          </div>
         ) : null}
 
         {isLoading ? (
           <LoadingState label={bookingHistoryContent.loading} />
         ) : visibleBookings.length === 0 ? (
-          <Text className="py-16 text-center text-[14px] text-[#064b30]">{emptyMessage}</Text>
+          <span className="py-16 text-center text-[14px] text-[#064b30]">{emptyMessage}</span>
         ) : (
-          <ScrollView contentContainerClassName="gap-3 px-[10px] py-3 pb-10">
-            {visibleBookings.map((booking) => (
-              <BookingHistoryCard
-                booking={booking}
-                isCancelling={cancellingId === booking.id}
-                key={booking.id}
-                onCancel={(id) => void cancel(id)}
-              />
-            ))}
-          </ScrollView>
+          <div className="grow shrink overflow-y-auto overflow-x-hidden">
+            <div className="gap-3 px-[10px] py-3 pb-10">
+              {visibleBookings.map((booking) => (
+                <BookingHistoryCard
+                  booking={booking}
+                  isCancelling={cancellingId === booking.id}
+                  key={booking.id}
+                  onCancel={(id) => void cancel(id)}
+                />
+              ))}
+            </div>
+          </div>
         )}
-      </View>
+      </div>
     </Screen>
   );
 }

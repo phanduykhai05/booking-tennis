@@ -1,8 +1,3 @@
-import { Image } from "expo-image";
-import Svg, { Circle, Path } from "react-native-svg";
-import { View } from "react-native";
-import type { ImageSourcePropType } from "react-native";
-
 import images from "@/components/assets/images";
 import type { SportCategoryIcon } from "@/components/home/SportCategories/types";
 
@@ -12,7 +7,7 @@ type CategoryPinProps = {
   scale?: number;
 };
 
-const sportImages: Record<SportCategoryIcon, ImageSourcePropType> = {
+const sportImages: Record<SportCategoryIcon, string> = {
   athletics: images.sports.athletics,
   badminton: images.sports.badminton,
   basketball: images.sports.basketball,
@@ -38,16 +33,17 @@ export default function CategoryPin({ color, icon, scale = 1 }: CategoryPinProps
   const badgeSize = width * 0.66;
 
   return (
-    <View style={{ height, width }}>
-      <Svg fill="none" height={height} viewBox="0 0 32 42" width={width}>
-        <Path d={pinBody} fill={color} />
+    <div style={{ height, width }}>
+      <svg fill="none" height={height} viewBox="0 0 32 42" width={width}>
+        <path d={pinBody} fill={color} />
         {/* Vệt sáng dọc mép trên giúp ghim bớt phẳng. */}
-        <Path d="M16 3.3c-5.5 0-10.2 3.4-12 8.2 2.5-3.7 6.9-6.1 12-6.1s9.5 2.4 12 6.1c-1.8-4.8-6.5-8.2-12-8.2Z" fill="#ffffff" opacity={0.24} />
-        <Circle cx="16" cy="14.7" fill="#ffffff" r="9.8" />
-      </Svg>
-      <Image
-        contentFit="contain"
-        source={sportImages[icon]}
+        <path d="M16 3.3c-5.5 0-10.2 3.4-12 8.2 2.5-3.7 6.9-6.1 12-6.1s9.5 2.4 12 6.1c-1.8-4.8-6.5-8.2-12-8.2Z" fill="#ffffff" opacity={0.24} />
+        <circle cx="16" cy="14.7" fill="#ffffff" r="9.8" />
+      </svg>
+      <img
+        alt=""
+        className="object-contain"
+        src={sportImages[icon]}
         style={{
           height: badgeSize,
           left: (width - badgeSize) / 2,
@@ -56,6 +52,6 @@ export default function CategoryPin({ color, icon, scale = 1 }: CategoryPinProps
           width: badgeSize,
         }}
       />
-    </View>
+    </div>
   );
 }

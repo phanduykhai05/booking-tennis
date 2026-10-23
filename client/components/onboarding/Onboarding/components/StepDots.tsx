@@ -1,5 +1,3 @@
-import { View } from "react-native";
-
 import Touch from "@/components/ui/Pressable";
 
 type StepDotsProps = {
@@ -10,7 +8,7 @@ type StepDotsProps = {
 
 export default function StepDots({ activeIndex, onSelect, total }: StepDotsProps) {
   return (
-    <View className="flex-row items-center justify-center gap-2">
+    <div className="flex-row items-center justify-center gap-2">
       {Array.from({ length: total }, (_, index) => (
         <Touch
           accessibilityLabel={`Đi tới bước ${index + 1}`}
@@ -19,6 +17,6 @@ export default function StepDots({ activeIndex, onSelect, total }: StepDotsProps
           onPress={() => onSelect(index)}
         />
       ))}
-    </View>
+    </div>
   );
 }

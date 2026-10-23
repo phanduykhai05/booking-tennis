@@ -1,5 +1,5 @@
-import { Redirect } from "expo-router";
 import type { ReactNode } from "react";
+import { Navigate } from "react-router";
 
 import AppLoading from "@/components/layouts/AppLoading";
 import { useSession } from "@/lib/api/session";
@@ -9,16 +9,16 @@ type AdminRouteGuardProps = {
 };
 
 /**
- * Chỉ tài khoản quản trị mới vào được khu /admin. Phiên đọc từ AsyncStorage nên
- * bất đồng bộ: trong lúc chờ hiện màn hình tải thay vì chớp trắng rồi đá ra 404.
- * "/404" không khớp route nào nên expo-router hiển thị màn hình +not-found.
+ * Chỉ tài khoản quản trị mới vào được khu /admin. Nếu phiên chưa sẵn sàng thì hiện
+ * màn hình tải thay vì chớp trắng rồi đá ra 404.
+ * "/404" không khớp route nào nên router hiển thị trang not-found.
  */
 export default function AdminRouteGuard({ children }: AdminRouteGuardProps) {
   const { isReady, session } = useSession();
   const isAdmin = session?.user.role === "admin";
 
   if (!isReady) return <AppLoading />;
-  if (!isAdmin) return <Redirect href="/404" />;
+  if (!isAdmin) return <Navigate replace to="/404" />;
 
   return <>{children}</>;
 }

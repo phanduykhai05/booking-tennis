@@ -1,4 +1,3 @@
-import { Text, View } from "react-native";
 
 import Touch from "@/components/ui/Pressable";
 
@@ -10,13 +9,13 @@ type ScheduleStatePanelProps = {
 
 export default function ScheduleStatePanel({ actionLabel, message, onAction }: ScheduleStatePanelProps) {
   return (
-    <View className="min-h-[220px] items-center justify-center gap-3 border-y border-[#cfe6d8] bg-white px-6">
-      <Text className="text-center text-[14px] text-[#124a31]">{message}</Text>
+    <div className="min-h-[220px] items-center justify-center gap-3 border-y border-[#cfe6d8] bg-white px-6">
+      <span className="text-center text-[14px] text-[#124a31]">{message}</span>
       {actionLabel && onAction ? (
         <Touch className="h-9 justify-center rounded-md border border-[#008447] px-4" onPress={onAction}>
-          <Text className="text-[14px] font-semibold text-[#008447]">{actionLabel}</Text>
+          <span className="text-[14px] font-semibold text-[#008447]">{actionLabel}</span>
         </Touch>
       ) : null}
-    </View>
+    </div>
   );
 }

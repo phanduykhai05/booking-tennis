@@ -1,5 +1,4 @@
-import { Crosshair, Layers3 } from "lucide-react-native";
-import { View } from "react-native";
+import { Crosshair, Layers3 } from "lucide-react";
 
 import Touch from "@/components/ui/Pressable";
 import { shadow } from "@/components/ui/theme";
@@ -20,10 +19,10 @@ export default function MapControls({
   onToggleVenueLayer,
 }: MapControlsProps) {
   return (
-    <View className="absolute bottom-28 right-4 gap-3">
+    <div className="absolute bottom-28 right-4 gap-3">
       <Touch
         accessibilityLabel={layersLabel}
-        accessibilityState={{ selected: isVenueLayerVisible }}
+        aria-pressed={isVenueLayerVisible}
         className={`h-12 w-12 items-center justify-center rounded-full ${isVenueLayerVisible ? "bg-white" : "bg-slate-700"}`}
         onPress={onToggleVenueLayer}
         style={shadow.raised}
@@ -38,6 +37,6 @@ export default function MapControls({
       >
         <Crosshair color="#ffffff" size={24} strokeWidth={2.2} />
       </Touch>
-    </View>
+    </div>
   );
 }

@@ -1,7 +1,5 @@
-import { Image } from "expo-image";
-import { BookOpen, Crown, Megaphone, Ticket } from "lucide-react-native";
-import { ScrollView, Text, View } from "react-native";
-import type { LucideIcon } from "lucide-react-native";
+import { BookOpen, Crown, Megaphone, Ticket } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import images from "@/components/assets/images";
 import DiscoverPostCard from "@/components/discover/DiscoverFeed/components/DiscoverPostCard";
@@ -42,61 +40,67 @@ export default function DiscoverFeed({ activeFilter, isLoading = false, onFilter
 
   return (
     <Screen backgroundColor="#ffffff">
-      <View className="flex-1 bg-[#f7f7f7]">
-        <View className="border-t-[3px] border-[#24312d] bg-white px-5 pb-2 pt-2">
-          <Text className="text-[20px] font-black italic tracking-wide text-[#08a948]">{discoverContent.discover}</Text>
-          <ScrollView className="mt-2" contentContainerClassName="flex-row gap-2" horizontal showsHorizontalScrollIndicator={false}>
-            {discoverFilters.map((filter) => {
-              const Icon = filterIcons[filter.id];
-              const isActive = activeFilter === filter.id;
+      <div className="flex-1 bg-[#f7f7f7]">
+        <div className="border-t-[3px] border-[#24312d] bg-white px-5 pb-2 pt-2">
+          <span className="text-[20px] font-black italic tracking-wide text-[#08a948]">{discoverContent.discover}</span>
+          <div className="grow shrink flex-row overflow-x-auto overflow-y-hidden [scrollbar-width:none] mt-2">
+            <div className="flex-row gap-2">
+              {discoverFilters.map((filter) => {
+                const Icon = filterIcons[filter.id];
+                const isActive = activeFilter === filter.id;
 
-              return (
-                <Touch
-                  className={`h-8 flex-row items-center gap-1 rounded-xl border px-3 ${isActive ? "border-[#008447] bg-[#e5f8ee]" : "border-[#d8dcda] bg-white"}`}
-                  key={filter.id}
-                  onPress={() => onFilterChange(filter.id)}
-                >
-                  {Icon ? <Icon color={isActive ? "#007b44" : "#858a88"} size={15} /> : null}
-                  <Text className={`text-[13px] ${isActive ? "font-bold text-[#007b44]" : "text-[#858a88]"}`}>{filter.label}</Text>
-                </Touch>
-              );
-            })}
-          </ScrollView>
-        </View>
+                return (
+                  <Touch
+                    className={`h-8 flex-row items-center gap-1 rounded-xl border px-3 ${isActive ? "border-[#008447] bg-[#e5f8ee]" : "border-[#d8dcda] bg-white"}`}
+                    key={filter.id}
+                    onPress={() => onFilterChange(filter.id)}
+                  >
+                    {Icon ? <Icon color={isActive ? "#007b44" : "#858a88"} size={15} /> : null}
+                    <span className={`text-[13px] ${isActive ? "font-bold text-[#007b44]" : "text-[#858a88]"}`}>{filter.label}</span>
+                  </Touch>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
-        <ScrollView contentContainerClassName="pb-32">
-          {isLoading ? (
-            <LoadingState label={discoverContent.loading} />
-          ) : visiblePosts.length === 0 ? (
-            <Text className="py-16 text-center text-[14px] text-[#68716d]">{discoverContent.empty}</Text>
-          ) : (
-            visiblePosts.map((post, index) => (
-              <View key={post.id}>
-                <DiscoverPostCard contactLabel={discoverContent.contact} moreLabel={discoverContent.more} post={post} />
-                {index === 0 ? (
-                  <View className="mx-4 my-3 h-[95px] items-center justify-center overflow-hidden rounded-xl bg-[#00ab19]">
-                    <View className="absolute -left-2 top-0 h-24 w-24 rounded-full border-2 border-white/90" />
-                    <View className="absolute -right-2 top-0 h-24 w-24 rounded-full border-2 border-white/90" />
-                    <Image
-                      contentFit="contain"
-                      source={images.sports.badminton}
-                      style={{ height: 64, left: 40, position: "absolute", top: 8, transform: [{ rotate: "-35deg" }], width: 64 }}
-                    />
-                    <Image
-                      contentFit="contain"
-                      source={images.sports.badminton}
-                      style={{ bottom: 0, height: 64, position: "absolute", right: 40, transform: [{ rotate: "35deg" }], width: 64 }}
-                    />
-                    <Text className="text-[25px] font-black italic tracking-wide text-[#fff12e]">CẦU LÔNG</Text>
-                  </View>
-                ) : null}
-              </View>
-            ))
-          )}
-        </ScrollView>
+        <div className="grow shrink overflow-y-auto overflow-x-hidden">
+          <div className="pb-32">
+            {isLoading ? (
+              <LoadingState label={discoverContent.loading} />
+            ) : visiblePosts.length === 0 ? (
+              <span className="py-16 text-center text-[14px] text-[#68716d]">{discoverContent.empty}</span>
+            ) : (
+              visiblePosts.map((post, index) => (
+                <div key={post.id}>
+                  <DiscoverPostCard contactLabel={discoverContent.contact} moreLabel={discoverContent.more} post={post} />
+                  {index === 0 ? (
+                    <div className="mx-4 my-3 h-[95px] items-center justify-center overflow-hidden rounded-xl bg-[#00ab19]">
+                      <div className="absolute -left-2 top-0 h-24 w-24 rounded-full border-2 border-white/90" />
+                      <div className="absolute -right-2 top-0 h-24 w-24 rounded-full border-2 border-white/90" />
+                      <img
+                        alt=""
+                        className="object-contain"
+                        src={images.sports.badminton}
+                        style={{ height: 64, left: 40, position: "absolute", top: 8, transform: "rotate(-35deg)", width: 64 }}
+                      />
+                      <img
+                        alt=""
+                        className="object-contain"
+                        src={images.sports.badminton}
+                        style={{ bottom: 0, height: 64, position: "absolute", right: 40, transform: "rotate(35deg)", width: 64 }}
+                      />
+                      <span className="text-[25px] font-black italic tracking-wide text-[#fff12e]">CẦU LÔNG</span>
+                    </div>
+                  ) : null}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
         <PublicFooter activeItemId="discover" />
-      </View>
+      </div>
     </Screen>
   );
 }

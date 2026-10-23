@@ -1,5 +1,3 @@
-import { ScrollView, Text, View } from "react-native";
-
 import NearbyVenues from "@/components/home/NearbyVenues";
 import type { Venue } from "@/components/home/NearbyVenues/types";
 import PublicFooter from "@/components/layouts/PublicFooter";
@@ -20,27 +18,29 @@ export default function PopularScreen() {
 
   return (
     <Screen backgroundColor="#0f9b58" statusBarStyle="light">
-      <View className="flex-1 bg-[#f5f6f5]">
-        <View className="h-[59px] items-center justify-center bg-[#00925a]">
-          <Text className="text-[17px] font-bold text-white">Nổi bật</Text>
-        </View>
+      <div className="flex-1 bg-[#f5f6f5]">
+        <div className="h-[59px] items-center justify-center bg-[#00925a]">
+          <span className="text-[17px] font-bold text-white">Nổi bật</span>
+        </div>
 
         {isLoading ? (
           <LoadingState label="Đang tải sân nổi bật…" />
         ) : errorMessage ? (
-          <View className="p-4">
+          <div className="p-4">
             <ErrorMessage text={errorMessage} />
-          </View>
+          </div>
         ) : venues.length === 0 ? (
-          <Text className="px-6 py-16 text-center text-[14px] text-[#68716d]">Chưa có sân nào được gắn nổi bật.</Text>
+          <span className="px-6 py-16 text-center text-[14px] text-[#68716d]">Chưa có sân nào được gắn nổi bật.</span>
         ) : (
-          <ScrollView contentContainerClassName="pb-32 pt-3">
-            <NearbyVenues venues={venues} />
-          </ScrollView>
+          <div className="grow shrink overflow-y-auto overflow-x-hidden">
+            <div className="pb-32 pt-3">
+              <NearbyVenues venues={venues} />
+            </div>
+          </div>
         )}
 
         <PublicFooter activeItemId="popular" />
-      </View>
+      </div>
     </Screen>
   );
 }

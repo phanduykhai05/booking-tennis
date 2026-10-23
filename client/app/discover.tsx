@@ -1,5 +1,5 @@
-import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
+import { useSearchParams } from "react-router";
 
 import DiscoverFeed from "@/components/discover/DiscoverFeed";
 import { apiTypeToFilter, discoverContent, filterToApiType } from "@/components/discover/DiscoverFeed/content";
@@ -10,7 +10,7 @@ import { getDiscoverPosts } from "@/lib/api/endpoints";
 import { useAsync } from "@/lib/useAsync";
 
 export default function DiscoverScreen() {
-  const { type } = useLocalSearchParams<{ type?: string }>();
+  const type = useSearchParams()[0].get("type");
   const [activeFilter, setActiveFilter] = useState<DiscoverFilterId>(
     type ? (apiTypeToFilter[type] ?? "all") : "all",
   );

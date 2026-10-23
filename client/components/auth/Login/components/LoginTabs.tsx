@@ -1,5 +1,3 @@
-import { Text, View } from "react-native";
-
 import type { LoginMethod } from "@/components/auth/Login/types";
 import Touch from "@/components/ui/Pressable";
 
@@ -17,22 +15,22 @@ export default function LoginTabs({ activeMethod, emailLabel, onSelect, phoneLab
   ];
 
   return (
-    <View className="h-16 flex-row border-b border-[#d8e1db]">
+    <div className="h-16 flex-row border-b border-[#d8e1db]">
       {tabs.map((tab) => {
         const isActive = activeMethod === tab.id;
 
         return (
           <Touch
-            accessibilityRole="tab"
-            accessibilityState={{ selected: isActive }}
+            aria-selected={isActive}
+            role="tab"
             className={`flex-1 items-center justify-center ${isActive ? "rounded-br-[18px] bg-white" : "bg-[#f4f4f4]"}`}
             key={tab.id}
             onPress={() => onSelect(tab.id)}
           >
-            <Text className={`text-[16px] font-bold ${isActive ? "text-[#034f30]" : "text-[#8b8b8b]"}`}>{tab.label}</Text>
+            <span className={`text-[16px] font-bold ${isActive ? "text-[#034f30]" : "text-[#8b8b8b]"}`}>{tab.label}</span>
           </Touch>
         );
       })}
-    </View>
+    </div>
   );
 }

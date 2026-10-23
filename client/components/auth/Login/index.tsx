@@ -1,6 +1,5 @@
-import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { useNavigate } from "react-router";
 
 import AuthLayout from "@/components/auth/AuthLayout";
 import LoginTabs from "@/components/auth/Login/components/LoginTabs";
@@ -23,7 +22,7 @@ export default function Login() {
   const [values, setValues] = useState<LoginValues>(initialLoginValues);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setSubmitting] = useState(false);
-  const router = useRouter();
+  const navigate = useNavigate();
   const { signIn } = useSession();
 
   const setField = (field: keyof LoginValues, value: string) => {
@@ -43,7 +42,7 @@ export default function Login() {
           ...(isPhoneLogin ? { phone: values.phone.replace(/\D/g, "") } : { email: values.email }),
         }),
       );
-      router.replace("/home");
+      navigate("/home", { replace: true });
     } catch (error) {
       setErrorMessage(error instanceof ApiError ? error.message : loginContent.errorMessage);
     } finally {
@@ -53,11 +52,11 @@ export default function Login() {
 
   return (
     <AuthLayout backHref="/" backLabel="Quay lại" title={loginContent.title}>
-      <View className="overflow-hidden rounded-[7px] bg-white" style={shadow.raised}>
+      <div className="overflow-hidden rounded-[7px] bg-white" style={shadow.raised}>
         <LoginTabs activeMethod={method} emailLabel={loginContent.email} onSelect={setMethod} phoneLabel={loginContent.phone} />
 
-        <View className="px-4 pb-6 pt-7">
-          <View className="gap-7">
+        <div className="px-4 pb-6 pt-7">
+          <div className="gap-7">
             {isPhoneLogin ? (
               <PhoneField label={loginContent.phoneLabel} onChange={(value) => setField("phone", value)} value={values.phone} />
             ) : (
@@ -77,38 +76,38 @@ export default function Login() {
               placeholder={loginContent.passwordPlaceholder}
               value={values.password}
             />
-          </View>
+          </div>
 
           {errorMessage ? (
-            <View className="mt-5">
+            <div className="mt-5">
               <ErrorMessage text={errorMessage} />
-            </View>
+            </div>
           ) : null}
 
-          <View className="mt-8">
+          <div className="mt-8">
             <Button
               fullWidth
               isLoading={isSubmitting}
               label={isSubmitting ? loginContent.signingIn : loginContent.signIn}
               onPress={() => void submit()}
             />
-          </View>
+          </div>
 
-          <View className="mt-7 flex-row justify-center gap-1">
-            <Text className="text-[14px] text-[#323232]">{loginContent.forgotPasswordPrompt}</Text>
-            <Touch onPress={() => router.push("/forgot-password")}>
-              <Text className="text-[14px] font-bold text-[#007b49] underline">{loginContent.forgotPassword}</Text>
+          <div className="mt-7 flex-row justify-center gap-1">
+            <span className="text-[14px] text-[#323232]">{loginContent.forgotPasswordPrompt}</span>
+            <Touch onPress={() => navigate("/forgot-password")}>
+              <span className="text-[14px] font-bold text-[#007b49] underline">{loginContent.forgotPassword}</span>
             </Touch>
-          </View>
-        </View>
-      </View>
+          </div>
+        </div>
+      </div>
 
-      <View className="my-5 flex-row justify-center gap-1">
-        <Text className="text-[14px] text-white">{loginContent.registerPrompt}</Text>
-        <Touch onPress={() => router.replace("/register")}>
-          <Text className="text-[14px] font-bold text-white underline">{loginContent.register}</Text>
+      <div className="my-5 flex-row justify-center gap-1">
+        <span className="text-[14px] text-white">{loginContent.registerPrompt}</span>
+        <Touch onPress={() => navigate("/register", { replace: true })}>
+          <span className="text-[14px] font-bold text-white underline">{loginContent.register}</span>
         </Touch>
-      </View>
+      </div>
 
       <StaffNotice message={loginContent.staffNotice} />
     </AuthLayout>

@@ -1,4 +1,4 @@
-import { Check } from "lucide-react-native";
+import { Check } from "lucide-react";
 
 import { scheduleLayout } from "@/components/booking/CourtScheduleBooking/components/scheduleLayout";
 import { selectedSlotColor, slotStatusColor } from "@/components/booking/CourtScheduleBooking/components/slotStatusStyles";
@@ -16,8 +16,7 @@ export default function ScheduleSlotCell({ isSelected, label, onSelect, status }
   return (
     <Touch
       accessibilityLabel={label}
-      accessibilityRole="button"
-      accessibilityState={{ selected: isSelected }}
+      aria-pressed={isSelected}
       className="h-full shrink-0 items-center justify-center border-r border-[#e2ebe6]"
       disabled={status !== "available"}
       onPress={onSelect}

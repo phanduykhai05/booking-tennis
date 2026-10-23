@@ -1,4 +1,4 @@
-import { Calendar, Clock, DollarSign, Percent } from "lucide-react-native";
+import { Calendar, Clock, DollarSign, Percent } from "lucide-react";
 
 import MetricCard, { metricIconColor } from "@/components/admin/shared/MetricCard";
 import type { BookingCourt, CourtBooking } from "@/components/booking/BookingSchedule/types";

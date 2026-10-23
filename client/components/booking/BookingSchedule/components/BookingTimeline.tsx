@@ -1,5 +1,4 @@
-import { Clock, MapPin, Wrench } from "lucide-react-native";
-import { ScrollView, Text, View } from "react-native";
+import { Clock, MapPin, Wrench } from "lucide-react";
 
 import BookingCard from "@/components/booking/BookingSchedule/components/BookingCard";
 import BookingSlot from "@/components/booking/BookingSchedule/components/BookingSlot";
@@ -47,7 +46,7 @@ const unknownCustomer = (id: string): BookingCustomer => ({
 });
 
 /**
- * Lưới dòng thời gian tự dựng: cột sân nằm ngoài vùng cuộn ngang vì RN không có
+ * Lưới dòng thời gian tự dựng: cột sân nằm ngoài vùng cuộn ngang thay vì dùng
  * `position: sticky`, nhờ vậy tên sân luôn hiện khi kéo phần giờ.
  */
 export default function BookingTimeline({
@@ -75,16 +74,16 @@ export default function BookingTimeline({
       {courts.length === 0 ? (
         <EmptyState description={content.emptyBookingsLabel} />
       ) : (
-        <ScrollView className="max-h-[680px]" nestedScrollEnabled>
-          <View className="flex-row">
-            <View className="border-r border-slate-200 bg-white" style={{ width: courtColumnWidth }}>
-              <View
+        <div className="grow shrink overflow-y-auto overflow-x-hidden max-h-[680px]">
+          <div className="flex-row">
+            <div className="border-r border-slate-200 bg-white" style={{ width: courtColumnWidth }}>
+              <div
                 className="flex-row items-center gap-2 border-b border-slate-200 bg-slate-50 px-4"
                 style={{ height: headerHeight }}
               >
                 <Clock color="#059669" size={14} />
-                <Text className="text-[12px] font-bold uppercase tracking-wider text-slate-500">{content.timeLabel}</Text>
-              </View>
+                <span className="text-[12px] font-bold uppercase tracking-wider text-slate-500">{content.timeLabel}</span>
+              </div>
 
               {courts.map((court) => {
                 const isUnavailable = court.status !== "available";
@@ -98,48 +97,48 @@ export default function BookingTimeline({
                 );
 
                 return (
-                  <View
+                  <div
                     className="justify-center gap-1.5 border-b border-slate-200 px-4"
                     key={court.id}
                     style={{ height: rowHeight }}
                   >
-                    <View className="flex-row items-center gap-2">
-                      <View
+                    <div className="flex-row items-center gap-2">
+                      <div
                         className={`h-8 w-8 shrink-0 items-center justify-center rounded-lg ${isUnavailable ? "bg-slate-100" : "bg-emerald-50"}`}
                       >
                         {isUnavailable ? <Wrench color="#64748b" size={15} /> : <MapPin color="#047857" size={15} />}
-                      </View>
-                      <View className="min-w-0 flex-1">
-                        <Text className="text-[14px] font-bold text-slate-900" numberOfLines={1}>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[14px] font-bold text-slate-900 truncate">
                           {court.name}
-                        </Text>
-                        <Text className="text-[12px] text-slate-500">{content.surfaceLabels[court.surface]}</Text>
-                      </View>
-                    </View>
+                        </span>
+                        <span className="text-[12px] text-slate-500">{content.surfaceLabels[court.surface]}</span>
+                      </div>
+                    </div>
 
                     {isUnavailable ? (
-                      <Text className="text-[11px] text-slate-500">{content.courtStatusLabels[court.status]}</Text>
+                      <span className="text-[11px] text-slate-500">{content.courtStatusLabels[court.status]}</span>
                     ) : (
                       <ProgressBar color={utilization >= 75 ? "#f43f5e" : "#0f9b58"} percent={utilization} />
                     )}
-                  </View>
+                  </div>
                 );
               })}
-            </View>
+            </div>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator>
-              <View style={{ width: timeSlots.length * slotWidth }}>
-                <View className="flex-row border-b border-slate-200 bg-slate-50" style={{ height: headerHeight }}>
+            <div className="grow shrink flex-row overflow-x-auto overflow-y-hidden">
+              <div style={{ width: timeSlots.length * slotWidth }}>
+                <div className="flex-row border-b border-slate-200 bg-slate-50" style={{ height: headerHeight }}>
                   {timeSlots.map((slot) => (
-                    <View
+                    <div
                       className="shrink-0 justify-center border-r border-slate-200 px-3"
                       key={slot}
                       style={{ width: slotWidth }}
                     >
-                      <Text className="text-[12px] font-bold text-slate-600">{formatMinutes(slot)}</Text>
-                    </View>
+                      <span className="text-[12px] font-bold text-slate-600">{formatMinutes(slot)}</span>
+                    </div>
                   ))}
-                </View>
+                </div>
 
                 {courts.map((court) => {
                   const isUnavailable = court.status !== "available";
@@ -147,7 +146,7 @@ export default function BookingTimeline({
                   const courtBookings = bookings.filter((booking) => booking.courtId === court.id);
 
                   return (
-                    <View className="flex-row border-b border-slate-200" key={court.id} style={{ height: rowHeight }}>
+                    <div className="flex-row border-b border-slate-200" key={court.id} style={{ height: rowHeight }}>
                       {timeSlots.map((startMinute, index) => {
                         const endMinute = startMinute + config.slotMinutes;
 
@@ -180,13 +179,13 @@ export default function BookingTimeline({
                           position={getBookingPosition(booking, config, slotWidth)}
                         />
                       ))}
-                    </View>
+                    </div>
                   );
                 })}
-              </View>
-            </ScrollView>
-          </View>
-        </ScrollView>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </Card>
   );

@@ -1,6 +1,5 @@
-import { useRouter } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
-import { Text, View } from "react-native";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router";
 
 import ScheduleLegend from "@/components/booking/CourtScheduleBooking/components/ScheduleLegend";
 import type { CourtScheduleContent } from "@/components/booking/CourtScheduleBooking/types";
@@ -18,37 +17,37 @@ type ScheduleHeaderProps = {
 };
 
 export default function ScheduleHeader({ backHref, content, date, onDateChange, onPriceListOpen, venueName }: ScheduleHeaderProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   return (
-    <View className="bg-[#0b6b3e] pb-3">
-      <View className="h-[52px] flex-row items-center justify-center px-12">
-        <Touch accessibilityLabel={content.backLabel} className="absolute left-3 rounded p-1" onPress={() => router.navigate(backHref)}>
+    <div className="bg-[#0b6b3e] pb-3">
+      <div className="h-[52px] flex-row items-center justify-center px-12">
+        <Touch accessibilityLabel={content.backLabel} className="absolute left-3 rounded p-1" onPress={() => navigate(backHref)}>
           <ArrowLeft color="#ffffff" size={21} strokeWidth={2.6} />
         </Touch>
-        <Text className="text-[16px] font-bold uppercase text-white" numberOfLines={1}>
+        <span className="text-[16px] font-bold uppercase text-white truncate">
           {content.title}
-        </Text>
-      </View>
+        </span>
+      </div>
 
-      <View className="flex-row items-center justify-between gap-3 px-3 pb-3">
-        <Text className="min-w-0 flex-1 text-[14px] font-semibold text-white/90" numberOfLines={1}>
+      <div className="flex-row items-center justify-between gap-3 px-3 pb-3">
+        <span className="min-w-0 flex-1 text-[14px] font-semibold text-white/90 truncate">
           {venueName}
-        </Text>
+        </span>
         <DateField
           accessibilityLabel={content.datePickerLabel}
           displayValue={formatDateLabel(date)}
           onChange={onDateChange}
           value={date}
         />
-      </View>
+      </div>
 
-      <View className="px-3">
+      <div className="px-3">
         <ScheduleLegend labels={content.slotStatusLabels} />
         <Touch className="mt-3 self-start" onPress={onPriceListOpen}>
-          <Text className="text-[14px] font-semibold text-[#ffe141] underline">{content.priceListLabel}</Text>
+          <span className="text-[14px] font-semibold text-[#ffe141] underline">{content.priceListLabel}</span>
         </Touch>
-      </View>
-    </View>
+      </div>
+    </div>
   );
 }

@@ -1,5 +1,4 @@
-import { CalendarDays, Clock, MapPin } from "lucide-react-native";
-import { Text, View } from "react-native";
+import { CalendarDays, Clock, MapPin } from "lucide-react";
 
 import {
   bookingHistoryContent,
@@ -23,52 +22,52 @@ export default function BookingHistoryCard({ booking, isCancelling, onCancel }: 
   const canCancel = booking.status !== "cancelled" && booking.status !== "completed";
 
   return (
-    <View className="rounded-xl border border-[#dcebe3] bg-white p-3" style={shadow.card}>
-      <View className="flex-row items-start gap-2">
-        <View className="min-w-0 flex-1">
-          <Text className="text-[15px] font-bold text-[#0b5133]" numberOfLines={1}>
+    <div className="rounded-xl border border-[#dcebe3] bg-white p-3" style={shadow.card}>
+      <div className="flex-row items-start gap-2">
+        <div className="min-w-0 flex-1">
+          <span className="text-[15px] font-bold text-[#0b5133] truncate">
             {booking.venueName}
-          </Text>
-          <View className="mt-1 flex-row items-center gap-1">
+          </span>
+          <div className="mt-1 flex-row items-center gap-1">
             <MapPin color="#49544f" size={13} />
-            <Text className="text-[13px] text-[#49544f]">{booking.courtName}</Text>
-          </View>
-        </View>
+            <span className="text-[13px] text-[#49544f]">{booking.courtName}</span>
+          </div>
+        </div>
         <Tag label={bookingStatusLabels[booking.status]} tone={bookingStatusTones[booking.status]} />
-      </View>
+      </div>
 
-      <View className="mt-2 flex-row flex-wrap gap-y-1">
-        <View className="w-1/2 flex-row items-center gap-1">
+      <div className="mt-2 flex-row flex-wrap gap-y-1">
+        <div className="w-1/2 flex-row items-center gap-1">
           <CalendarDays color="#49544f" size={13} />
-          <Text className="text-[13px] text-[#49544f]">{formatDayMonthYear(booking.date)}</Text>
-        </View>
-        <View className="w-1/2 flex-row items-center gap-1">
+          <span className="text-[13px] text-[#49544f]">{formatDayMonthYear(booking.date)}</span>
+        </div>
+        <div className="w-1/2 flex-row items-center gap-1">
           <Clock color="#49544f" size={13} />
-          <Text className="text-[13px] text-[#49544f]">
+          <span className="text-[13px] text-[#49544f]">
             {booking.timeStart} - {booking.timeEnd}
-          </Text>
-        </View>
-        <View className="w-full flex-row items-center gap-1">
-          <Text className="text-[13px] text-[#8a918e]">{bookingHistoryContent.codeLabel}</Text>
-          <Text className="text-[13px] font-medium text-[#49544f]">{booking.code}</Text>
-        </View>
-      </View>
+          </span>
+        </div>
+        <div className="w-full flex-row items-center gap-1">
+          <span className="text-[13px] text-[#8a918e]">{bookingHistoryContent.codeLabel}</span>
+          <span className="text-[13px] font-medium text-[#49544f]">{booking.code}</span>
+        </div>
+      </div>
 
-      <View className="mt-2 flex-row items-center justify-between border-t border-[#eef3f0] pt-2">
-        <View>
-          <Text className="text-[15px] font-bold text-[#007b45]">{booking.priceLabel}</Text>
-          <Text className="text-[12px] text-[#8a918e]">{paymentStatusLabels[booking.paymentStatus]}</Text>
-        </View>
+      <div className="mt-2 flex-row items-center justify-between border-t border-[#eef3f0] pt-2">
+        <div>
+          <span className="text-[15px] font-bold text-[#007b45]">{booking.priceLabel}</span>
+          <span className="text-[12px] text-[#8a918e]">{paymentStatusLabels[booking.paymentStatus]}</span>
+        </div>
         {canCancel ? (
           <Touch
             className="h-8 justify-center rounded-md border border-[#e0574f] px-3"
             disabled={isCancelling}
             onPress={() => onCancel(booking.id)}
           >
-            <Text className="text-[13px] font-semibold text-[#e0574f]">{bookingHistoryContent.cancelLabel}</Text>
+            <span className="text-[13px] font-semibold text-[#e0574f]">{bookingHistoryContent.cancelLabel}</span>
           </Touch>
         ) : null}
-      </View>
-    </View>
+      </div>
+    </div>
   );
 }

@@ -1,4 +1,3 @@
-import { View } from "react-native";
 
 import HeaderAccount from "@/components/layouts/PublicHeader/components/HeaderAccount";
 import HeaderBackdrop from "@/components/layouts/PublicHeader/components/HeaderBackdrop";
@@ -15,29 +14,29 @@ type PublicHeaderProps = {
 
 export default function PublicHeader({ onSearchChange, searchValue }: PublicHeaderProps) {
   return (
-    <View className="w-full bg-[#0f9b58]">
+    <div className="w-full bg-[#0f9b58]">
       <HeaderBackdrop />
 
-      <View className="w-full max-w-[1275px] self-center px-3 pb-4 pt-4">
+      <div className="w-full max-w-[1275px] self-center px-3 pb-4 pt-4">
         {/*
-          zIndex trong React Native chỉ xếp thứ tự giữa các anh em cùng cha, nên `z-50`
+          Mỗi khối có z-index tạo stacking context riêng nên `z-50`
           đặt trong HeaderAccount không thắng được HeaderSearch. Menu tài khoản tràn
           xuống dưới hàng này, vì vậy phải nâng chính hàng này lên trên khối tìm kiếm.
         */}
-        <View className="z-50 flex-row items-start gap-3">
+        <div className="z-50 flex-row items-start gap-3">
           <HeaderLogo brandName={publicHeaderContent.brandName} />
 
-          <View className="min-w-0 flex-1 pt-1.5">
+          <div className="min-w-0 flex-1 pt-1.5">
             <TodayLabel />
-            <View className="mt-3.5">
+            <div className="mt-3.5">
               <HeaderAccount />
-            </View>
-          </View>
+            </div>
+          </div>
 
           <LanguageSelector label={publicHeaderContent.languageLabel} />
-        </View>
+        </div>
 
-        <View className="mt-4">
+        <div className="mt-4">
           <HeaderSearch
             favoriteLabel={publicHeaderContent.favoriteLabel}
             onChange={onSearchChange}
@@ -46,8 +45,8 @@ export default function PublicHeader({ onSearchChange, searchValue }: PublicHead
             submitLabel={publicHeaderContent.searchSubmitLabel}
             value={searchValue}
           />
-        </View>
-      </View>
-    </View>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
 
 import AuthenticatedHomeHeader from "@/components/home/AuthenticatedHome/components/AuthenticatedHomeHeader";
 import { authenticatedHomeContent } from "@/components/home/AuthenticatedHome/content";
@@ -28,7 +27,7 @@ export default function AuthenticatedHome({ sports, venues }: AuthenticatedHomeP
 
   return (
     <Screen backgroundColor="#087442" statusBarStyle="light">
-      <View className="flex-1 bg-[#f5f6f5]">
+      <div className="flex-1 bg-[#f5f6f5]">
         <AuthenticatedHomeHeader
           avatarInitial={profile?.avatarInitial ?? authenticatedHomeContent.guestInitial}
           date={formatWeekdayDate(todayInAppTimezone())}
@@ -38,12 +37,14 @@ export default function AuthenticatedHome({ sports, venues }: AuthenticatedHomeP
           searchValue={searchValue}
         />
 
-        <ScrollView contentContainerClassName="pb-32" keyboardShouldPersistTaps="handled">
-          <VenueFilterContent showPromotion sports={sports} venues={visibleVenues} />
-        </ScrollView>
+        <div className="grow shrink overflow-y-auto overflow-x-hidden">
+          <div className="pb-32">
+            <VenueFilterContent showPromotion sports={sports} venues={visibleVenues} />
+          </div>
+        </div>
 
         <PublicFooter activeItemId="home" />
-      </View>
+      </div>
     </Screen>
   );
 }

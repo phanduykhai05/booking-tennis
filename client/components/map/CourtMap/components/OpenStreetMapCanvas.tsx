@@ -1,7 +1,4 @@
-import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { Text, View } from "react-native";
-import { WebView } from "react-native-webview";
-import type { WebViewMessageEvent } from "react-native-webview";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 
 import {
   defaultZoom,
@@ -14,8 +11,8 @@ import {
   tileUrl,
 } from "@/components/map/CourtMap/mapPin";
 import type { CourtMapMarker } from "@/components/map/CourtMap/types";
-import { normalizeText } from "@/lib/format";
 import { shadow } from "@/components/ui/theme";
+import { normalizeText } from "@/lib/format";
 
 export type OpenStreetMapCanvasHandle = {
   focusVenue: (query: string) => boolean;
@@ -32,154 +29,228 @@ type OpenStreetMapCanvasProps = {
 };
 
 /**
- * Leaflet chạy trong WebView: giữ nguyên nguồn tile và kiểu ghim của bản web,
- * đồng thời tránh phải cấu hình khoá API bản đồ gốc cho iOS/Android.
- * Chạm vào ghim gửi message ra ngoài để RN điều hướng sang trang sân.
+ * Lưới bản đồ: chạy thẳng Leaflet trên DOM, dùng nguồn tile và kiểu ghim chung trong mapPin.
+ *
+ * Leaflet nạp từ CDN lúc chạy thay vì gói vào bundle để trang khác không phải tải thư viện bản đồ.
  */
-function buildHtml(markers: CourtMapMarker[], showVenueLayer: boolean) {
-  const markerData = markers.map((marker) => ({
-    id: marker.id,
-    latitude: marker.latitude,
-    longitude: marker.longitude,
-    name: marker.name,
-    pin: pinHtml(markerColor(marker)),
-  }));
 
-  return `<!doctype html>
-<html>
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>
-  html, body, #map { height: 100%; margin: 0; background: #d9f4ea; }
-  .pin-label { font: 700 13px system-ui, sans-serif; color: #0b5133; }
-  .pin-button { display:inline-block; margin-top:6px; font:600 12px system-ui,sans-serif; color:#fff; background:#008447; padding:6px 12px; border-radius:8px; }
-</style>
-</head>
-<body>
-<div id="map"></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-  var send = function (payload) {
-    if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(payload));
-  };
+const leafletVersion = "1.9.4";
+const leafletCssUrl = `https://unpkg.com/leaflet@${leafletVersion}/dist/leaflet.css`;
+const leafletJsUrl = `https://unpkg.com/leaflet@${leafletVersion}/dist/leaflet.js`;
 
-  if (!window.L) {
-    send({ type: "error" });
-  } else {
-    var map = L.map("map", { attributionControl: false, zoomControl: false })
-      .setView([${mapCenter.latitude}, ${mapCenter.longitude}], ${defaultZoom});
+type LeafletMap = {
+  invalidateSize: () => void;
+  remove: () => void;
+  setView: (center: [number, number], zoom: number) => void;
+};
 
-    L.tileLayer("${tileUrl}", { maxZoom: ${maxZoom}, subdomains: "${tileSubdomains}" })
-      .on("tileerror", function () { send({ type: "tile-error" }); })
-      .on("load", function () { send({ type: "ready" }); })
-      .addTo(map);
+type LeafletMarker = { on: (event: string, handler: () => void) => void; remove: () => void };
 
-    var markers = ${JSON.stringify(markerData)};
-    var layers = {};
+type LeafletTileLayer = {
+  addTo: (map: LeafletMap) => LeafletTileLayer;
+  on: (event: string, handler: () => void) => LeafletTileLayer;
+};
 
-    if (${showVenueLayer ? "true" : "false"}) {
-      markers.forEach(function (marker) {
-        var layer = L.marker([marker.latitude, marker.longitude], {
-          icon: L.divIcon({ className: "", html: marker.pin, iconAnchor: [15, 38], iconSize: [30, 38] }),
-          title: marker.name,
-        }).addTo(map);
+type Leaflet = {
+  divIcon: (options: Record<string, unknown>) => unknown;
+  map: (element: HTMLElement, options: Record<string, unknown>) => LeafletMap;
+  marker: (position: [number, number], options: Record<string, unknown>) => { addTo: (map: LeafletMap) => LeafletMarker };
+  tileLayer: (url: string, options: Record<string, unknown>) => LeafletTileLayer;
+};
 
-        layer.on("click", function () {
-          send({ id: marker.id, name: marker.name, type: "marker" });
-        });
+/** Nạp một lần cho cả vòng đời trang, kể cả khi người dùng rời trang bản đồ rồi quay lại. */
+let leafletLoader: Promise<Leaflet> | null = null;
 
-        layers[marker.id] = layer;
-      });
+function loadLeaflet(): Promise<Leaflet> {
+  // Phòng khi chạy ngoài trình duyệt (chưa có DOM).
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return Promise.reject(new Error("Chưa có DOM"));
+  }
+
+  const existing = (window as unknown as { L?: Leaflet }).L;
+  if (existing) return Promise.resolve(existing);
+  if (leafletLoader) return leafletLoader;
+
+  leafletLoader = new Promise<Leaflet>((resolve, reject) => {
+    if (!document.querySelector(`link[data-leaflet="${leafletVersion}"]`)) {
+      const link = document.createElement("link");
+      link.dataset.leaflet = leafletVersion;
+      link.href = leafletCssUrl;
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
     }
 
-    window.focusVenue = function (latitude, longitude) {
-      map.setView([latitude, longitude], ${focusZoom});
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = leafletJsUrl;
+    script.onload = () => {
+      const loaded = (window as unknown as { L?: Leaflet }).L;
+      if (loaded) resolve(loaded);
+      else reject(new Error("Thiếu thư viện bản đồ"));
+    };
+    script.onerror = () => {
+      // Cho phép thử lại ở lần mount sau thay vì kẹt mãi ở promise hỏng.
+      leafletLoader = null;
+      reject(new Error("Không tải được thư viện bản đồ"));
     };
 
-    send({ type: "ready" });
-  }
-</script>
-</body>
-</html>`;
+    document.head.appendChild(script);
+  });
+
+  return leafletLoader;
 }
 
-const OpenStreetMapCanvas = forwardRef<OpenStreetMapCanvasHandle, OpenStreetMapCanvasProps>(function OpenStreetMapCanvas(
-  { geolocationUnavailableMessage, markers, onMarkerPress, showVenueLayer, tileErrorMessage, unavailableMessage },
-  ref,
-) {
-  const webViewRef = useRef<WebView>(null);
-  const [statusMessage, setStatusMessage] = useState("");
-
-  const html = useMemo(() => buildHtml(markers, showVenueLayer), [markers, showVenueLayer]);
-
-  useImperativeHandle(
+const OpenStreetMapCanvas = forwardRef<OpenStreetMapCanvasHandle, OpenStreetMapCanvasProps>(
+  function OpenStreetMapCanvas(
+    {
+      geolocationUnavailableMessage,
+      markers,
+      onMarkerPress,
+      showVenueLayer,
+      tileErrorMessage,
+      unavailableMessage,
+    },
     ref,
-    () => ({
-      focusVenue: (query: string) => {
-        const needle = normalizeText(query);
-        if (!needle) return false;
+  ) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const mapRef = useRef<LeafletMap | null>(null);
+    const leafletRef = useRef<Leaflet | null>(null);
+    const markerLayersRef = useRef<LeafletMarker[]>([]);
+    /** Đọc trong callback của Leaflet nên phải qua ref, tránh đóng gói giá trị cũ. */
+    const onMarkerPressRef = useRef(onMarkerPress);
+    const [statusMessage, setStatusMessage] = useState("");
+    const [isReady, setIsReady] = useState(false);
 
-        const match = markers.find((marker) => normalizeText(marker.name).includes(needle));
-        if (!match) return false;
+    onMarkerPressRef.current = onMarkerPress;
 
-        webViewRef.current?.injectJavaScript(`window.focusVenue(${match.latitude}, ${match.longitude}); true;`);
-        return true;
+    // setState nằm trong callback của promise để effect không cập nhật state ngay trong thân hàm.
+    useEffect(() => {
+      let isActive = true;
+
+      loadLeaflet()
+        .then((leaflet) => {
+          const element = containerRef.current;
+          if (!isActive || !element || mapRef.current) return;
+
+          const map = leaflet.map(element, { attributionControl: false, zoomControl: false });
+          map.setView([mapCenter.latitude, mapCenter.longitude], defaultZoom);
+
+          // Tile hỏng thì trước đây chỉ còn ghim trên nền trống mà không báo gì;
+          // giờ nói rõ để người dùng biết là do mạng chứ không phải app chết.
+          leaflet
+            .tileLayer(tileUrl, { maxZoom, subdomains: tileSubdomains })
+            .on("tileerror", () => {
+              if (isActive) setStatusMessage(tileErrorMessage);
+            })
+            .on("load", () => {
+              if (isActive) setStatusMessage("");
+            })
+            .addTo(map);
+
+          // Leaflet đo khung lúc khởi tạo; layout flex có thể xong sau nên phải đo lại.
+          map.invalidateSize();
+
+          leafletRef.current = leaflet;
+          mapRef.current = map;
+          setIsReady(true);
+          setStatusMessage("");
+        })
+        .catch(() => {
+          if (isActive) setStatusMessage(unavailableMessage);
+        });
+
+      return () => {
+        isActive = false;
+      };
+    }, [tileErrorMessage, unavailableMessage]);
+
+    // Dọn bản đồ khi rời trang, nếu không Leaflet giữ lại DOM cũ và lần sau khởi tạo lỗi.
+    useEffect(
+      () => () => {
+        markerLayersRef.current.forEach((layer) => layer.remove());
+        markerLayersRef.current = [];
+        mapRef.current?.remove();
+        mapRef.current = null;
+        leafletRef.current = null;
       },
-      locate: () => {
-        // Vị trí lấy từ chính WebView để không phải xin thêm quyền native ở tầng RN.
-        webViewRef.current?.injectJavaScript(`
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              function (position) { window.focusVenue(position.coords.latitude, position.coords.longitude); },
-              function () { window.ReactNativeWebView.postMessage(JSON.stringify({ type: "geolocation-error" })); },
-              { enableHighAccuracy: true, timeout: 10000 }
-            );
-          } else {
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: "geolocation-error" }));
+      [],
+    );
+
+    // Vẽ lại ghim mỗi khi danh sách lọc đổi hoặc người dùng tắt/bật lớp sân.
+    useEffect(() => {
+      const leaflet = leafletRef.current;
+      const map = mapRef.current;
+      if (!isReady || !leaflet || !map) return;
+
+      markerLayersRef.current.forEach((layer) => layer.remove());
+      markerLayersRef.current = [];
+
+      if (!showVenueLayer) return;
+
+      markerLayersRef.current = markers.map((marker) => {
+        const layer = leaflet
+          .marker([marker.latitude, marker.longitude], {
+            icon: leaflet.divIcon({
+              className: "",
+              html: pinHtml(markerColor(marker)),
+              iconAnchor: [15, 38],
+              iconSize: [30, 38],
+            }),
+            title: marker.name,
+          })
+          .addTo(map);
+
+        layer.on("click", () => onMarkerPressRef.current(marker.id));
+        return layer;
+      });
+    }, [isReady, markers, showVenueLayer]);
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        focusVenue: (query: string) => {
+          const needle = normalizeText(query);
+          if (!needle || !mapRef.current) return false;
+
+          const match = markers.find((marker) => normalizeText(marker.name).includes(needle));
+          if (!match) return false;
+
+          mapRef.current.setView([match.latitude, match.longitude], focusZoom);
+          return true;
+        },
+        locate: () => {
+          if (typeof navigator === "undefined" || !navigator.geolocation) {
+            setStatusMessage(geolocationUnavailableMessage);
+            return;
           }
-          true;
-        `);
-      },
-    }),
-    [markers],
-  );
 
-  const handleMessage = (event: WebViewMessageEvent) => {
-    try {
-      const payload = JSON.parse(event.nativeEvent.data) as { id?: string; type: string };
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              mapRef.current?.setView([position.coords.latitude, position.coords.longitude], focusZoom);
+              setStatusMessage("");
+            },
+            () => setStatusMessage(geolocationUnavailableMessage),
+            { enableHighAccuracy: true, timeout: 10000 },
+          );
+        },
+      }),
+      [geolocationUnavailableMessage, markers],
+    );
 
-      if (payload.type === "marker" && payload.id) onMarkerPress(payload.id);
-      if (payload.type === "geolocation-error") setStatusMessage(geolocationUnavailableMessage);
-      if (payload.type === "error") setStatusMessage(unavailableMessage);
-      if (payload.type === "tile-error") setStatusMessage(tileErrorMessage);
-      if (payload.type === "ready") setStatusMessage("");
-    } catch {
-      setStatusMessage(unavailableMessage);
-    }
-  };
+    return (
+      // isolate: các lớp của Leaflet có z-index 400+; cô lập ở đây để ô tìm kiếm, chip và nút điều khiển
+      // (anh em phía sau trong DOM) vẫn nằm trên bản đồ.
+      <div className="absolute inset-0 isolate">
+        <div ref={containerRef} style={{ backgroundColor: "#d9f4ea", flex: 1 }} />
 
-  return (
-    <View className="absolute inset-0">
-      <WebView
-        allowsInlineMediaPlayback
-        geolocationEnabled
-        onError={() => setStatusMessage(unavailableMessage)}
-        onMessage={handleMessage}
-        originWhitelist={["*"]}
-        ref={webViewRef}
-        source={{ html }}
-        style={{ backgroundColor: "#d9f4ea", flex: 1 }}
-      />
-
-      {statusMessage ? (
-        <View className="absolute inset-x-6 top-1/2 rounded-2xl bg-white/95 p-4" style={shadow.raised}>
-          <Text className="text-center text-[14px] font-medium text-slate-700">{statusMessage}</Text>
-        </View>
-      ) : null}
-    </View>
-  );
-});
+        {statusMessage ? (
+          <div className="absolute inset-x-6 top-1/2 rounded-2xl bg-white/95 p-4" style={shadow.raised}>
+            <span className="text-center text-[14px] font-medium text-slate-700">{statusMessage}</span>
+          </div>
+        ) : null}
+      </div>
+    );
+  },
+);
 
 export default OpenStreetMapCanvas;

@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react-native";
+import { Plus } from "lucide-react";
 
 import { formatMinutes } from "@/components/booking/BookingSchedule/utils";
 import Touch from "@/components/ui/Pressable";
@@ -18,7 +18,6 @@ export default function BookingSlot({ endMinute, isDisabled, isShaded = false, l
     <Touch
       // Sọc mờ xen kẽ giúp mắt lần theo đúng cột giờ khi bảng kéo dài.
       accessibilityLabel={`${label} ${formatMinutes(startMinute)} - ${formatMinutes(endMinute)}`}
-      accessibilityRole="button"
       className={`h-full shrink-0 items-center justify-center border-r border-slate-100 ${isShaded ? "bg-slate-50/40" : ""} ${isDisabled ? "bg-slate-50" : ""}`}
       disabled={isDisabled}
       onPress={onSelect}

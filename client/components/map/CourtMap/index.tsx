@@ -1,4 +1,3 @@
-import { View } from "react-native";
 
 import { publicHeaderContent } from "@/components/layouts/PublicHeader/mockData";
 import MapExperience from "@/components/map/CourtMap/components/MapExperience";
@@ -11,13 +10,13 @@ type CourtMapProps = {
 
 export default function CourtMap({ markers }: CourtMapProps) {
   return (
-    <View accessibilityLabel="Bản đồ sân thể thao" className="flex-1 overflow-hidden bg-[#d9f4ea]">
+    <div aria-label="Bản đồ sân thể thao" className="flex-1 overflow-hidden bg-[#d9f4ea]">
       <MapExperience
         brandName={publicHeaderContent.brandName}
         content={courtMapContent}
         filters={courtMapFilters}
         markers={markers}
       />
-    </View>
+    </div>
   );
 }

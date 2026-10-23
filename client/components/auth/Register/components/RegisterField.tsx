@@ -1,4 +1,4 @@
-import { CircleX } from "lucide-react-native";
+import { CircleX } from "lucide-react";
 
 import type { RegisterField as RegisterFieldType } from "@/components/auth/Register/types";
 import Touch from "@/components/ui/Pressable";

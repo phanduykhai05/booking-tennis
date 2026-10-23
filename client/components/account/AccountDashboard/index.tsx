@@ -1,8 +1,6 @@
-import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import { ChevronRight, Crown, LockKeyhole, LogOut, X } from "lucide-react-native";
+import { ChevronRight, Crown, LockKeyhole, LogOut, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { useNavigate } from "react-router";
 
 import DashboardList from "@/components/account/AccountDashboard/components/DashboardList";
 import {
@@ -33,7 +31,7 @@ const activityHrefs: Record<string, string> = {
 };
 
 export default function AccountDashboard() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { isReady, session, signOut, token, updateUser } = useSession();
   const [isAlertVisible, setAlertVisible] = useState(true);
   const profile = session?.user;
@@ -58,114 +56,118 @@ export default function AccountDashboard() {
 
   return (
     <Screen backgroundColor="#027a45" statusBarStyle="light">
-      <View className="flex-1 bg-[#eaf8f1]">
-        <ScrollView contentContainerClassName="pb-32">
-          <View className="h-[146px] overflow-hidden bg-[#027a45] px-6 pt-5">
-            <Image
-              contentFit="cover"
-              source={images.alobo.homeHeader}
-              style={{ bottom: 0, left: 0, opacity: 0.4, position: "absolute", right: 0, top: 0 }}
-            />
-
-            <Touch
-              className="w-full flex-row items-center gap-3 rounded-lg border border-[#edaf17] bg-white/15 p-3"
-              onPress={() => router.push(profile ? "/account/profile" : "/login")}
-            >
-              <View className="h-10 w-10 items-center justify-center rounded-full bg-[#656ad5]">
-                <Text className="text-[22px] uppercase text-white">
-                  {profile?.avatarInitial ?? accountDashboardContent.guestInitial}
-                </Text>
-              </View>
-              <View className="flex-1">
-                <Text className="text-[15px] font-bold text-white">{profile?.fullName ?? accountDashboardContent.guestName}</Text>
-                <Text className="mt-1 text-[13px] text-white/90">{profile?.email ?? accountDashboardContent.emailPrompt}</Text>
-              </View>
-              <ChevronRight color="#ffffff" size={20} />
-            </Touch>
-
-            <Touch className="mt-5 flex-row items-center gap-2">
-              <Crown color="#ffe141" fill="#ffe141" size={23} />
-              <Text className="text-[15px] font-bold text-white">{accountDashboardContent.membership}</Text>
-              <ChevronRight color="#ffffff" size={17} />
-            </Touch>
-          </View>
-
-          <View className="-mt-3 rounded-t-[18px] bg-[#eaf8f1] px-6 pt-6">
-            <View className="flex-row gap-2 rounded-xl border border-[#d3e9de] bg-[#effaf4] p-3">
-              {accountShortcuts.map((shortcut) => (
-                <Touch
-                  className="min-h-[62px] flex-1 items-center justify-center gap-1 rounded-lg border border-[#349c6c] bg-white"
-                  key={shortcut.id}
-                  onPress={() => {
-                    const href = shortcutHrefs[shortcut.id];
-                    if (href) router.push(href);
-                  }}
-                  style={shadow.card}
-                >
-                  <Image source={images.alobo.profileShortcuts[shortcut.id]} style={{ height: 28, width: 28 }} />
-                  <Text className="text-center text-[12px] font-medium text-[#075038]">{shortcut.label}</Text>
-                </Touch>
-              ))}
-            </View>
-
-            <View className="mt-5">
-              <Text className="mb-3 text-[16px] font-bold text-[#008447]">{accountDashboardContent.activityTitle}</Text>
-              <DashboardList
-                items={activityItems}
-                onSelect={(itemId) => {
-                  const href = activityHrefs[itemId];
-                  if (href) router.push(href);
-                }}
+      <div className="flex-1 bg-[#eaf8f1]">
+        <div className="grow shrink overflow-y-auto overflow-x-hidden">
+          <div className="pb-32">
+            <div className="h-[146px] overflow-hidden bg-[#027a45] px-6 pt-5">
+              <img
+                alt=""
+                className="object-cover"
+                src={images.alobo.homeHeader}
+                style={{ bottom: 0, height: "100%", left: 0, opacity: 0.4, position: "absolute", right: 0, top: 0, width: "100%" }}
               />
-            </View>
 
-            <View className="mt-5">
-              <Text className="mb-3 text-[16px] font-bold text-[#008447]">{accountDashboardContent.systemTitle}</Text>
-              <DashboardList items={systemItems} />
-            </View>
+              <Touch
+                className="w-full flex-row items-center gap-3 rounded-lg border border-[#edaf17] bg-white/15 p-3"
+                onPress={() => navigate(profile ? "/account/profile" : "/login")}
+              >
+                <div className="h-10 w-10 items-center justify-center rounded-full bg-[#656ad5]">
+                  <span className="text-[22px] uppercase text-white">
+                    {profile?.avatarInitial ?? accountDashboardContent.guestInitial}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <span className="text-[15px] font-bold text-white">{profile?.fullName ?? accountDashboardContent.guestName}</span>
+                  <span className="mt-1 text-[13px] text-white/90">{profile?.email ?? accountDashboardContent.emailPrompt}</span>
+                </div>
+                <ChevronRight color="#ffffff" size={20} />
+              </Touch>
 
-            {isAlertVisible ? (
-              <View className="mt-5 overflow-hidden rounded-lg border border-[#ffe0a0] bg-white p-3">
-                <Image
-                  contentFit="cover"
-                  source={images.alobo.alertBackground}
-                  style={{ bottom: 0, left: 0, opacity: 0.45, position: "absolute", right: 0, top: 0 }}
+              <Touch className="mt-5 flex-row items-center gap-2">
+                <Crown color="#ffe141" fill="#ffe141" size={23} />
+                <span className="text-[15px] font-bold text-white">{accountDashboardContent.membership}</span>
+                <ChevronRight color="#ffffff" size={17} />
+              </Touch>
+            </div>
+
+            <div className="-mt-3 rounded-t-[18px] bg-[#eaf8f1] px-6 pt-6">
+              <div className="flex-row gap-2 rounded-xl border border-[#d3e9de] bg-[#effaf4] p-3">
+                {accountShortcuts.map((shortcut) => (
+                  <Touch
+                    className="min-h-[62px] flex-1 items-center justify-center gap-1 rounded-lg border border-[#349c6c] bg-white"
+                    key={shortcut.id}
+                    onPress={() => {
+                      const href = shortcutHrefs[shortcut.id];
+                      if (href) navigate(href);
+                    }}
+                    style={shadow.card}
+                  >
+                    <img alt="" className="object-cover" src={images.alobo.profileShortcuts[shortcut.id]} style={{ height: 28, width: 28 }} />
+                    <span className="text-center text-[12px] font-medium text-[#075038]">{shortcut.label}</span>
+                  </Touch>
+                ))}
+              </div>
+
+              <div className="mt-5">
+                <span className="mb-3 text-[16px] font-bold text-[#008447]">{accountDashboardContent.activityTitle}</span>
+                <DashboardList
+                  items={activityItems}
+                  onSelect={(itemId) => {
+                    const href = activityHrefs[itemId];
+                    if (href) navigate(href);
+                  }}
                 />
-                <Touch accessibilityLabel="Đóng cảnh báo" className="absolute right-2 top-2 p-1" onPress={() => setAlertVisible(false)}>
-                  <X color="#007544" size={16} />
-                </Touch>
-                <View className="flex-row gap-2 pr-6">
-                  <LockKeyhole color="#e8a900" size={22} />
-                  <View className="flex-1">
-                    <Text className="text-[13px] font-bold text-[#007544]">{accountDashboardContent.securityTitle}</Text>
-                    <Text className="mt-1 text-[12px] text-[#486459]">{accountDashboardContent.securityDescription}</Text>
-                    <Touch className="mt-1 self-start rounded border border-[#ecac1c] px-2 py-1">
-                      <Text className="text-[12px] text-[#de9700]">{accountDashboardContent.setupNow}</Text>
-                    </Touch>
-                  </View>
-                </View>
-              </View>
-            ) : null}
+              </div>
 
-            <Touch
-              className="mt-5 h-11 w-full flex-row items-center justify-center gap-2 rounded-lg border border-[#e0574f]"
-              onPress={() => {
-                if (profile) signOut();
-                router.push("/login");
-              }}
-            >
-              <LogOut color="#e0574f" size={17} />
-              <Text className="text-[14px] font-semibold text-[#e0574f]">
-                {profile ? accountDashboardContent.signOut : accountDashboardContent.signIn}
-              </Text>
-            </Touch>
+              <div className="mt-5">
+                <span className="mb-3 text-[16px] font-bold text-[#008447]">{accountDashboardContent.systemTitle}</span>
+                <DashboardList items={systemItems} />
+              </div>
 
-            <Text className="mt-2 text-right text-[12px] text-[#929a96]">{accountDashboardContent.version}</Text>
-          </View>
-        </ScrollView>
+              {isAlertVisible ? (
+                <div className="mt-5 overflow-hidden rounded-lg border border-[#ffe0a0] bg-white p-3">
+                  <img
+                    alt=""
+                    className="object-cover"
+                    src={images.alobo.alertBackground}
+                    style={{ bottom: 0, height: "100%", left: 0, opacity: 0.45, position: "absolute", right: 0, top: 0, width: "100%" }}
+                  />
+                  <Touch accessibilityLabel="Đóng cảnh báo" className="absolute right-2 top-2 p-1" onPress={() => setAlertVisible(false)}>
+                    <X color="#007544" size={16} />
+                  </Touch>
+                  <div className="flex-row gap-2 pr-6">
+                    <LockKeyhole color="#e8a900" size={22} />
+                    <div className="flex-1">
+                      <span className="text-[13px] font-bold text-[#007544]">{accountDashboardContent.securityTitle}</span>
+                      <span className="mt-1 text-[12px] text-[#486459]">{accountDashboardContent.securityDescription}</span>
+                      <Touch className="mt-1 self-start rounded border border-[#ecac1c] px-2 py-1">
+                        <span className="text-[12px] text-[#de9700]">{accountDashboardContent.setupNow}</span>
+                      </Touch>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              <Touch
+                className="mt-5 h-11 w-full flex-row items-center justify-center gap-2 rounded-lg border border-[#e0574f]"
+                onPress={() => {
+                  if (profile) signOut();
+                  navigate("/login");
+                }}
+              >
+                <LogOut color="#e0574f" size={17} />
+                <span className="text-[14px] font-semibold text-[#e0574f]">
+                  {profile ? accountDashboardContent.signOut : accountDashboardContent.signIn}
+                </span>
+              </Touch>
+
+              <span className="mt-2 text-right text-[12px] text-[#929a96]">{accountDashboardContent.version}</span>
+            </div>
+          </div>
+        </div>
 
         <PublicFooter activeItemId="account" />
-      </View>
+      </div>
     </Screen>
   );
 }
