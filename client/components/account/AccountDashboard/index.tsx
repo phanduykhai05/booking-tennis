@@ -10,6 +10,7 @@ import {
   systemItems,
 } from "@/components/account/AccountDashboard/content";
 import images from "@/components/assets/images";
+import BookingHistory from "@/components/booking/BookingHistory";
 import PublicFooter from "@/components/layouts/PublicFooter";
 import Touch from "@/components/ui/Pressable";
 import Screen from "@/components/ui/Screen";
@@ -57,7 +58,9 @@ export default function AccountDashboard() {
   return (
     <Screen backgroundColor="#027a45" statusBarStyle="light">
       <div className="flex-1 bg-[#eaf8f1]">
-        <div className="grow shrink overflow-y-auto overflow-x-hidden">
+        {/* Desktop như bản gốc: panel tài khoản 470px bên trái, danh sách đặt lịch bên phải. */}
+        <div className="flex-1 lg:flex-row">
+        <div className="grow shrink overflow-y-auto overflow-x-hidden lg:w-[470px] lg:flex-none">
           <div className="pb-32">
             <div className="h-[146px] overflow-hidden bg-[#027a45] px-6 pt-5">
               <img
@@ -164,6 +167,10 @@ export default function AccountDashboard() {
               <span className="mt-2 text-right text-[12px] text-[#929a96]">{accountDashboardContent.version}</span>
             </div>
           </div>
+        </div>
+        <div className="hidden lg:flex lg:flex-1">
+          <BookingHistory embedded />
+        </div>
         </div>
 
         <PublicFooter activeItemId="account" />

@@ -13,7 +13,10 @@ import { ApiError } from "@/lib/api/http";
 import { useSession } from "@/lib/api/session";
 import type { ApiBooking } from "@/lib/api/types";
 
-export default function BookingHistory() {
+type BookingHistoryProps = { embedded?: boolean };
+
+/** embedded: làm cột phải của trang Tài khoản trên desktop, không có nút quay lại. */
+export default function BookingHistory({ embedded = false }: BookingHistoryProps) {
   const navigate = useNavigate();
   const { isReady, token } = useSession();
   const [bookings, setBookings] = useState<ApiBooking[]>([]);
@@ -71,13 +74,15 @@ export default function BookingHistory() {
     <Screen backgroundColor="#007346" statusBarStyle="light">
       <div className="flex-1 bg-white">
         <div className="h-[59px] flex-row items-center justify-center bg-[#00925a]">
-          <Touch
-            accessibilityLabel="Quay lại trang tài khoản"
-            className="absolute left-5 rounded p-1"
-            onPress={() => navigate("/account")}
-          >
-            <ArrowLeft color="#ffffff" size={21} strokeWidth={2.6} />
-          </Touch>
+          {embedded ? null : (
+            <Touch
+              accessibilityLabel="Quay lại trang tài khoản"
+              className="absolute left-5 rounded p-1"
+              onPress={() => navigate("/account")}
+            >
+              <ArrowLeft color="#ffffff" size={21} strokeWidth={2.6} />
+            </Touch>
+          )}
           <span className="text-[17px] font-bold text-white">{bookingHistoryContent.title}</span>
         </div>
 
