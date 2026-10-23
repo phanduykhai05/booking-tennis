@@ -22,30 +22,30 @@ export default function VenueSummary({ content, onOpen, venue }: VenueSummaryPro
   const navigate = useNavigate();
 
   return (
-    <div className="flex-row flex-wrap items-center gap-x-3 gap-y-2.5 px-3 py-3">
-      <div className="h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-50">
-        <img alt="" className="object-contain" src={logoImages[venue.logo]} style={{ height: 32, width: 32 }} />
+    <div className="flex-row flex-wrap items-center gap-x-3 gap-y-2.5 px-2.5 py-2.5">
+      <div className="h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
+        <img alt="" className="object-contain" src={logoImages[venue.logo]} style={{ height: 36, width: 36 }} />
       </div>
 
       <div className="min-w-[132px] flex-1">
         <Touch onPress={onOpen}>
-          <span className="truncate text-[16px] font-bold text-[#12324f]">{venue.name}</span>
+          <span className="truncate text-[15px] font-semibold text-[#004126]">{venue.name}</span>
         </Touch>
         <span className="mt-0.5 truncate text-[12px]">
-          <span className="font-semibold text-[#16a34a]">({venue.distanceLabel})</span>{" "}
-          <span className="text-slate-500">{venue.address}</span>
+          {venue.distanceLabel ? <span className="text-[#f17f51]">({venue.distanceLabel}) </span> : null}
+          <span className="text-[#4a4a4a]">{venue.address}</span>
         </span>
-        <div className="mt-1 flex-row items-center gap-1">
-          <Clock color="#64748b" size={14} strokeWidth={1.8} />
-          <span className="text-[12px] text-slate-500">{venue.openingLabel}</span>
+        <div className="mt-0.5 flex-row items-center gap-1">
+          <Clock color="#4a4a4a" size={13} strokeWidth={1.8} />
+          <span className="text-[12px] text-[#4a4a4a]">{venue.openingLabel}</span>
         </div>
       </div>
 
       <Touch
-        className="h-8 shrink-0 items-center justify-center rounded-md bg-[#f0a01e] px-3.5"
+        className="h-[30px] w-[80px] shrink-0 items-center justify-center rounded bg-[#e2af30]"
         onPress={() => navigate(venue.productHref)}
       >
-        <span className="text-[12px] font-bold uppercase tracking-wide text-white">{content.bookLabel}</span>
+        <span className="text-[13px] font-bold uppercase text-white">{content.bookLabel}</span>
       </Touch>
     </div>
   );

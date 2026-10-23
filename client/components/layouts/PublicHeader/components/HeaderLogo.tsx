@@ -9,7 +9,7 @@ type HeaderLogoProps = {
   size?: number;
 };
 
-function PaddleMark({ size }: { size: number }) {
+export function PaddleMark({ size }: { size: number }) {
   return (
     <svg fill="none" height={size} viewBox="0 0 40 40" width={size}>
       <defs>

@@ -1,8 +1,10 @@
-import { Heart } from "lucide-react";
+import { Heart, Search } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import aloboIcons from "@/components/assets/icons";
 import images from "@/components/assets/images";
+import { PaddleMark } from "@/components/layouts/PublicHeader/components/HeaderLogo";
+import CountryFlag from "@/components/ui/CountryFlag";
 import Touch from "@/components/ui/Pressable";
 import { shadow } from "@/components/ui/theme";
 
@@ -43,29 +45,30 @@ export default function AuthenticatedHomeHeader({
             <span className="text-[13px] text-white">{date}</span>
             <span className="mt-2 text-[16px] font-bold text-[#ffe049]">{name}</span>
           </div>
-          <Touch accessibilityLabel="Thông báo" className="rounded-full p-2" onPress={() => navigate("/notifications")}>
-            <aloboIcons.notification color="#ffffff" height={20} width={20} />
+          <CountryFlag code="VN" size={22} />
+          <Touch accessibilityLabel="Thông báo" className="rounded-full p-1" onPress={() => navigate("/notifications")}>
+            <aloboIcons.notification color="#ffffff" height={22} width={22} />
           </Touch>
         </div>
       </div>
 
-      <div
-        className="absolute inset-x-4 bottom-0 h-11 flex-row items-center rounded-lg bg-white pl-3"
-        style={shadow.raised}
-      >
-        <span className="mr-2 text-[#00a85a]">◉</span>
-        <input
-          className="min-w-0 flex-1 bg-transparent text-[15px] text-[#134832] outline-none placeholder:text-[#a5aaa7]"
-          onChange={(event) => onSearchChange(event.target.value)}
-          placeholder={searchPlaceholder}
-          value={searchValue}
-        />
-        <div className="border-l border-[#eef2f0] px-3">
-          <aloboIcons.filter color="#134832" height={20} width={20} />
+      {/* Như bản gốc: ô tìm kiếm (logo, vạch ngăn, kính lúp) và nút yêu thích là hai khối tách rời. */}
+      <div className="absolute inset-x-[9px] -bottom-1 flex-row gap-2">
+        <div className="h-[42px] flex-1 flex-row items-center gap-2 rounded-lg bg-white pl-2 pr-3" style={shadow.raised}>
+          <div className="h-6 justify-center border-r border-[#d4d4d4] pr-1.5">
+            <PaddleMark size={24} />
+          </div>
+          <input
+            className="min-w-0 flex-1 bg-transparent text-[14px] text-[#134832] outline-none placeholder:text-[#9a9a9a]"
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder={searchPlaceholder}
+            value={searchValue}
+          />
+          <Search color="#0b6b3c" size={20} strokeWidth={2.4} />
         </div>
-        <div className="border-l border-[#eef2f0] px-3">
-          <Heart color="#006b3d" size={21} />
-        </div>
+        <Touch accessibilityLabel="Sân yêu thích" className="h-[42px] w-[42px] items-center justify-center rounded-lg bg-white" style={shadow.raised}>
+          <Heart color="#0b6b3c" size={22} strokeWidth={2.2} />
+        </Touch>
       </div>
     </div>
   );

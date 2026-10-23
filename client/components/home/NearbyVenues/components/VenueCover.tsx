@@ -15,7 +15,7 @@ type VenueCoverProps = {
 
 export default function VenueCover({ content, onOpen, venue }: VenueCoverProps) {
   return (
-    <Touch accessibilityLabel={`Xem thông tin ${venue.name}`} className="aspect-[2/1] w-full overflow-hidden bg-slate-100" onPress={onOpen}>
+    <Touch accessibilityLabel={`Xem thông tin ${venue.name}`} className="aspect-[15/4] w-full lg:aspect-[4/1] overflow-hidden bg-slate-100" onPress={onOpen}>
       <img alt="" className="object-cover" src={images.venueCovers[venue.cover]} style={{ height: "100%", width: "100%" }} />
 
       <div className="absolute inset-x-2 top-2 flex-row items-start justify-between gap-2">

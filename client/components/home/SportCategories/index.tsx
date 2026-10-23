@@ -11,7 +11,7 @@ type SportCategoriesProps = {
 export default function SportCategories({ activeId, categories, onSelect }: SportCategoriesProps) {
   return (
     <div aria-label={sportCategoriesLabel} className="grow shrink flex-row overflow-x-auto overflow-y-hidden [scrollbar-width:none]">
-      <div className="flex-row items-start gap-2 px-3 pb-4 pt-1">
+      <div className="flex-row items-start px-[9px] pb-2.5 pt-2.5">
         {categories.map((category) => (
           <CategoryTile
             category={category}

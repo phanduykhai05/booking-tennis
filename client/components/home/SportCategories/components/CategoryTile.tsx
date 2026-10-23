@@ -8,43 +8,31 @@ type CategoryTileProps = {
   onSelect: () => void;
 };
 
-/** Nền ô và màu ghim của từng bộ môn, khai báo đầy đủ để không ghép chuỗi màu lúc chạy. */
-const tileTheme: Record<SportCategoryIcon, { background: string; pin: string }> = {
-  athletics: { background: "#fdecee", pin: "#f43f5e" },
-  badminton: { background: "#e6f7f1", pin: "#12b886" },
-  basketball: { background: "#fef3e3", pin: "#f0910c" },
-  football: { background: "#e8f7ee", pin: "#22a55b" },
-  pickleball: { background: "#e9f1fe", pin: "#3b82f6" },
-  swimming: { background: "#e4f6fa", pin: "#06b6d4" },
-  tableTennis: { background: "#fdebef", pin: "#e11d48" },
-  taekwondo: { background: "#ecebfd", pin: "#4f46e5" },
-  tennis: { background: "#fef0e5", pin: "#f97316" },
-  volleyball: { background: "#f1ecfd", pin: "#8b5cf6" },
+/** Màu ghim của từng bộ môn (ô nền trắng viền xám như bản gốc), khai báo đầy đủ để không ghép chuỗi màu lúc chạy. */
+const tileTheme: Record<SportCategoryIcon, { pin: string }> = {
+  athletics: { pin: "#f43f5e" },
+  badminton: { pin: "#12b886" },
+  basketball: { pin: "#f0910c" },
+  football: { pin: "#22a55b" },
+  pickleball: { pin: "#3b82f6" },
+  swimming: { pin: "#06b6d4" },
+  tableTennis: { pin: "#e11d48" },
+  taekwondo: { pin: "#4f46e5" },
+  tennis: { pin: "#f97316" },
+  volleyball: { pin: "#8b5cf6" },
 };
 
 export default function CategoryTile({ category, isActive, onSelect }: CategoryTileProps) {
   const theme = tileTheme[category.icon];
 
   return (
-    <Touch className="w-[74px] shrink-0 items-center gap-2" onPress={onSelect}>
+    <Touch className="w-[70px] shrink-0 items-center gap-1.5" onPress={onSelect}>
       <div
-        className={`h-14 w-14 items-center justify-center overflow-hidden rounded-[18px] ${isActive ? "border-2 border-[#008447]" : ""}`}
-        style={{ backgroundColor: theme.background }}
+        className={`h-[38px] w-[38px] items-center justify-center overflow-hidden rounded-md bg-white ${isActive ? "border-2 border-[#008447]" : "border border-[#b9b9b9]"}`}
       >
-        {/* Ánh sáng nhẹ từ trên xuống, dùng chung cho mọi màu nên không phải khai báo gradient riêng từng môn. */}
-        <div
-          style={{
-            backgroundImage: "linear-gradient(180deg, rgba(255,255,255,0.65), rgba(255,255,255,0))",
-            bottom: 0,
-            left: 0,
-            position: "absolute",
-            right: 0,
-            top: 0,
-          }}
-        />
-        <CategoryPin color={theme.pin} icon={category.icon} scale={0.86} />
+        <CategoryPin color={theme.pin} icon={category.icon} scale={0.64} />
       </div>
-      <span className={`text-center text-[12px] font-medium ${isActive ? "text-[#007b45]" : "text-slate-600"}`}>
+      <span className={`text-center text-[12px] ${isActive ? "font-bold text-[#007b45]" : "text-[#33624b]"}`}>
         {category.label}
       </span>
     </Touch>

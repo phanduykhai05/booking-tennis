@@ -16,7 +16,7 @@ export default function NearbyVenues({ sport = null, venues }: NearbyVenuesProps
   const visibleVenues = sport ? venues.filter((venue) => venue.sport === sport) : venues;
 
   return (
-    <div aria-label={nearbyVenuesContent.sectionLabel} className="gap-3 px-3 pb-6">
+    <div aria-label={nearbyVenuesContent.sectionLabel} className="gap-3 px-[9px] pb-6 lg:grid lg:grid-cols-3 lg:gap-x-[14px] lg:gap-y-[11px] lg:px-[10px]">
       {visibleVenues.map((venue) => (
         <VenueCard content={nearbyVenuesContent} key={venue.id} onOpen={() => setSelectedVenue(venue)} venue={venue} />
       ))}
