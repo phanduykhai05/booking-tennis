@@ -11,7 +11,7 @@ import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module';
 
 /**
- * Ở production, bản web (Expo export) được phục vụ cùng origin với API nên không cần
+ * Ở production, bản web (Vite build, PWA) được phục vụ cùng origin với API nên không cần
  * Caddy/nginx và cũng không phát sinh CORS. Ở máy dev thư mục này không tồn tại nên
  * middleware bị bỏ qua và chỉ API chạy.
  */
@@ -22,14 +22,14 @@ function serveWebBuild(app: NestExpressApplication, config: ConfigService) {
 
   if (!existsSync(webRoot)) return;
 
-  // `extensions` để /bookings trả về bookings.html do Expo Router static export sinh ra.
-  app.useStaticAssets(webRoot, { extensions: ['html'] });
+  app.useStaticAssets(webRoot);
 
-  // Route không khớp file nào thì trả trang 404 của Expo Router, nhưng không nuốt /api.
+  // SPA: mọi trang (/bookings, /product/abc…) đều trả index.html để react-router tự dựng,
+  // trang "không tìm thấy" do client hiển thị. Không nuốt /api và file tĩnh thiếu (ảnh, js).
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return next();
     if (req.path.startsWith('/api') || !req.accepts('html')) return next();
-    res.status(404).sendFile('+not-found.html', { root: webRoot });
+    res.sendFile('index.html', { root: webRoot });
   });
 }
 
