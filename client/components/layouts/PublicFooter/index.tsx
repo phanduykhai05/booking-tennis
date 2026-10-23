@@ -15,7 +15,7 @@ export default function PublicFooter({ activeItemId = "home" }: PublicFooterProp
   return (
     <div
       aria-label={publicFooterLabel}
-      className="absolute inset-x-0 bottom-0 bg-white"
+      className="absolute inset-x-0 bottom-0 z-[1000] bg-white"
       // Safe-area đặt ở lớp bọc: nhét vào trong nav cao cố định sẽ bóp nội dung trên máy có notch.
       style={{ paddingBottom: "env(safe-area-inset-bottom)", ...shadow.raised }}
     >

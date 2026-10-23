@@ -63,9 +63,9 @@ export default function BottomNavigation({ items }: BottomNavigationProps) {
 
   return (
     // Nền trắng đặc: đĩa vòm chồng lên nền nav sẽ lộ vệt tròn nếu nền trong suốt.
-    <div className="h-[70px] w-full rounded-t-[22px] bg-white">
+    <div className="h-[70px] w-full rounded-t-[22px] bg-white lg:h-[78px]">
       {/* Giới hạn bề ngang cụm mục để trên màn rộng chúng không dạt ra hai mép. */}
-      <div className="mx-auto h-full w-full max-w-[480px] flex-row items-center px-2">
+      <div className="mx-auto h-full w-full max-w-[480px] flex-row items-center px-2 lg:max-w-none">
         {items.map((item) =>
           item.isPrimary ? (
             <PrimaryEntry item={item} key={item.id} onPress={() => navigate(item.href)} />
