@@ -39,7 +39,7 @@ export default function AuthenticatedHome({ sports, venues }: AuthenticatedHomeP
 
         <div className="grow shrink overflow-y-auto overflow-x-hidden">
           <div className="pb-32">
-            <VenueFilterContent showPromotion sports={sports} venues={visibleVenues} />
+            <VenueFilterContent sports={sports} venues={visibleVenues} />
           </div>
         </div>
 

@@ -15,7 +15,7 @@ export const loginContent = {
   registerPrompt: "Bạn chưa có tài khoản?",
   signIn: "ĐĂNG NHẬP",
   signingIn: "ĐANG ĐĂNG NHẬP…",
-  staffNotice: "Nếu bạn là CHỦ SÂN hoặc NHÂN VIÊN, Bấm vào đây để tải ứng dụng ALOBO - Quản lý sân thể thao!",
+  staffNotice: "Nếu bạn là CHỦ SÂN hoặc NHÂN VIÊN, Bấm vào đây để tải ứng dụng TennisHub - Quản lý sân thể thao!",
   title: "Đăng nhập",
 };
 

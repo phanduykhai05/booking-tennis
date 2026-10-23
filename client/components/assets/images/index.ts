@@ -1,7 +1,5 @@
-import img_aca_cover_0 from "@/components/assets/images/uploads/alobo/aca_cover.png";
 import img_alert_bg_1 from "@/components/assets/images/uploads/alobo/alert_bg.png";
 import img_home_header_2 from "@/components/assets/images/uploads/alobo/home_header.png";
-import img_logo_3 from "@/components/assets/images/uploads/alobo/logo.png";
 import img_profile_calendar_4 from "@/components/assets/images/uploads/alobo/profile_calendar.png";
 import img_profile_course_5 from "@/components/assets/images/uploads/alobo/profile_course.png";
 import img_profile_notification_6 from "@/components/assets/images/uploads/alobo/profile_notification.png";
@@ -32,10 +30,8 @@ import img_tennis_cover_26 from "@/components/assets/images/uploads/venues/tenni
  */
 const images = {
   alobo: {
-    acaCover: img_aca_cover_0,
     alertBackground: img_alert_bg_1,
     homeHeader: img_home_header_2,
-    logo: img_logo_3,
     profileShortcuts: {
       booking: img_profile_calendar_4,
       course: img_profile_course_5,
