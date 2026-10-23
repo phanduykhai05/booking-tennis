@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { hash } from 'bcryptjs';
+import { randomBytes } from 'node:crypto';
 
 import {
   activityTypeToApi,
@@ -198,7 +199,8 @@ export class AdminService {
       (await this.prisma.user.create({
         data: {
           fullName: dto.customerName,
-          passwordHash: await hash(dto.customerPhone, 10),
+          // Mật khẩu ngẫu nhiên không ai biết; khách tự đặt mật khẩu qua "Quên mật khẩu".
+          passwordHash: await hash(randomBytes(24).toString('hex'), 10),
           phone: dto.customerPhone,
         },
       }));
