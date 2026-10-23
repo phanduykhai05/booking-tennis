@@ -39,6 +39,9 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
   const { token } = useSession();
   const [date, setDate] = useState(initialDate);
   const [schedule, setSchedule] = useState(initialSchedule);
+  // Ngày mà `schedule` đang thật sự thuộc về; so với nó chứ không so với initialDate,
+  // nếu không quay lại ngày đầu sẽ giữ nguyên lưới của ngày vừa xem.
+  const [loadedDate, setLoadedDate] = useState(initialDate);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
@@ -68,7 +71,7 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
 
   // setState nằm trong callback của promise để effect không cập nhật state ngay trong thân hàm.
   useEffect(() => {
-    if (date === initialDate) return;
+    if (date === loadedDate) return;
 
     let isActive = true;
 
@@ -76,6 +79,7 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
       .then((next) => {
         if (!isActive) return;
         setSchedule(next);
+        setLoadedDate(date);
         setErrorMessage("");
       })
       .catch((error: unknown) => {
@@ -88,7 +92,7 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
     return () => {
       isActive = false;
     };
-  }, [date, initialDate, venueId]);
+  }, [date, loadedDate, venueId]);
 
   const timeSlots = useMemo(() => getTimeSlots(schedule.config), [schedule.config]);
   const selectedSlots = useMemo(
@@ -105,7 +109,8 @@ export default function CourtScheduleBooking({ backHref, initialDate, initialSch
   };
 
   const changeDate = (nextDate: string) => {
-    if (nextDate !== initialDate) setIsLoading(true);
+    // Quay về đúng ngày đang hiển thị thì không có gì để tải, kể cả khi request trước bị huỷ giữa chừng.
+    setIsLoading(nextDate !== loadedDate);
     setDate(nextDate);
     setSelectedKeys([]);
     setSuccessMessage("");
