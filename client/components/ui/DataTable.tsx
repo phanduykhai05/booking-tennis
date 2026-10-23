@@ -1,6 +1,5 @@
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react-native";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
 import { useMemo, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
 import type { ReactNode } from "react";
 
 import Touch from "@/components/ui/Pressable";
@@ -61,60 +60,60 @@ export default function DataTable<T>({ columns, emptyText, pageSize = 10, rowKey
   };
 
   return (
-    <View>
-      <ScrollView horizontal showsHorizontalScrollIndicator>
-        <View style={{ width: totalWidth }}>
-          <View className="flex-row border-b border-slate-200 bg-slate-50">
+    <div>
+      <div className="overflow-x-auto">
+        <div style={{ width: totalWidth }}>
+          <div className="flex-row border-b border-slate-200 bg-slate-50">
             {columns.map((column) => {
               const heading = (
-                <View className={`flex-row items-center gap-1 ${column.align === "right" ? "justify-end" : ""}`}>
-                  <Text className="text-[12px] font-bold uppercase tracking-wide text-slate-500">{column.title}</Text>
+                <div className={`flex-row items-center gap-1 ${column.align === "right" ? "justify-end" : ""}`}>
+                  <span className="text-[12px] font-bold uppercase tracking-wide text-slate-500">{column.title}</span>
                   {column.sorter && sort?.key === column.key ? (
                     sort.direction === "asc" ? <ChevronUp color="#0f9b58" size={13} /> : <ChevronDown color="#0f9b58" size={13} />
                   ) : null}
-                </View>
+                </div>
               );
 
-              // Cột không sắp xếp được dựng bằng View: dùng Touch disabled sẽ làm mờ tiêu đề.
+              // Cột không sắp xếp được dựng bằng div: dùng Touch disabled sẽ làm mờ tiêu đề.
               return column.sorter ? (
                 <Touch className="px-3 py-3" key={column.key} onPress={() => toggleSort(column.key)} style={{ width: column.width }}>
                   {heading}
                 </Touch>
               ) : (
-                <View className="px-3 py-3" key={column.key} style={{ width: column.width }}>
+                <div className="px-3 py-3" key={column.key} style={{ width: column.width }}>
                   {heading}
-                </View>
+                </div>
               );
             })}
-          </View>
+          </div>
 
           {visibleRows.length === 0 ? (
-            <View className="items-center px-4 py-12" style={{ width: totalWidth }}>
-              <Text className="text-[14px] text-slate-500">{emptyText}</Text>
-            </View>
+            <div className="items-center px-4 py-12" style={{ width: totalWidth }}>
+              <span className="text-[14px] text-slate-500">{emptyText}</span>
+            </div>
           ) : (
             visibleRows.map((row) => (
-              <View className="flex-row border-b border-slate-100" key={rowKey(row)}>
+              <div className="flex-row border-b border-slate-100" key={rowKey(row)}>
                 {columns.map((column) => (
-                  <View
+                  <div
                     className={`justify-center px-3 py-3 ${column.align === "right" ? "items-end" : ""}`}
                     key={column.key}
                     style={{ width: column.width }}
                   >
                     {column.render(row)}
-                  </View>
+                  </div>
                 ))}
-              </View>
+              </div>
             ))
           )}
-        </View>
-      </ScrollView>
+        </div>
+      </div>
 
       {pageCount > 1 ? (
-        <View className="flex-row items-center justify-end gap-3 border-t border-slate-200 px-4 py-2.5">
-          <Text className="text-[12px] text-slate-500">
+        <div className="flex-row items-center justify-end gap-3 border-t border-slate-200 px-4 py-2.5">
+          <span className="text-[12px] text-slate-500">
             Trang {safePage + 1}/{pageCount} · {sortedRows.length} dòng
-          </Text>
+          </span>
           <Touch
             accessibilityLabel="Trang trước"
             className="rounded-md border border-slate-200 p-1.5"
@@ -131,8 +130,8 @@ export default function DataTable<T>({ columns, emptyText, pageSize = 10, rowKey
           >
             <ChevronRight color="#334155" size={16} />
           </Touch>
-        </View>
+        </div>
       ) : null}
-    </View>
+    </div>
   );
 }

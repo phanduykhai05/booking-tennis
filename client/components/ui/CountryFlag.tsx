@@ -1,4 +1,3 @@
-import { Text, View } from "react-native";
 
 type CountryFlagProps = {
   code: string;
@@ -24,8 +23,8 @@ export function countryFlagEmoji(code: string): string {
 
 export default function CountryFlag({ code, size = 20 }: CountryFlagProps) {
   return (
-    <View className="items-center justify-center overflow-hidden rounded-full bg-white/10" style={{ height: size, width: size * 1.15 }}>
-      <Text style={{ fontSize: size * 0.92, lineHeight: size * 1.1 }}>{countryFlagEmoji(code)}</Text>
-    </View>
+    <div className="items-center justify-center overflow-hidden rounded-full bg-white/10" style={{ height: size, width: size * 1.15 }}>
+      <span style={{ fontSize: size * 0.92, lineHeight: size * 1.1 }}>{countryFlagEmoji(code)}</span>
+    </div>
   );
 }

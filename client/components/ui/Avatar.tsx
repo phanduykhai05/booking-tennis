@@ -1,4 +1,3 @@
-import { Text, View } from "react-native";
 
 type AvatarProps = {
   background?: string;
@@ -10,14 +9,14 @@ type AvatarProps = {
 /** Chữ cái đại diện; dùng khi chưa có ảnh đại diện thật từ API. */
 export default function Avatar({ background = "#e8f6ee", color = "#0b7a4a", label, size = 40 }: AvatarProps) {
   return (
-    <View
+    <div
       className="items-center justify-center rounded-full"
       style={{ backgroundColor: background, height: size, width: size }}
     >
-      <Text className="font-semibold uppercase" style={{ color, fontSize: size * 0.42 }}>
+      <span className="font-semibold uppercase" style={{ color, fontSize: size * 0.42 }}>
         {label}
-      </Text>
-    </View>
+      </span>
+    </div>
   );
 }
 

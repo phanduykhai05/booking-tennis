@@ -1,12 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { sessionStorageKey } from "@/lib/api/config";
 import type { ApiProfile, ApiSession } from "@/lib/api/types";
 
 type SessionContextValue = {
-  /** false trong lúc còn đang đọc AsyncStorage, để phân biệt "chưa đọc xong" với "chưa đăng nhập". */
+  /** Luôn true trên web (localStorage đọc đồng bộ); giữ lại để các màn hình không phải đổi. */
   isReady: boolean;
   session: ApiSession | null;
   signIn: (session: ApiSession) => void;
@@ -18,43 +17,39 @@ type SessionContextValue = {
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
+// localStorage có thể ném lỗi (chế độ riêng tư, bị chặn) nên mọi lần đọc/ghi đều bọc try/catch.
+function readStoredSession(): ApiSession | null {
+  try {
+    const raw = window.localStorage.getItem(sessionStorageKey);
+    return raw ? (JSON.parse(raw) as ApiSession) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredSession(next: ApiSession | null) {
+  try {
+    if (next) window.localStorage.setItem(sessionStorageKey, JSON.stringify(next));
+    else window.localStorage.removeItem(sessionStorageKey);
+  } catch {
+    // Không lưu được thì phiên vẫn sống trong bộ nhớ tới khi tải lại trang.
+  }
+}
+
 type SessionProviderProps = { children: ReactNode };
 
 export function SessionProvider({ children }: SessionProviderProps) {
-  const [session, setSession] = useState<ApiSession | null>(null);
-  const [isReady, setIsReady] = useState(false);
-
-  // setState nằm trong callback của promise để effect không cập nhật state ngay trong thân hàm.
-  useEffect(() => {
-    let isActive = true;
-
-    AsyncStorage.getItem(sessionStorageKey)
-      .then((raw) => {
-        if (!isActive || !raw) return;
-
-        try {
-          setSession(JSON.parse(raw) as ApiSession);
-        } catch {
-          setSession(null);
-        }
-      })
-      .finally(() => {
-        if (isActive) setIsReady(true);
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
+  const [session, setSession] = useState<ApiSession | null>(readStoredSession);
+  const isReady = true;
 
   const signIn = useCallback((next: ApiSession) => {
     setSession(next);
-    void AsyncStorage.setItem(sessionStorageKey, JSON.stringify(next));
+    writeStoredSession(next);
   }, []);
 
   const signOut = useCallback(() => {
     setSession(null);
-    void AsyncStorage.removeItem(sessionStorageKey);
+    writeStoredSession(null);
   }, []);
 
   const updateUser = useCallback((user: ApiProfile) => {
@@ -62,7 +57,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
       if (!current) return current;
 
       const next = { ...current, user };
-      void AsyncStorage.setItem(sessionStorageKey, JSON.stringify(next));
+      writeStoredSession(next);
       return next;
     });
   }, []);
@@ -75,7 +70,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 
-/** Phiên đăng nhập lưu ở AsyncStorage, chia sẻ qua context nên mọi màn hình thấy cùng một trạng thái. */
+/** Phiên đăng nhập lưu ở localStorage, chia sẻ qua context nên mọi màn hình thấy cùng một trạng thái. */
 export function useSession() {
   const value = useContext(SessionContext);
   if (!value) throw new Error("useSession phải được dùng bên trong SessionProvider.");

@@ -1,4 +1,4 @@
-import { ActivityIndicator, Text, View } from "react-native";
+import Spinner from "@/components/ui/Spinner";
 import type { ReactNode } from "react";
 
 import Touch from "@/components/ui/Pressable";
@@ -64,8 +64,8 @@ export default function Button({
       disabled={isDisabled}
       onPress={onPress}
     >
-      {isLoading ? <ActivityIndicator color={tone === "outline" || tone === "ghost" ? "#008447" : "#ffffff"} size="small" /> : icon ? <View>{icon}</View> : null}
-      <Text className={`font-bold ${sizeLabel[size]} ${isDisabled ? "text-[#a2aaa5]" : toneLabel[tone]}`}>{label}</Text>
+      {isLoading ? <Spinner color={tone === "outline" || tone === "ghost" ? "#008447" : "#ffffff"} size="small" /> : icon ? <div>{icon}</div> : null}
+      <span className={`font-bold ${sizeLabel[size]} ${isDisabled ? "text-[#a2aaa5]" : toneLabel[tone]}`}>{label}</span>
     </Touch>
   );
 }

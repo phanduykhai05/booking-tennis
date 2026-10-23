@@ -1,4 +1,3 @@
-import { Text, View } from "react-native";
 
 export type StatusTone = "blue" | "emerald" | "orange" | "rose" | "slate" | "violet";
 
@@ -21,8 +20,8 @@ export default function Tag({ label, tone }: TagProps) {
   const [background, text] = toneClassName[tone].split(" ");
 
   return (
-    <View className={`self-start rounded px-2 py-1 ${background}`}>
-      <Text className={`text-[12px] font-semibold ${text}`}>{label}</Text>
-    </View>
+    <div className={`self-start rounded px-2 py-1 ${background}`}>
+      <span className={`text-[12px] font-semibold ${text}`}>{label}</span>
+    </div>
   );
 }

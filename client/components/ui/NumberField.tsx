@@ -1,6 +1,3 @@
-import { Text, TextInput, View } from "react-native";
-import { useState } from "react";
-
 import { formatNumber } from "@/lib/format";
 
 type NumberFieldProps = {
@@ -11,21 +8,15 @@ type NumberFieldProps = {
 
 /** Nhập số tiền: hiển thị có dấu chấm ngăn nghìn, trả ra số nguyên cho tầng dữ liệu. */
 export default function NumberField({ label, onChange, value }: NumberFieldProps) {
-  const [isFocused, setIsFocused] = useState(false);
-
   return (
-    <View>
-      <Text className="mb-1.5 text-[14px] font-medium text-slate-700">{label}</Text>
-      <View className={`h-11 justify-center rounded-md border bg-white px-3 ${isFocused ? "border-[#0f9b58]" : "border-slate-200"}`}>
-        <TextInput
-          className="text-[15px] text-slate-800"
-          keyboardType="number-pad"
-          onBlur={() => setIsFocused(false)}
-          onChangeText={(text) => onChange(Number(text.replace(/\D/g, "")) || 0)}
-          onFocus={() => setIsFocused(true)}
-          value={formatNumber(value)}
-        />
-      </View>
-    </View>
+    <label>
+      <span className="mb-1.5 text-[14px] font-medium text-slate-700">{label}</span>
+      <input
+        className="h-11 rounded-md border border-slate-200 bg-white px-3 text-[15px] text-slate-800 outline-none focus:border-[#0f9b58]"
+        inputMode="numeric"
+        onChange={(event) => onChange(Number(event.target.value.replace(/\D/g, "")) || 0)}
+        value={formatNumber(value)}
+      />
+    </label>
   );
 }

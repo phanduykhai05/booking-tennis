@@ -1,4 +1,4 @@
-/** Gốc của API NestJS. Đổi bằng biến môi trường EXPO_PUBLIC_API_URL khi deploy. */
-export const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:4000/api";
+/** Gốc của API NestJS. Đổi bằng biến môi trường VITE_API_URL khi build (production dùng "/api"). */
+export const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
 
 export const sessionStorageKey = "tennishub.session";

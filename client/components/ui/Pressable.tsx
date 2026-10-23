@@ -1,27 +1,33 @@
-import { Pressable as RNPressable } from "react-native";
-import type { PressableProps, StyleProp, ViewStyle } from "react-native";
-import type { ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type TouchProps = Omit<PressableProps, "children" | "style"> & {
+type TouchProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children" | "onClick"> & {
+  accessibilityLabel?: string;
+  accessibilityRole?: string;
   children?: ReactNode;
   className?: string;
-  style?: StyleProp<ViewStyle>;
+  onPress?: () => void;
 };
 
-/**
- * Pressable với phản hồi chạm thống nhất: mờ nhẹ khi nhấn, mờ hơn khi disabled.
- * Dùng biến thể `active:` của NativeWind thay vì `style` dạng hàm, vì NativeWind
- * đã chiếm prop `style` để đổ class vào.
- */
-export default function Touch({ children, className = "", disabled, ...props }: TouchProps) {
+/** Nút bấm với phản hồi chạm thống nhất: mờ nhẹ khi nhấn, mờ hơn khi disabled. */
+export default function Touch({
+  accessibilityLabel,
+  accessibilityRole: _role,
+  children,
+  className = "",
+  disabled,
+  onPress,
+  ...props
+}: TouchProps) {
   return (
-    <RNPressable
-      accessibilityState={{ disabled: Boolean(disabled) }}
-      className={`${disabled ? "opacity-55" : "active:opacity-70"} ${className}`}
+    <button
+      aria-label={accessibilityLabel}
+      className={`${disabled ? "cursor-default opacity-55" : "active:opacity-70"} ${className}`}
       disabled={disabled}
+      onClick={onPress}
+      type="button"
       {...props}
     >
       {children}
-    </RNPressable>
+    </button>
   );
 }

@@ -12,27 +12,9 @@ export const colors = {
   canvas: "#f5f7f9",
 };
 
-/** Đổ bóng dùng lại được: RN cần shadow* trên iOS và elevation trên Android. */
+/** Đổ bóng dùng lại được, truyền thẳng vào prop `style`. */
 export const shadow = {
-  card: {
-    elevation: 2,
-    shadowColor: "#0f172a",
-    shadowOffset: { height: 1, width: 0 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-  },
-  raised: {
-    elevation: 6,
-    shadowColor: "#0f172a",
-    shadowOffset: { height: 6, width: 0 },
-    shadowOpacity: 0.16,
-    shadowRadius: 14,
-  },
-  sheet: {
-    elevation: 14,
-    shadowColor: "#002416",
-    shadowOffset: { height: -8, width: 0 },
-    shadowOpacity: 0.22,
-    shadowRadius: 20,
-  },
+  card: { boxShadow: "0 1px 3px rgba(15, 23, 42, 0.08)" },
+  raised: { boxShadow: "0 6px 14px rgba(15, 23, 42, 0.16)" },
+  sheet: { boxShadow: "0 -8px 20px rgba(0, 36, 22, 0.22)" },
 } as const;
