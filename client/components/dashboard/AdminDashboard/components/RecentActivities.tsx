@@ -1,5 +1,3 @@
-import { Text, View } from "react-native";
-
 import type { ActivityEvent, ActivityType } from "@/components/admin/AdminData/types";
 import Card from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/Feedback";
@@ -28,20 +26,20 @@ export default function RecentActivities({ activities }: RecentActivitiesProps) 
       {activities.length === 0 ? (
         <EmptyState description="Chưa có hoạt động nào" />
       ) : (
-        <View>
+        <div>
           {activities.map((activity, index) => (
-            <View className="flex-row gap-3" key={activity.id}>
-              <View className="items-center">
-                <View className="mt-1.5 h-2.5 w-2.5 rounded-full" style={{ backgroundColor: activityColor[activity.type] }} />
-                {index + 1 < activities.length ? <View className="w-px flex-1 bg-slate-200" /> : null}
-              </View>
-              <View className="flex-1 pb-4">
-                <Text className="text-[14px] text-slate-800">{activity.message}</Text>
-                <Text className="text-[12px] text-slate-500">{formatTime(activity.createdAt)}</Text>
-              </View>
-            </View>
+            <div className="flex-row gap-3" key={activity.id}>
+              <div className="items-center">
+                <div className="mt-1.5 h-2.5 w-2.5 rounded-full" style={{ backgroundColor: activityColor[activity.type] }} />
+                {index + 1 < activities.length ? <div className="w-px flex-1 bg-slate-200" /> : null}
+              </div>
+              <div className="flex-1 pb-4">
+                <span className="text-[14px] text-slate-800">{activity.message}</span>
+                <span className="text-[12px] text-slate-500">{formatTime(activity.createdAt)}</span>
+              </div>
+            </div>
           ))}
-        </View>
+        </div>
       )}
     </Card>
   );

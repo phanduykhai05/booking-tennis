@@ -1,7 +1,7 @@
-import { Redirect } from "expo-router";
+import { Navigate } from "react-router";
 
 import { adminHomeHref } from "@/components/layouts/AdminShell/mockData";
 
 export default function AdminIndexScreen() {
-  return <Redirect href={adminHomeHref} />;
+  return <Navigate replace to={adminHomeHref} />;
 }

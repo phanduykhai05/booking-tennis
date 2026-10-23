@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { Text, View } from "react-native";
-import Svg, { Defs, Line, LinearGradient, Path, Stop } from "react-native-svg";
 
 import Touch from "@/components/ui/Pressable";
 import { shadow } from "@/components/ui/theme";
@@ -63,27 +61,27 @@ export default function AreaChart({ accent = "emerald", data, formatValue }: Are
   const styles = accentStyles[accent];
 
   return (
-    <View className="h-[240px] w-full">
+    <div className="h-[240px] w-full">
       {/* preserveAspectRatio none: vùng tô co giãn theo bề ngang, nét vẽ vẫn giữ độ dày nhờ vectorEffect. */}
-      <Svg
+      <svg
         height="100%"
         preserveAspectRatio="none"
         style={{ bottom: 0, left: 0, position: "absolute", right: 0, top: 0 }}
         viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
         width="100%"
       >
-        <Defs>
-          <LinearGradient id={styles.gradientId} x1="0" x2="0" y1="0" y2="1">
-            <Stop offset="0%" stopColor={styles.stroke} stopOpacity="0.28" />
-            <Stop offset="100%" stopColor={styles.stroke} stopOpacity="0" />
-          </LinearGradient>
-        </Defs>
+        <defs>
+          <linearGradient id={styles.gradientId} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={styles.stroke} stopOpacity="0.28" />
+            <stop offset="100%" stopColor={styles.stroke} stopOpacity="0" />
+          </linearGradient>
+        </defs>
 
         {Array.from({ length: GRID_LINES + 1 }, (_, index) => {
           const y = PADDING_TOP + ((VIEWBOX_HEIGHT - PADDING_TOP - PADDING_BOTTOM) / GRID_LINES) * index;
 
           return (
-            <Line
+            <line
               key={index}
               stroke="#e2e8f0"
               strokeDasharray="4 6"
@@ -97,8 +95,8 @@ export default function AreaChart({ accent = "emerald", data, formatValue }: Are
           );
         })}
 
-        <Path d={areaPath} fill={`url(#${styles.gradientId})`} />
-        <Path
+        <path d={areaPath} fill={`url(#${styles.gradientId})`} />
+        <path
           d={linePath}
           fill="none"
           stroke={styles.stroke}
@@ -106,9 +104,9 @@ export default function AreaChart({ accent = "emerald", data, formatValue }: Are
           strokeWidth="2.5"
           vectorEffect="non-scaling-stroke"
         />
-      </Svg>
+      </svg>
 
-      {/* Chấm và nhãn dựng bằng View định vị theo phần trăm nên không bị kéo méo như SVG. */}
+      {/* Chấm và nhãn dựng bằng div định vị theo phần trăm nên không bị kéo méo như SVG. */}
       {points.map((point, index) => (
         <Touch
           accessibilityLabel={`${data[index].label}: ${formatValue(data[index].value)}`}
@@ -117,7 +115,7 @@ export default function AreaChart({ accent = "emerald", data, formatValue }: Are
           onPress={() => setActiveIndex((current) => (current === index ? null : index))}
           style={{ left: `${point.percentLeft}%`, marginLeft: -14, marginTop: -14, top: `${point.percentTop}%` }}
         >
-          <View
+          <div
             className="h-2.5 w-2.5 rounded-full border-2 border-white"
             style={{ backgroundColor: styles.stroke }}
           />
@@ -125,26 +123,29 @@ export default function AreaChart({ accent = "emerald", data, formatValue }: Are
       ))}
 
       {activeIndex !== null ? (
-        <View
+        <div
           className="absolute rounded-md bg-slate-900 px-2 py-1"
-          style={[
-            { left: `${points[activeIndex].percentLeft}%`, marginLeft: -50, top: `${points[activeIndex].percentTop}%`, marginTop: -38 },
-            shadow.card,
-          ]}
+          style={{
+            left: `${points[activeIndex].percentLeft}%`,
+            marginLeft: -50,
+            marginTop: -38,
+            top: `${points[activeIndex].percentTop}%`,
+            ...shadow.card,
+          }}
         >
-          <Text className="text-center text-[11px] text-white">
+          <span className="text-center text-[11px] text-white">
             {data[activeIndex].label}: {formatValue(data[activeIndex].value)}
-          </Text>
-        </View>
+          </span>
+        </div>
       ) : null}
 
-      <View className="absolute inset-x-0 bottom-0 flex-row justify-between">
+      <div className="absolute inset-x-0 bottom-0 flex-row justify-between">
         {data.map((item) => (
-          <Text className="text-[11px] text-slate-400" key={item.label}>
+          <span className="text-[11px] text-slate-400" key={item.label}>
             {item.label}
-          </Text>
+          </span>
         ))}
-      </View>
-    </View>
+      </div>
+    </div>
   );
 }

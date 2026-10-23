@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { View } from "react-native";
 
 import type { Court, EventPayload, Venue, VenueEvent } from "@/components/admin/AdminData/types";
 import { eventsContent } from "@/components/events/EventsManagement/content";
@@ -127,7 +126,7 @@ export default function EventFormPanel({
       </FormField>
 
       <FormField label="Ngày diễn ra">
-        <View className="flex-row">
+        <div className="flex-row">
           <DateField
             accessibilityLabel="Chọn ngày diễn ra"
             displayValue={eventDate}
@@ -135,11 +134,11 @@ export default function EventFormPanel({
             tone="light"
             value={eventDate}
           />
-        </View>
+        </div>
       </FormField>
 
-      <View className="flex-row gap-3">
-        <View className="flex-1">
+      <div className="flex-row gap-3">
+        <div className="flex-1">
           <FormField label="Giờ bắt đầu">
             <Select
               accessibilityLabel="Giờ bắt đầu"
@@ -148,13 +147,13 @@ export default function EventFormPanel({
               value={startMinute}
             />
           </FormField>
-        </View>
-        <View className="flex-1">
+        </div>
+        <div className="flex-1">
           <FormField label="Giờ kết thúc">
             <Select accessibilityLabel="Giờ kết thúc" onChange={setEndMinute} options={minuteOptions} value={endMinute} />
           </FormField>
-        </View>
-      </View>
+        </div>
+      </div>
 
       <NumberField label="Giá vé" onChange={setPrice} value={price} />
       <NumberField label={eventsContent.capacityLabel} onChange={setCapacity} value={capacity} />

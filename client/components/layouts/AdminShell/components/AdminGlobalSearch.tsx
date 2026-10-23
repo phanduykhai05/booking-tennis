@@ -1,7 +1,6 @@
-import { useRouter } from "expo-router";
-import { CircleX, Search } from "lucide-react-native";
+import { useNavigate } from "react-router";
+import { CircleX, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Text, TextInput, View } from "react-native";
 
 import { useAdminData } from "@/components/admin/AdminData";
 import Touch from "@/components/ui/Pressable";
@@ -28,7 +27,7 @@ const maxPerGroup = 3;
  * không phát sinh request; bấm vào kết quả sẽ mở đúng màn và điền sẵn bộ lọc tương ứng.
  */
 export default function AdminGlobalSearch({ placeholder }: AdminGlobalSearchProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { bookings, courts, customers, payments, venues } = useAdminData();
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -128,21 +127,20 @@ export default function AdminGlobalSearch({ placeholder }: AdminGlobalSearchProp
   const chon = (hit: SearchHit) => {
     setQuery("");
     setIsFocused(false);
-    router.push(hit.href);
+    navigate(hit.href);
   };
 
   return (
-    <View className="z-50 h-11 max-w-md flex-1">
-      <View className="h-11 flex-row items-center gap-2 rounded-md border border-slate-200 bg-white px-3">
+    <div className="z-50 h-11 max-w-md flex-1">
+      <div className="h-11 flex-row items-center gap-2 rounded-md border border-slate-200 bg-white px-3">
         <Search color="#94a3b8" size={17} />
-        <TextInput
-          accessibilityLabel={placeholder}
-          className="min-w-0 flex-1 text-[14px] text-slate-800"
+        <input
+          aria-label={placeholder}
+          className="min-w-0 flex-1 bg-transparent text-[14px] text-slate-800 outline-none placeholder:text-[#94a3b8]"
           onBlur={() => setTimeout(() => setIsFocused(false), 150)}
-          onChangeText={setQuery}
+          onChange={(event) => setQuery(event.target.value)}
           onFocus={() => setIsFocused(true)}
           placeholder={placeholder}
-          placeholderTextColor="#94a3b8"
           value={query}
         />
         {query ? (
@@ -150,25 +148,25 @@ export default function AdminGlobalSearch({ placeholder }: AdminGlobalSearchProp
             <CircleX color="#94a3b8" size={16} />
           </Touch>
         ) : null}
-      </View>
+      </div>
 
       {isOpen ? (
-        <View
+        <div
           className="absolute left-0 right-0 top-12 max-h-[420px] overflow-hidden rounded-xl border border-slate-200 bg-white"
           style={shadow.raised}
         >
           {hits.length === 0 ? (
-            <Text className="px-4 py-4 text-[13px] text-slate-500">Không tìm thấy kết quả phù hợp.</Text>
+            <span className="px-4 py-4 text-[13px] text-slate-500">Không tìm thấy kết quả phù hợp.</span>
           ) : (
             hits.map((hit, index) => {
               const laDauNhom = index === 0 || hits[index - 1].nhom !== hit.nhom;
 
               return (
-                <View key={hit.id}>
+                <div key={hit.id}>
                   {laDauNhom ? (
-                    <Text className="bg-slate-50 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <span className="bg-slate-50 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                       {hit.nhom}
-                    </Text>
+                    </span>
                   ) : null}
                   <Touch
                     accessibilityLabel={`${hit.nhom}: ${hit.tieuDe}`}
@@ -176,17 +174,17 @@ export default function AdminGlobalSearch({ placeholder }: AdminGlobalSearchProp
                     className="px-4 py-2.5"
                     onPress={() => chon(hit)}
                   >
-                    <Text className="text-[14px] font-semibold text-slate-900">{hit.tieuDe}</Text>
-                    <Text className="mt-0.5 text-[12px] text-slate-500" numberOfLines={1}>
+                    <span className="text-[14px] font-semibold text-slate-900">{hit.tieuDe}</span>
+                    <span className="truncate mt-0.5 text-[12px] text-slate-500">
                       {hit.phu}
-                    </Text>
+                    </span>
                   </Touch>
-                </View>
+                </div>
               );
             })
           )}
-        </View>
+        </div>
       ) : null}
-    </View>
+    </div>
   );
 }

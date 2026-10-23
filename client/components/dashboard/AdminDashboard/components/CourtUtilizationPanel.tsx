@@ -1,5 +1,3 @@
-import { Text, View } from "react-native";
-
 import { getCourtUtilization } from "@/components/admin/AdminData/selectors";
 import type { Booking, Court, Venue } from "@/components/admin/AdminData/types";
 import Card from "@/components/ui/Card";
@@ -29,21 +27,21 @@ export default function CourtUtilizationPanel({ bookings, courts, date, dateLabe
 
   return (
     <Card className="h-full" description={`Tỷ lệ thời gian được đặt trong ngày ${dateLabel}`} title="Công suất theo sân">
-      <View className="gap-4">
+      <div className="gap-4">
         {rankedCourts.map(({ court, utilization }) => {
           const style = getUtilizationStyle(utilization);
 
           return (
-            <View key={court.id}>
-              <View className="mb-1 flex-row items-center justify-between gap-2">
-                <Text className="text-[14px] font-bold text-slate-900">{court.name}</Text>
+            <div key={court.id}>
+              <div className="mb-1 flex-row items-center justify-between gap-2">
+                <span className="text-[14px] font-bold text-slate-900">{court.name}</span>
                 <Tag label={style.label} tone={style.tone} />
-              </View>
+              </div>
               <ProgressBar color={style.color} height={8} percent={utilization} />
-            </View>
+            </div>
           );
         })}
-      </View>
+      </div>
     </Card>
   );
 }

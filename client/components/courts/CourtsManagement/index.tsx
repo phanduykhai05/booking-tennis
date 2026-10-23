@@ -1,7 +1,6 @@
-import { DollarSign, MapPin, Pencil, Plus, Wrench } from "lucide-react-native";
-import { useLocalSearchParams } from "expo-router";
+import { DollarSign, MapPin, Pencil, Plus, Wrench } from "lucide-react";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { useSearchParams } from "react-router";
 
 import { useAdminData } from "@/components/admin/AdminData";
 import type { Court, CourtPayload, CourtStatus } from "@/components/admin/AdminData/types";
@@ -31,8 +30,8 @@ const statusFilterOptions = [
 export default function CourtsManagement() {
   const { courts, createCourt, updateCourt, venues } = useAdminData();
   // Lọc sẵn khi mở từ ô tìm nhanh trên thanh đầu trang.
-  const { q } = useLocalSearchParams<{ q?: string }>();
-  const [query, setQuery] = useState(q ?? "");
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [status, setStatus] = useState<"all" | CourtStatus>("all");
   const [editingCourt, setEditingCourt] = useState<Court | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -53,27 +52,27 @@ export default function CourtsManagement() {
   const columns: Column<Court>[] = [
     {
       key: "name",
-      render: (court) => <Text className="text-[14px] font-bold text-slate-900">{court.name}</Text>,
+      render: (court) => <span className="text-[14px] font-bold text-slate-900">{court.name}</span>,
       title: "Tên sân",
       width: 160,
     },
     {
       key: "surface",
-      render: (court) => <Text className="text-[14px] text-slate-700">{courtsContent.surfaceLabels[court.surface]}</Text>,
+      render: (court) => <span className="text-[14px] text-slate-700">{courtsContent.surfaceLabels[court.surface]}</span>,
       title: "Bề mặt",
       width: 140,
     },
     {
       key: "isIndoor",
       render: (court) => (
-        <Text className="text-[14px] text-slate-700">{court.isIndoor ? courtsContent.indoorLabel : courtsContent.outdoorLabel}</Text>
+        <span className="text-[14px] text-slate-700">{court.isIndoor ? courtsContent.indoorLabel : courtsContent.outdoorLabel}</span>
       ),
       title: "Không gian",
       width: 130,
     },
     {
       key: "hourlyRate",
-      render: (court) => <Text className="text-[14px] font-bold text-slate-900">{formatCurrency(court.hourlyRate)}</Text>,
+      render: (court) => <span className="text-[14px] font-bold text-slate-900">{formatCurrency(court.hourlyRate)}</span>,
       sorter: (first, second) => first.hourlyRate - second.hourlyRate,
       title: "Giá mỗi giờ",
       width: 150,
@@ -105,7 +104,7 @@ export default function CourtsManagement() {
   ];
 
   return (
-    <View className="gap-5">
+    <div className="gap-5">
       <AdminPageHeader
         actions={
           <Button
@@ -175,6 +174,6 @@ export default function CourtsManagement() {
         onSave={handleSave}
         venues={venues}
       />
-    </View>
+    </div>
   );
 }

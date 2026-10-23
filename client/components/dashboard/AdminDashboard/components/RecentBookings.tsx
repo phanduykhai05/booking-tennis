@@ -1,5 +1,4 @@
-import { useRouter } from "expo-router";
-import { Text, View } from "react-native";
+import { useNavigate } from "react-router";
 
 import type { Booking, Court, Customer } from "@/components/admin/AdminData/types";
 import StatusBadge from "@/components/admin/shared/StatusBadge";
@@ -27,39 +26,39 @@ const statusTone: Record<BookingStatus, StatusTone> = {
 };
 
 export default function RecentBookings({ bookings, courts, customers }: RecentBookingsProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const courtMap = new Map(courts.map((court) => [court.id, court]));
   const customerMap = new Map(customers.map((customer) => [customer.id, customer]));
 
   const columns: Column<Booking>[] = [
     {
       key: "code",
-      render: (booking) => <Text className="text-[14px] font-bold text-slate-900">{booking.code}</Text>,
+      render: (booking) => <span className="text-[14px] font-bold text-slate-900">{booking.code}</span>,
       title: "Booking",
       width: 130,
     },
     {
       key: "customer",
-      render: (booking) => <Text className="text-[14px] text-slate-700">{customerMap.get(booking.customerId)?.name ?? "—"}</Text>,
+      render: (booking) => <span className="text-[14px] text-slate-700">{customerMap.get(booking.customerId)?.name ?? "—"}</span>,
       title: "Khách hàng",
       width: 170,
     },
     {
       key: "court",
       render: (booking) => (
-        <View>
-          <Text className="text-[14px] text-slate-800">{courtMap.get(booking.courtId)?.name ?? "—"}</Text>
-          <Text className="text-[12px] text-slate-500">
+        <div>
+          <span className="text-[14px] text-slate-800">{courtMap.get(booking.courtId)?.name ?? "—"}</span>
+          <span className="text-[12px] text-slate-500">
             {formatMinutes(booking.startMinute)} – {formatMinutes(booking.endMinute)}
-          </Text>
-        </View>
+          </span>
+        </div>
       ),
       title: "Sân / Giờ",
       width: 160,
     },
     {
       key: "totalPrice",
-      render: (booking) => <Text className="text-[14px] font-bold text-slate-900">{formatCurrency(booking.totalPrice)}</Text>,
+      render: (booking) => <span className="text-[14px] font-bold text-slate-900">{formatCurrency(booking.totalPrice)}</span>,
       title: "Số tiền",
       width: 140,
     },
@@ -77,8 +76,8 @@ export default function RecentBookings({ bookings, courts, customers }: RecentBo
     <Card
       description="Các booking mới nhất trong hệ thống"
       extra={
-        <Touch onPress={() => router.navigate("/admin/bookings")}>
-          <Text className="text-[14px] font-semibold text-emerald-600">Xem tất cả</Text>
+        <Touch onPress={() => navigate("/admin/bookings")}>
+          <span className="text-[14px] font-semibold text-emerald-600">Xem tất cả</span>
         </Touch>
       }
       noBodyPadding

@@ -1,5 +1,4 @@
-import { Calendar, DollarSign, MapPin, Percent, Users } from "lucide-react-native";
-import { View, useWindowDimensions } from "react-native";
+import { Calendar, DollarSign, MapPin, Percent, Users } from "lucide-react";
 
 import { useAdminData } from "@/components/admin/AdminData";
 import { getCourtUtilization, getDailyAdminSeries, getReceivedRevenue } from "@/components/admin/AdminData/selectors";
@@ -16,6 +15,7 @@ import { dashboardContent } from "@/components/dashboard/AdminDashboard/content"
 import MetricGrid from "@/components/ui/MetricGrid";
 import Tag from "@/components/ui/Tag";
 import { formatCurrency } from "@/lib/format";
+import { useWindowDimensions } from "@/lib/useWindowDimensions";
 
 const emptyStatusCounts: Record<BookingStatus, number> = {
   cancelled: 0,
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
     .slice(0, 5);
 
   return (
-    <View className="gap-5">
+    <div className="gap-5">
       <AdminPageHeader
         actions={<Tag label={dashboardContent.rangeLabel} tone="emerald" />}
         description={dashboardContent.description}
@@ -126,8 +126,8 @@ export default function AdminDashboard() {
         />
       </MetricGrid>
 
-      <View className={isWide ? "flex-row gap-4" : "gap-4"}>
-        <View className={isWide ? "flex-[2]" : ""}>
+      <div className={isWide ? "flex-row gap-4" : "gap-4"}>
+        <div className={isWide ? "flex-[2]" : ""}>
           <TrendPanel
             accent="violet"
             data={revenueSeries}
@@ -137,14 +137,14 @@ export default function AdminDashboard() {
             title="Xu hướng doanh thu"
             trend={revenueTrend}
           />
-        </View>
-        <View className={isWide ? "flex-1" : ""}>
+        </div>
+        <div className={isWide ? "flex-1" : ""}>
           <StatusBreakdown counts={statusCounts} total={data.bookings.length} />
-        </View>
-      </View>
+        </div>
+      </div>
 
-      <View className={isWide ? "flex-row gap-4" : "gap-4"}>
-        <View className={isWide ? "flex-1" : ""}>
+      <div className={isWide ? "flex-row gap-4" : "gap-4"}>
+        <div className={isWide ? "flex-1" : ""}>
           <TrendPanel
             data={bookingSeries}
             description="Số booking hợp lệ theo ngày"
@@ -153,9 +153,9 @@ export default function AdminDashboard() {
             title="Xu hướng đặt sân"
             trend={bookingTrend}
           />
-        </View>
+        </div>
         {venue ? (
-          <View className={isWide ? "flex-1" : ""}>
+          <div className={isWide ? "flex-1" : ""}>
             <CourtUtilizationPanel
               bookings={data.bookings}
               courts={activeCourts}
@@ -163,14 +163,14 @@ export default function AdminDashboard() {
               dateLabel={dashboardContent.dateLabel}
               venue={venue}
             />
-          </View>
+          </div>
         ) : null}
-        <View className={isWide ? "flex-1" : ""}>
+        <div className={isWide ? "flex-1" : ""}>
           <RecentActivities activities={data.activityEvents.slice(0, 5)} />
-        </View>
-      </View>
+        </div>
+      </div>
 
       <RecentBookings bookings={recentBookings} courts={data.courts} customers={data.customers} />
-    </View>
+    </div>
   );
 }

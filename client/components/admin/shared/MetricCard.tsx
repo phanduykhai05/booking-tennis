@@ -1,5 +1,4 @@
-import { ArrowDown, ArrowUp } from "lucide-react-native";
-import { Text, View } from "react-native";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import type { ReactNode } from "react";
 
 import Card from "@/components/ui/Card";
@@ -37,27 +36,27 @@ export const metricIconColor: Record<MetricTone, string> = {
 export default function MetricCard({ change, icon, label, tone = "emerald", trend, value }: MetricCardProps) {
   return (
     <Card className="h-full">
-      <View className="flex-row items-start justify-between gap-3">
-        <View className="min-w-0 flex-1">
-          <Text className="text-[13px] text-slate-500">{label}</Text>
-          <Text className="mt-1 text-[24px] font-bold text-slate-900">{value}</Text>
-        </View>
-        <View className={`h-11 w-11 shrink-0 items-center justify-center rounded-xl ${toneBackground[tone]}`}>{icon}</View>
-      </View>
+      <div className="flex-row items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <span className="text-[13px] text-slate-500">{label}</span>
+          <span className="mt-1 text-[24px] font-bold text-slate-900">{value}</span>
+        </div>
+        <div className={`h-11 w-11 shrink-0 items-center justify-center rounded-xl ${toneBackground[tone]}`}>{icon}</div>
+      </div>
 
-      <View className="mt-2 flex-row flex-wrap items-center gap-2">
+      <div className="mt-2 flex-row flex-wrap items-center gap-2">
         {trend ? (
-          <View
+          <div
             className={`flex-row items-center gap-1 rounded-full px-2 py-0.5 ${trend.isPositive ? "bg-emerald-50" : "bg-rose-50"}`}
           >
             {trend.isPositive ? <ArrowUp color="#059669" size={12} /> : <ArrowDown color="#e11d48" size={12} />}
-            <Text className={`text-[12px] font-semibold ${trend.isPositive ? "text-emerald-600" : "text-rose-600"}`}>
+            <span className={`text-[12px] font-semibold ${trend.isPositive ? "text-emerald-600" : "text-rose-600"}`}>
               {trend.label}
-            </Text>
-          </View>
+            </span>
+          </div>
         ) : null}
-        {change ? <Text className="text-[12px] text-slate-500">{change}</Text> : null}
-      </View>
+        {change ? <span className="text-[12px] text-slate-500">{change}</span> : null}
+      </div>
     </Card>
   );
 }

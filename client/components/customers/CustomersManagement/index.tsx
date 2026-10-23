@@ -1,7 +1,6 @@
-import { Calendar, DollarSign, User, Users } from "lucide-react-native";
-import { useLocalSearchParams } from "expo-router";
+import { Calendar, DollarSign, User, Users } from "lucide-react";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { useSearchParams } from "react-router";
 
 import { useAdminData } from "@/components/admin/AdminData";
 import { getCustomerBookingCount, getCustomerTotalSpend, getReceivedRevenue } from "@/components/admin/AdminData/selectors";
@@ -29,8 +28,8 @@ const statusFilterOptions = [
 export default function CustomersManagement() {
   const { bookings, customers, payments, updateCustomerStatus } = useAdminData();
   // Lọc sẵn khi mở từ ô tìm nhanh trên thanh đầu trang.
-  const { q } = useLocalSearchParams<{ q?: string }>();
-  const [query, setQuery] = useState(q ?? "");
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [status, setStatus] = useState<"all" | CustomerStatus>("all");
 
   const filteredCustomers = customers.filter((customer) => {
@@ -47,10 +46,10 @@ export default function CustomersManagement() {
     {
       key: "customer",
       render: (customer) => (
-        <View className="flex-row items-center gap-2">
+        <div className="flex-row items-center gap-2">
           <Avatar label={getInitials(customer.name)} size={34} />
-          <Text className="flex-1 text-[14px] font-bold text-slate-900">{customer.name}</Text>
-        </View>
+          <span className="flex-1 text-[14px] font-bold text-slate-900">{customer.name}</span>
+        </div>
       ),
       title: "Khách hàng",
       width: 210,
@@ -58,17 +57,17 @@ export default function CustomersManagement() {
     {
       key: "contact",
       render: (customer) => (
-        <View>
-          <Text className="text-[14px] text-slate-800">{customer.phone}</Text>
-          <Text className="text-[12px] text-slate-500">{customer.email || "Chưa có email"}</Text>
-        </View>
+        <div>
+          <span className="text-[14px] text-slate-800">{customer.phone}</span>
+          <span className="text-[12px] text-slate-500">{customer.email || "Chưa có email"}</span>
+        </div>
       ),
       title: "Liên hệ",
       width: 200,
     },
     {
       key: "joinedAt",
-      render: (customer) => <Text className="text-[14px] text-slate-700">{formatDayMonthYear(customer.joinedAt)}</Text>,
+      render: (customer) => <span className="text-[14px] text-slate-700">{formatDayMonthYear(customer.joinedAt)}</span>,
       sorter: (first, second) => first.joinedAt.localeCompare(second.joinedAt),
       title: "Ngày tham gia",
       width: 150,
@@ -76,7 +75,7 @@ export default function CustomersManagement() {
     {
       key: "bookingCount",
       render: (customer) => (
-        <Text className="text-[14px] font-bold text-slate-900">{getCustomerBookingCount(bookings, customer.id)}</Text>
+        <span className="text-[14px] font-bold text-slate-900">{getCustomerBookingCount(bookings, customer.id)}</span>
       ),
       sorter: (first, second) => getCustomerBookingCount(bookings, first.id) - getCustomerBookingCount(bookings, second.id),
       title: "Số booking",
@@ -85,7 +84,7 @@ export default function CustomersManagement() {
     {
       key: "totalSpend",
       render: (customer) => (
-        <Text className="text-[14px] font-bold text-slate-900">{formatCurrency(getCustomerTotalSpend(payments, customer.id))}</Text>
+        <span className="text-[14px] font-bold text-slate-900">{formatCurrency(getCustomerTotalSpend(payments, customer.id))}</span>
       ),
       sorter: (first, second) => getCustomerTotalSpend(payments, first.id) - getCustomerTotalSpend(payments, second.id),
       title: "Tổng chi tiêu",
@@ -110,7 +109,7 @@ export default function CustomersManagement() {
             className="h-9 justify-center rounded-md border border-slate-200 px-3"
             onPress={() => void updateCustomerStatus(customer.id, nextStatus)}
           >
-            <Text className="text-[13px] text-slate-700">{nextStatus === "active" ? "Kích hoạt" : "Tạm ngưng"}</Text>
+            <span className="text-[13px] text-slate-700">{nextStatus === "active" ? "Kích hoạt" : "Tạm ngưng"}</span>
           </Touch>
         );
       },
@@ -120,7 +119,7 @@ export default function CustomersManagement() {
   ];
 
   return (
-    <View className="gap-5">
+    <div className="gap-5">
       <AdminPageHeader description={customersContent.description} eyebrow="Quan hệ khách hàng" title={customersContent.title} />
 
       <MetricGrid minItemWidth={230}>
@@ -174,6 +173,6 @@ export default function CustomersManagement() {
           rows={filteredCustomers}
         />
       </AdminTableCard>
-    </View>
+    </div>
   );
 }

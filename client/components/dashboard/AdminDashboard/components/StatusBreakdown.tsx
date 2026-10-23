@@ -1,6 +1,3 @@
-import { Text, View } from "react-native";
-import Svg, { Circle, G } from "react-native-svg";
-
 import type { BookingStatus } from "@/components/admin/AdminData/types";
 import { bookingScheduleContent } from "@/components/booking/BookingSchedule/mockData";
 import Card from "@/components/ui/Card";
@@ -38,13 +35,13 @@ export default function StatusBreakdown({ counts, total }: StatusBreakdownProps)
 
   return (
     <Card className="h-full" description="Phân bổ toàn bộ lịch đặt sân" title="Cơ cấu trạng thái">
-      <View className="items-center gap-5">
-        <View className="h-[152px] w-[152px] items-center justify-center">
-          <Svg height={152} viewBox="0 0 140 140" width={152}>
-            <G rotation={-90} origin="70, 70">
-              <Circle cx="70" cy="70" fill="none" r={RADIUS} stroke="#f1f5f9" strokeWidth={STROKE_WIDTH} />
+      <div className="items-center gap-5">
+        <div className="h-[152px] w-[152px] items-center justify-center">
+          <svg height={152} viewBox="0 0 140 140" width={152}>
+            <g transform="rotate(-90 70 70)">
+              <circle cx="70" cy="70" fill="none" r={RADIUS} stroke="#f1f5f9" strokeWidth={STROKE_WIDTH} />
               {segments.map((segment) => (
-                <Circle
+                <circle
                   cx="70"
                   cy="70"
                   fill="none"
@@ -57,26 +54,26 @@ export default function StatusBreakdown({ counts, total }: StatusBreakdownProps)
                   strokeWidth={STROKE_WIDTH}
                 />
               ))}
-            </G>
-          </Svg>
-          <View className="absolute items-center justify-center">
-            <Text className="text-[28px] font-bold text-slate-900">{total}</Text>
-            <Text className="text-[12px] text-slate-500">lịch đặt</Text>
-          </View>
-        </View>
+            </g>
+          </svg>
+          <div className="absolute items-center justify-center">
+            <span className="text-[28px] font-bold text-slate-900">{total}</span>
+            <span className="text-[12px] text-slate-500">lịch đặt</span>
+          </div>
+        </div>
 
-        <View className="w-full gap-2">
+        <div className="w-full gap-2">
           {segments.map((segment) => (
-            <View className="flex-row items-center gap-2" key={segment.status}>
-              <View className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: segment.color }} />
-              <Text className="flex-1 text-[12px] text-slate-600">
+            <div className="flex-row items-center gap-2" key={segment.status}>
+              <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: segment.color }} />
+              <span className="flex-1 text-[12px] text-slate-600">
                 {bookingScheduleContent.bookingStatusLabels[segment.status]}
-              </Text>
-              <Text className="text-[12px] font-bold text-slate-900">{segment.value}</Text>
-            </View>
+              </span>
+              <span className="text-[12px] font-bold text-slate-900">{segment.value}</span>
+            </div>
           ))}
-        </View>
-      </View>
+        </div>
+      </div>
     </Card>
   );
 }

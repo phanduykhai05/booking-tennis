@@ -1,5 +1,4 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { View } from "react-native";
 import type { ReactNode } from "react";
 
 import type {
@@ -138,9 +137,9 @@ export default function AdminDataProvider({ children }: AdminDataProviderProps) 
   return (
     <AdminDataContext.Provider value={value}>
       {errorMessage ? (
-        <View className="mb-4">
+        <div className="mb-4">
           <ErrorMessage text={errorMessage} />
-        </View>
+        </div>
       ) : null}
       {children}
     </AdminDataContext.Provider>

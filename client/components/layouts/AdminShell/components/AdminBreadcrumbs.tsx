@@ -1,6 +1,5 @@
-import { useRouter } from "expo-router";
-import { ChevronRight, Home } from "lucide-react-native";
-import { Text, View } from "react-native";
+import { useNavigate } from "react-router";
+import { ChevronRight, Home } from "lucide-react";
 
 import { adminHomeHref } from "@/components/layouts/AdminShell/mockData";
 import type { AdminNavigationItem } from "@/components/layouts/AdminShell/types";
@@ -12,16 +11,16 @@ type AdminBreadcrumbsProps = {
 };
 
 export default function AdminBreadcrumbs({ items, pathname }: AdminBreadcrumbsProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const currentItem = items.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
 
   return (
-    <View className="mb-4 flex-row items-center gap-1">
-      <Touch accessibilityLabel="Tổng quan" className="p-1" onPress={() => router.navigate(adminHomeHref)}>
+    <div className="mb-4 flex-row items-center gap-1">
+      <Touch accessibilityLabel="Tổng quan" className="p-1" onPress={() => navigate(adminHomeHref)}>
         <Home color="#64748b" size={15} />
       </Touch>
       <ChevronRight color="#cbd5e1" size={14} />
-      <Text className="text-[13px] text-slate-600">{currentItem?.label ?? "Quản trị"}</Text>
-    </View>
+      <span className="text-[13px] text-slate-600">{currentItem?.label ?? "Quản trị"}</span>
+    </div>
   );
 }

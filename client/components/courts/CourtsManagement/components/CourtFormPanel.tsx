@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { View } from "react-native";
 
 import type { Court, CourtPayload, CourtStatus, CourtSurface, Venue } from "@/components/admin/AdminData/types";
 import { courtsContent } from "@/components/courts/CourtsManagement/content";
@@ -73,9 +72,9 @@ export default function CourtFormPanel({ court, isOpen, onClose, onSave, venues 
 
       <NumberField label="Giá thuê mỗi giờ" onChange={setHourlyRate} value={hourlyRate} />
 
-      <View className="pt-1">
+      <div className="pt-1">
         <SwitchField label="Sân trong nhà" onChange={setIsIndoor} value={isIndoor} />
-      </View>
+      </div>
     </Drawer>
   );
 }

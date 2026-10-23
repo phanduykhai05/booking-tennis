@@ -1,6 +1,5 @@
-import { CalendarDays, Pencil, Plus, Ticket, Trash2, Users } from "lucide-react-native";
+import { CalendarDays, Pencil, Plus, Ticket, Trash2, Users } from "lucide-react";
 import { useState } from "react";
-import { Text, View } from "react-native";
 
 import { useAdminData } from "@/components/admin/AdminData";
 import type { EventPayload, EventTicket, VenueEvent } from "@/components/admin/AdminData/types";
@@ -100,10 +99,10 @@ export default function EventsManagement() {
     {
       key: "title",
       render: (event) => (
-        <View>
-          <Text className="text-[14px] font-bold text-slate-900">{event.title}</Text>
-          <Text className="mt-0.5 text-[12px] text-slate-500">{venueNameById.get(event.venueId) ?? event.venueId}</Text>
-        </View>
+        <div>
+          <span className="text-[14px] font-bold text-slate-900">{event.title}</span>
+          <span className="mt-0.5 text-[12px] text-slate-500">{venueNameById.get(event.venueId) ?? event.venueId}</span>
+        </div>
       ),
       title: "Sự kiện",
       width: 200,
@@ -111,12 +110,12 @@ export default function EventsManagement() {
     {
       key: "eventDate",
       render: (event) => (
-        <View>
-          <Text className="text-[14px] text-slate-700">{event.eventDate}</Text>
-          <Text className="mt-0.5 text-[12px] text-slate-500">
+        <div>
+          <span className="text-[14px] text-slate-700">{event.eventDate}</span>
+          <span className="mt-0.5 text-[12px] text-slate-500">
             {formatMinutes(event.startMinute)} - {formatMinutes(event.endMinute)}
-          </Text>
-        </View>
+          </span>
+        </div>
       ),
       sorter: (first, second) => first.eventDate.localeCompare(second.eventDate),
       title: "Thời gian",
@@ -126,7 +125,7 @@ export default function EventsManagement() {
       key: "courtId",
       render: (event) =>
         event.courtId ? (
-          <Text className="text-[14px] text-slate-700">{courtNameById.get(event.courtId) ?? event.courtLabel}</Text>
+          <span className="text-[14px] text-slate-700">{courtNameById.get(event.courtId) ?? event.courtLabel}</span>
         ) : (
           <StatusBadge label={eventsContent.noCourtLabel} tone="slate" />
         ),
@@ -135,7 +134,7 @@ export default function EventsManagement() {
     },
     {
       key: "price",
-      render: (event) => <Text className="text-[14px] font-bold text-slate-900">{formatCurrency(event.price)}</Text>,
+      render: (event) => <span className="text-[14px] font-bold text-slate-900">{formatCurrency(event.price)}</span>,
       sorter: (first, second) => first.price - second.price,
       title: "Giá vé",
       width: 130,
@@ -143,9 +142,9 @@ export default function EventsManagement() {
     {
       key: "soldCount",
       render: (event) => (
-        <Text className="text-[14px] text-slate-700">
+        <span className="text-[14px] text-slate-700">
           {event.soldCount}/{event.capacity}
-        </Text>
+        </span>
       ),
       title: eventsContent.soldLabel,
       width: 110,
@@ -154,7 +153,7 @@ export default function EventsManagement() {
       align: "right",
       key: "actions",
       render: (event) => (
-        <View className="flex-row justify-end gap-2">
+        <div className="flex-row justify-end gap-2">
           <Touch
             accessibilityLabel={`${eventsContent.viewTicketsLabel} ${event.title}`}
             className="h-9 w-9 items-center justify-center rounded-md border border-slate-200"
@@ -181,7 +180,7 @@ export default function EventsManagement() {
           >
             <Trash2 color={event.ticketCount > 0 ? "#cbd5e1" : "#e11d48"} size={16} />
           </Touch>
-        </View>
+        </div>
       ),
       title: "Thao tác",
       width: 160,
@@ -191,25 +190,25 @@ export default function EventsManagement() {
   const ticketColumns: Column<EventTicket>[] = [
     {
       key: "customerName",
-      render: (ticket) => <Text className="text-[14px] font-bold text-slate-900">{ticket.customerName}</Text>,
+      render: (ticket) => <span className="text-[14px] font-bold text-slate-900">{ticket.customerName}</span>,
       title: "Khách hàng",
       width: 160,
     },
     {
       key: "phone",
-      render: (ticket) => <Text className="text-[14px] text-slate-700">{ticket.phone}</Text>,
+      render: (ticket) => <span className="text-[14px] text-slate-700">{ticket.phone}</span>,
       title: "Điện thoại",
       width: 130,
     },
     {
       key: "quantity",
-      render: (ticket) => <Text className="text-[14px] text-slate-700">{ticket.quantity}</Text>,
+      render: (ticket) => <span className="text-[14px] text-slate-700">{ticket.quantity}</span>,
       title: "Số vé",
       width: 80,
     },
     {
       key: "totalPrice",
-      render: (ticket) => <Text className="text-[14px] font-bold text-slate-900">{formatCurrency(ticket.totalPrice)}</Text>,
+      render: (ticket) => <span className="text-[14px] font-bold text-slate-900">{formatCurrency(ticket.totalPrice)}</span>,
       title: "Thành tiền",
       width: 130,
     },
@@ -224,7 +223,7 @@ export default function EventsManagement() {
   ];
 
   return (
-    <View className="gap-5">
+    <div className="gap-5">
       <AdminPageHeader
         actions={
           <Button
@@ -333,6 +332,6 @@ export default function EventsManagement() {
           />
         )}
       </Drawer>
-    </View>
+    </div>
   );
 }
