@@ -61,7 +61,7 @@ export default function ForgotPassword() {
 
     try {
       const result = await forgotPassword(isEmailLookup ? { email: lookupAccount } : { phone: lookupAccount });
-      setSentCode(result.code);
+      setSentCode(result.code ?? "");
       setExpiresInMinutes(result.expiresInMinutes);
       setAccount(lookupAccount);
     } catch (error) {
@@ -181,9 +181,9 @@ export default function ForgotPassword() {
           </View>
         ) : null}
 
-        {sentCode ? (
+        {account ? (
           <View className="mt-6 gap-2">
-            <SuccessMessage text={`${forgotPasswordContent.codeSent} ${sentCode}`} />
+            <SuccessMessage text={sentCode ? `${forgotPasswordContent.codeSent} ${sentCode}` : forgotPasswordContent.codeRequested} />
             <NoticeMessage text={forgotPasswordContent.expiresNote(expiresInMinutes)} />
           </View>
         ) : null}

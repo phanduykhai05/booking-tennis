@@ -50,7 +50,7 @@ export const register = (body: { email?: string; fullName: string; password: str
   apiFetch<ApiSession>("/auth/register", { body, method: "POST" });
 
 export const forgotPassword = (body: { email?: string; phone?: string }) =>
-  apiFetch<{ code: string; expiresInMinutes: number; sentTo: string }>("/auth/forgot-password", {
+  apiFetch<{ code?: string; expiresInMinutes: number; sentTo: string }>("/auth/forgot-password", {
     body,
     method: "POST",
   });

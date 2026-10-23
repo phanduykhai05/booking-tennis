@@ -2,6 +2,7 @@ export const forgotPasswordContent = {
   backToLookup: "Đổi tài khoản khác",
   codeLabel: "Mã xác thực",
   codePlaceholder: "Nhập mã gồm 6 số",
+  codeRequested: "Nếu tài khoản tồn tại, mã xác thực đã được gửi tới bạn.",
   codeSent: "Mã xác thực đã gửi (bản dev hiển thị trực tiếp):",
   confirmPasswordLabel: "Nhập lại mật khẩu mới",
   confirmPasswordPlaceholder: "Nhập lại mật khẩu mới",

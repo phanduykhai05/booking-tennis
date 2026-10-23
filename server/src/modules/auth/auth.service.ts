@@ -2,9 +2,11 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash } from 'bcryptjs';
 
@@ -19,12 +21,17 @@ import {
 } from './dto/auth.dto';
 
 const resetCodeTtlMinutes = 15;
+const invalidResetMessage =
+  'Mã xác thực không đúng hoặc đã hết hạn. Vui lòng yêu cầu mã mới.';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly config: ConfigService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -90,7 +97,10 @@ export class AuthService {
       where: dto.phone ? { phone: dto.phone } : { email: dto.email },
     });
 
-    if (!user) throw new NotFoundException('Không tìm thấy tài khoản');
+    const sentTo = dto.phone ?? dto.email ?? '';
+
+    // Không có tài khoản vẫn trả cùng một câu, để không ai dò được số nào đã đăng ký.
+    if (!user) return { expiresInMinutes: resetCodeTtlMinutes, sentTo };
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -102,10 +112,16 @@ export class AuthService {
       },
     });
 
+    // ponytail: chưa có SMS/email, mã chỉ nằm trong log server; nối nhà cung cấp gửi tin rồi bỏ dòng log này.
+    this.logger.log(`Mã khôi phục cho ${sentTo}: ${code}`);
+
+    // Trả mã thẳng về chỉ để thử trên máy dev; production để trống cờ này.
+    const exposeCode = this.config.get<string>('EXPOSE_RESET_CODE') === 'true';
+
     return {
-      code,
+      ...(exposeCode ? { code } : {}),
       expiresInMinutes: resetCodeTtlMinutes,
-      sentTo: dto.phone ?? dto.email ?? '',
+      sentTo,
     };
   }
 
@@ -114,7 +130,7 @@ export class AuthService {
       where: { OR: [{ phone: dto.account }, { email: dto.account }] },
     });
 
-    if (!user) throw new NotFoundException('Không tìm thấy tài khoản');
+    if (!user) throw new BadRequestException(invalidResetMessage);
 
     const reset = await this.prisma.passwordReset.findFirst({
       orderBy: { createdAt: 'desc' },
@@ -122,7 +138,12 @@ export class AuthService {
     });
 
     if (!reset || reset.expiresAt.getTime() < Date.now()) {
-      throw new BadRequestException('Mã xác thực không đúng hoặc đã hết hạn');
+      // Sai một lần là huỷ mọi mã đang mở: mã 6 số không thể dò thử hàng loạt.
+      await this.prisma.passwordReset.updateMany({
+        data: { usedAt: new Date() },
+        where: { usedAt: null, userId: user.id },
+      });
+      throw new BadRequestException(invalidResetMessage);
     }
 
     await this.prisma.$transaction([
