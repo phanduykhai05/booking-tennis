@@ -307,6 +307,20 @@ model Payment {
   @@index([userId])
 }
 
+/// Mỗi khoản tiền SePay báo về, kể cả khoản không khớp giao dịch nào (để đối soát tay).
+/// Khoá chính là id giao dịch phía SePay: SePay gửi lại webhook khi timeout, cùng id thì
+/// bị chặn ở khoá chính nên tiền không bị cộng hai lần.
+model SepayTransaction {
+  id          String   @id
+  amount      Int
+  content     String?
+  createdAt   DateTime @default(now())
+  /// Null khi không khớp được giao dịch nào.
+  paymentId   String?
+
+  @@index([paymentId])
+}
+
 // Sự kiện bán vé hiển thị ở trang chi tiết sân (SOCIAL SÁNG, SOCIAL CHIỀU...).
 model VenueEvent {
   id          String        @id @default(cuid())

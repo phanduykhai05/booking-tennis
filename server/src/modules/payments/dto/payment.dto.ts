@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, Min, ValidateIf } from 'class-validator';
+import {
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateIf,
+} from 'class-validator';
 
 export class CreateSepayCheckoutDto {
   @ApiPropertyOptional({
@@ -22,9 +29,12 @@ export class CreateSepayCheckoutDto {
  * thực sự dùng để đối soát; SePay gửi thêm nhiều trường khác nhưng không cần.
  */
 export class SepayWebhookDto {
-  @ApiProperty({ example: 92704 })
-  @IsOptional()
-  id?: number;
+  @ApiProperty({
+    example: 92704,
+    description: 'Id giao dịch phía SePay, dùng để chống cộng trùng',
+  })
+  @IsInt({ message: 'id phải là số nguyên' })
+  id: number;
 
   @ApiPropertyOptional({ example: 'Vietcombank' })
   @IsOptional()
@@ -55,4 +65,34 @@ export class SepayWebhookDto {
   @IsOptional()
   @IsString()
   referenceCode?: string;
+
+  // Các trường SePay luôn gửi kèm. Không khai báo thì ValidationPipe toàn cục
+  // (forbidNonWhitelisted) trả 400 và mọi webhook thật đều bị từ chối.
+  @ApiPropertyOptional({ example: '2026-10-23 10:00:00' })
+  @IsOptional()
+  @IsString()
+  transactionDate?: string;
+
+  @ApiPropertyOptional({ example: '0123456789' })
+  @IsOptional()
+  @IsString()
+  accountNumber?: string;
+
+  @ApiPropertyOptional({
+    example: null,
+    description: 'Mã thanh toán SePay tự nhận diện, có thể null',
+  })
+  @IsOptional()
+  @IsString()
+  code?: string | null;
+
+  @ApiPropertyOptional({ example: 19077000 })
+  @IsOptional()
+  @IsNumber()
+  accumulated?: number;
+
+  @ApiPropertyOptional({ example: null })
+  @IsOptional()
+  @IsString()
+  subAccount?: string | null;
 }

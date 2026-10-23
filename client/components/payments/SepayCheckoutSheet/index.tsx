@@ -135,7 +135,8 @@ export default function SepayCheckoutSheet({ checkout, isOpen, onClose, onPaid }
   };
 
   // Hết hạn chỉ tính khi chưa nhận được đồng nào; đã trả một phần thì vẫn cho bù tiếp.
-  const isExpired = msLeft <= 0 && status === "unpaid";
+  // "failed" là server đã huỷ giao dịch: chuyển khoản vào lúc này sẽ không khớp được nữa.
+  const isExpired = status === "failed" || (msLeft <= 0 && status === "unpaid");
   const canStillPay = !isPaid && !isExpired;
 
   const rows = checkout

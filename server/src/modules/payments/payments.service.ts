@@ -12,7 +12,7 @@ import {
   paymentStatusToApi,
 } from '../../common/api-mapping';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import type { Payment } from '../../generated/prisma/client';
+import { Prisma, type Payment } from '../../generated/prisma/client';
 import { CreateSepayCheckoutDto, SepayWebhookDto } from './dto/payment.dto';
 import { SepayConfig } from './sepay.config';
 
@@ -225,69 +225,106 @@ export class PaymentsService {
         item.transferContent && haystack.includes(squash(item.transferContent)),
     );
 
-    if (!payment) {
-      return { matched: false, reason: 'no-matching-payment', success: true };
-    }
-
-    // Cộng dồn để lần chuyển thứ hai bù được phần còn thiếu của lần đầu.
-    const paidAmount = payment.paidAmount + dto.transferAmount;
-    const isFullyPaid = paidAmount >= payment.amount;
-
-    await this.prisma.$transaction(async (tx) => {
-      await tx.payment.update({
-        data: {
-          gatewayRef: dto.referenceCode ?? null,
-          paidAmount,
-          paidAt: isFullyPaid ? new Date() : null,
-          status: isFullyPaid ? 'PAID' : 'PARTIAL',
-        },
-        where: { id: payment.id },
-      });
-
-      if (payment.bookingId) {
-        await tx.booking.update({
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        // Ghi id SePay trước tiên: webhook gửi lại cùng id vướng khoá chính và rơi xuống catch.
+        await tx.sepayTransaction.create({
           data: {
-            paymentStatus: isFullyPaid ? 'PAID' : 'PARTIAL',
-            ...(isFullyPaid ? { status: 'CONFIRMED' } : {}),
+            amount: dto.transferAmount,
+            content: dto.content ?? dto.description ?? null,
+            id: String(dto.id),
+            paymentId: payment?.id ?? null,
           },
-          where: { id: payment.bookingId },
-        });
-      }
-
-      if (payment.ticketId && isFullyPaid) {
-        const ticket = await tx.eventTicket.update({
-          data: { status: 'PAID' },
-          where: { id: payment.ticketId },
         });
 
-        // soldCount chỉ cộng khi tiền đã vào, nên vé chờ thanh toán không chiếm chỗ vĩnh viễn.
-        await tx.venueEvent.update({
-          data: { soldCount: { increment: ticket.quantity } },
-          where: { id: ticket.eventId },
+        if (!payment) {
+          return {
+            matched: false,
+            reason: 'no-matching-payment',
+            success: true,
+          };
+        }
+
+        // increment là phép cộng nguyên tử trong DB: hai khoản đến cùng lúc không đè nhau.
+        const updated = await tx.payment.update({
+          data: {
+            gatewayRef: dto.referenceCode ?? null,
+            paidAmount: { increment: dto.transferAmount },
+          },
+          where: { id: payment.id },
         });
-      }
 
-      const received = dto.transferAmount.toLocaleString('vi-VN');
-      const missing = (payment.amount - paidAmount).toLocaleString('vi-VN');
+        const isFullyPaid = updated.paidAmount >= updated.amount;
+        // Chỉ ghi nhận "đã trả đủ" đúng một lần, ở khoản tiền làm vượt ngưỡng.
+        const justPaid =
+          isFullyPaid &&
+          updated.paidAmount - dto.transferAmount < updated.amount;
 
-      await tx.notification.create({
-        data: {
-          kind: 'BOOKING',
-          message: isFullyPaid
-            ? `Đã nhận ${received} ₫ cho giao dịch ${payment.transactionCode}.`
-            : `Đã nhận ${received} ₫ cho giao dịch ${payment.transactionCode}, còn thiếu ${missing} ₫.`,
-          title: isFullyPaid ? 'Thanh toán thành công' : 'Thanh toán chưa đủ',
-          userId: payment.userId,
-        },
+        await tx.payment.update({
+          data: {
+            paidAt: isFullyPaid ? (updated.paidAt ?? new Date()) : null,
+            status: isFullyPaid ? 'PAID' : 'PARTIAL',
+          },
+          where: { id: payment.id },
+        });
+
+        if (payment.bookingId) {
+          await tx.booking.update({
+            data: {
+              paymentStatus: isFullyPaid ? 'PAID' : 'PARTIAL',
+              ...(isFullyPaid ? { status: 'CONFIRMED' } : {}),
+            },
+            where: { id: payment.bookingId },
+          });
+        }
+
+        if (payment.ticketId && justPaid) {
+          const ticket = await tx.eventTicket.update({
+            data: { status: 'PAID' },
+            where: { id: payment.ticketId },
+          });
+
+          // soldCount chỉ cộng khi tiền đã vào, nên vé chờ thanh toán không chiếm chỗ vĩnh viễn.
+          await tx.venueEvent.update({
+            data: { soldCount: { increment: ticket.quantity } },
+            where: { id: ticket.eventId },
+          });
+        }
+
+        const received = dto.transferAmount.toLocaleString('vi-VN');
+        const missing = Math.max(
+          updated.amount - updated.paidAmount,
+          0,
+        ).toLocaleString('vi-VN');
+
+        await tx.notification.create({
+          data: {
+            kind: 'BOOKING',
+            message: isFullyPaid
+              ? `Đã nhận ${received} ₫ cho giao dịch ${payment.transactionCode}.`
+              : `Đã nhận ${received} ₫ cho giao dịch ${payment.transactionCode}, còn thiếu ${missing} ₫.`,
+            title: isFullyPaid ? 'Thanh toán thành công' : 'Thanh toán chưa đủ',
+            userId: payment.userId,
+          },
+        });
+
+        return {
+          matched: true,
+          paymentId: payment.id,
+          status: isFullyPaid ? 'paid' : 'partial',
+          success: true,
+        };
       });
-    });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        return { matched: false, reason: 'duplicate', success: true };
+      }
 
-    return {
-      matched: true,
-      paymentId: payment.id,
-      status: isFullyPaid ? 'paid' : 'partial',
-      success: true,
-    };
+      throw error;
+    }
   }
 
   /**
