@@ -10,7 +10,8 @@ export function toDbDate(value: string): Date {
 
   const date = new Date(`${value}T00:00:00.000Z`);
 
-  if (Number.isNaN(date.getTime())) {
+  // new Date tự cuộn "2027-02-30" sang 02/03 thay vì báo lỗi; so lại chuỗi để bắt ngày không tồn tại.
+  if (Number.isNaN(date.getTime()) || toDateString(date) !== value) {
     throw new BadRequestException('Ngày không hợp lệ');
   }
 
@@ -35,6 +36,20 @@ export function todayInAppTimezone(): string {
     timeZone: appTimezone,
     year: 'numeric',
   }).format(new Date());
+}
+
+/** Số phút đã trôi qua trong ngày hôm nay theo giờ Việt Nam (0-1439). */
+export function nowMinuteInAppTimezone(): number {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    hourCycle: 'h23',
+    minute: '2-digit',
+    timeZone: appTimezone,
+  }).formatToParts(new Date());
+  const get = (type: string) =>
+    Number(parts.find((part) => part.type === type)?.value ?? 0);
+
+  return get('hour') * 60 + get('minute');
 }
 
 export function formatMinutes(minute: number): string {

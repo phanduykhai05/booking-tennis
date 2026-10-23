@@ -13,9 +13,11 @@ import {
 } from '../../common/api-mapping';
 import {
   formatMinutes,
+  nowMinuteInAppTimezone,
   overlaps,
   toDateString,
   toDbDate,
+  todayInAppTimezone,
 } from '../../common/date.util';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { Prisma, PriceRule } from '../../generated/prisma/client';
@@ -80,14 +82,36 @@ export class BookingsService {
       }
     }
 
-    const [existingBookings, blocks, events] = await Promise.all([
-      this.prisma.booking.findMany({
-        where: {
-          bookingDate,
-          courtId: { in: courtIds },
-          status: { not: 'CANCELLED' },
-        },
-      }),
+    const today = todayInAppTimezone();
+    const nowMinute = nowMinuteInAppTimezone();
+
+    if (
+      dto.date < today ||
+      (dto.date === today &&
+        dto.slots.some((slot) => slot.startMinute <= nowMinute))
+    ) {
+      throw new BadRequestException('Không thể đặt khung giờ đã qua');
+    }
+
+    const selfClash = dto.slots.some((slot, index) =>
+      dto.slots.some(
+        (other, otherIndex) =>
+          otherIndex > index &&
+          other.courtId === slot.courtId &&
+          overlaps(
+            slot.startMinute,
+            slot.endMinute,
+            other.startMinute,
+            other.endMinute,
+          ),
+      ),
+    );
+
+    if (selfClash) {
+      throw new BadRequestException('Các khung giờ đã chọn bị trùng nhau');
+    }
+
+    const [blocks, events] = await Promise.all([
       this.prisma.courtBlock.findMany({
         where: { blockDate: bookingDate, courtId: { in: courtIds } },
       }),
@@ -99,23 +123,6 @@ export class BookingsService {
     const courtById = new Map(courts.map((court) => [court.id, court]));
 
     for (const slot of dto.slots) {
-      const clashBooking = existingBookings.find(
-        (booking) =>
-          booking.courtId === slot.courtId &&
-          overlaps(
-            slot.startMinute,
-            slot.endMinute,
-            booking.startMinute,
-            booking.endMinute,
-          ),
-      );
-
-      if (clashBooking) {
-        throw new ConflictException(
-          `${courtById.get(slot.courtId)?.name ?? 'Sân'} đã có người đặt khung ${formatMinutes(clashBooking.startMinute)} - ${formatMinutes(clashBooking.endMinute)}`,
-        );
-      }
-
       const clashBlock = blocks.find(
         (block) =>
           block.courtId === slot.courtId &&
@@ -153,6 +160,39 @@ export class BookingsService {
     }
 
     const created = await this.prisma.$transaction(async (tx) => {
+      // Khoá theo (sân, ngày) tới hết transaction: hai người bấm đặt cùng lúc phải xếp hàng,
+      // người sau mới thấy lịch của người trước. Sắp xếp để mọi request khoá cùng thứ tự, tránh deadlock.
+      for (const courtId of [...courtIds].sort()) {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`${courtId}:${dto.date}`}))`;
+      }
+
+      const existingBookings = await tx.booking.findMany({
+        where: {
+          bookingDate,
+          courtId: { in: courtIds },
+          status: { not: 'CANCELLED' },
+        },
+      });
+
+      for (const slot of dto.slots) {
+        const clashBooking = existingBookings.find(
+          (booking) =>
+            booking.courtId === slot.courtId &&
+            overlaps(
+              slot.startMinute,
+              slot.endMinute,
+              booking.startMinute,
+              booking.endMinute,
+            ),
+        );
+
+        if (clashBooking) {
+          throw new ConflictException(
+            `${courtById.get(slot.courtId)?.name ?? 'Sân'} đã có người đặt khung ${formatMinutes(clashBooking.startMinute)} - ${formatMinutes(clashBooking.endMinute)}`,
+          );
+        }
+      }
+
       const bookings: BookingWithRelations[] = [];
 
       for (const slot of dto.slots) {
