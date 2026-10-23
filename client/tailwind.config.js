@@ -1,7 +1,6 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
-  presets: [require("nativewind/preset")],
+export default {
+  content: ["./index.html", "./main.tsx", "./router.tsx", "./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
       // Giữ nguyên thang chữ đã khai báo ở @theme của bản Next để layout không đổi kích thước.

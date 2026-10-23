@@ -1,3 +1,47 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Giao diện được chuyển từ React Native sang DOM: mỗi <View> cũ thành <div>, mỗi Pressable thành <button>.
+ * Quy tắc dưới đây tái tạo đúng mặc định của View (flex dọc, relative, không co lại) như react-native-web,
+ * để bố cục giữ nguyên mà không phải sửa từng class. Bọc trong :where() nên độ ưu tiên bằng 0 —
+ * mọi class Tailwind (flex-row, block, static, shrink…) vẫn ghi đè được. Leaflet tự quản DOM nên loại ra.
+ */
+:where(#root div:not(.leaflet-container, .leaflet-container *), #root button:not(.leaflet-container *)) {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+}
+
+:where(#root button) {
+  cursor: pointer;
+  text-align: inherit;
+}
+
+:where(#root span) {
+  overflow-wrap: break-word;
+}
+
+/* Như Expo web: trang không tự cuộn, từng màn hình cuộn bên trong vùng ScrollView của nó. */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: #f5f6f5;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}

@@ -1,4 +1,4 @@
-import { Slot } from "expo-router";
+import { Outlet } from "react-router";
 
 import AdminDataProvider from "@/components/admin/AdminData";
 import AdminRouteGuard from "@/components/auth/AdminRouteGuard";
@@ -9,7 +9,7 @@ export default function AdminLayout() {
     <AdminRouteGuard>
       <AdminDataProvider>
         <AdminShell>
-          <Slot />
+          <Outlet />
         </AdminShell>
       </AdminDataProvider>
     </AdminRouteGuard>

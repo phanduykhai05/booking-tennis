@@ -1,31 +1,14 @@
 # dependencies
 node_modules/
 
-# expo
-.expo/
+# vite build + service worker sinh ở chế độ dev của vite-plugin-pwa
 dist/
-web-build/
-expo-env.d.ts
-
-# native
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-android/
-ios/
-
-# metro
-.metro-health-check*
+dev-dist/
 
 # misc
 .DS_Store
 *.pem
 npm-debug.*
-yarn-debug.*
-yarn-error.*
 .pnpm-debug.log*
 
 # env files

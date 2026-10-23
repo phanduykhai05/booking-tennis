@@ -1,22 +1,21 @@
-import "@/global.css";
-
-import { Stack } from "expo-router";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Suspense } from "react";
+import { Outlet } from "react-router";
 
 import InstallPrompt from "@/components/pwa/InstallPrompt";
+import { LoadingState } from "@/components/ui/Feedback";
 import { ToastProvider } from "@/components/ui/Toast";
 import { SessionProvider } from "@/lib/api/session";
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <SessionProvider>
-        <ToastProvider>
-          {/* Mỗi màn hình tự dựng header riêng nên tắt header mặc định của Stack. */}
-          <Stack screenOptions={{ animation: "slide_from_right", headerShown: false }} />
-          <InstallPrompt />
-        </ToastProvider>
-      </SessionProvider>
-    </SafeAreaProvider>
+    <SessionProvider>
+      <ToastProvider>
+        {/* Trang tải lười theo route nên cần khung chờ trong lúc tải chunk JS. */}
+        <Suspense fallback={<LoadingState label="Đang tải…" />}>
+          <Outlet />
+        </Suspense>
+        <InstallPrompt />
+      </ToastProvider>
+    </SessionProvider>
   );
 }
