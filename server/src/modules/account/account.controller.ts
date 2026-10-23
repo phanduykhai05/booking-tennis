@@ -112,22 +112,6 @@ export class AccountController {
       where: { id: eventId },
     });
 
-    // soldCount chỉ đếm vé đã trả tiền; vé đang chờ chuyển khoản vẫn phải giữ chỗ tạm.
-    const heldSeats = await this.prisma.eventTicket.aggregate({
-      _sum: { quantity: true },
-      where: { eventId, status: 'PENDING' },
-    });
-
-    const remaining =
-      event.capacity - event.soldCount - (heldSeats._sum.quantity ?? 0);
-
-    if (dto.quantity > remaining) {
-      return {
-        error: `Chỉ còn ${Math.max(remaining, 0)} vé cho sự kiện này`,
-        success: false,
-      };
-    }
-
     const isSepay = dto.paymentMethod === 'sepay';
 
     // Kiểm tra trước khi tạo vé: nếu tạo rồi mới phát hiện SePay chưa bật thì vé
@@ -140,7 +124,26 @@ export class AccountController {
       };
     }
 
-    const ticket = await this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
+      // Khoá theo sự kiện rồi mới đếm chỗ trống: mua cùng lúc phải xếp hàng, không bán quá sức chứa.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`event:${eventId}`}))`;
+
+      const { soldCount } = await tx.venueEvent.findUniqueOrThrow({
+        select: { soldCount: true },
+        where: { id: eventId },
+      });
+
+      // soldCount chỉ đếm vé đã trả tiền; vé đang chờ chuyển khoản vẫn phải giữ chỗ tạm.
+      const heldSeats = await tx.eventTicket.aggregate({
+        _sum: { quantity: true },
+        where: { eventId, status: 'PENDING' },
+      });
+
+      const remaining =
+        event.capacity - soldCount - (heldSeats._sum.quantity ?? 0);
+
+      if (dto.quantity > remaining) return { remaining };
+
       const created = await tx.eventTicket.create({
         data: {
           eventId,
@@ -169,9 +172,17 @@ export class AccountController {
         });
       }
 
-      return created;
+      return { created };
     });
 
+    if (!result.created) {
+      return {
+        error: `Chỉ còn ${Math.max(result.remaining ?? 0, 0)} vé cho sự kiện này`,
+        success: false,
+      };
+    }
+
+    const ticket = result.created;
     const checkout = isSepay
       ? await this.paymentsService.createSepayCheckout(user.id, {
           ticketId: ticket.id,
