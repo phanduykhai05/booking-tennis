@@ -1,0 +1,43 @@
+import { ChevronRight } from "lucide-react";
+
+import aloboIcons from "@/components/assets/icons";
+import type { DashboardItem } from "@/components/account/AccountDashboard/types";
+import Touch from "@/components/ui/Pressable";
+
+const icons: Record<DashboardItem["icon"], typeof aloboIcons.home> = {
+  calendar: aloboIcons.calendar,
+  graduation: aloboIcons.profileClass,
+  group: aloboIcons.profileGroup,
+  member: aloboIcons.profileMembership,
+  settings: aloboIcons.profileSetting,
+  ticket: aloboIcons.profileClass,
+  version: aloboIcons.profileInfo,
+  wallet: aloboIcons.profileMembership,
+};
+
+type DashboardListProps = {
+  items: DashboardItem[];
+  onSelect?: (itemId: string) => void;
+};
+
+export default function DashboardList({ items, onSelect }: DashboardListProps) {
+  return (
+    <div className="overflow-hidden rounded-xl bg-white">
+      {items.map((item, index) => {
+        const Icon = icons[item.icon];
+
+        return (
+          <Touch
+            className={`h-[45px] flex-row items-center gap-3 px-3 ${index + 1 < items.length ? "border-b border-[#edf0ee]" : ""}`}
+            key={item.id}
+            onPress={() => onSelect?.(item.id)}
+          >
+            <Icon color="#4e5154" height={20} width={20} />
+            <span className="flex-1 text-[15px] text-[#4e5154]">{item.label}</span>
+            <ChevronRight color="#373c3a" size={18} />
+          </Touch>
+        );
+      })}
+    </div>
+  );
+}

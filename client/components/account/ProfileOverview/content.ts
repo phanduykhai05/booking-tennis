@@ -1,0 +1,42 @@
+import type { ProfileDetailItem } from "@/components/account/ProfileOverview/types";
+
+export const profileContent = {
+  avatarInitial: "k",
+  birthYear: "2026",
+  birthYearError: "Năm sinh phải nằm trong khoảng 1900 - 2100",
+  close: "Đóng",
+  emailLabel: "Email",
+  emailPlaceholder: "Nhập email của bạn",
+  emailPrompt: "Chưa cập nhật email",
+  gender: "Khác",
+  genderLabel: "Giới tính",
+  height: "-",
+  heightError: "Chiều cao phải nằm trong khoảng 50 - 260 cm",
+  heightLabel: "Chiều cao (cm)",
+  loading: "Đang tải hồ sơ…",
+  name: "khải duy",
+  nameError: "Họ tên phải có ít nhất 2 ký tự",
+  nameLabel: "Họ và tên",
+  namePlaceholder: "Nguyễn Văn A",
+  notProvided: "-",
+  notePlaceholder: "Ví dụ: chỉ chơi vào buổi tối",
+  overview: "Tổng quan",
+  personalTitle: "Cá nhân hoá",
+  phone: "Điện thoại",
+  physicalTitle: "Thông tin thể chất",
+  save: "Lưu thay đổi",
+  saveError: "Không lưu được hồ sơ",
+  signInRequired: "Đăng nhập để xem hồ sơ của bạn.",
+  specialNote: "Ghi chú đặc biệt",
+  weight: "-",
+  weightError: "Cân nặng phải nằm trong khoảng 20 - 300 kg",
+  weightLabel: "Cân nặng (kg)",
+  yearLabel: "Năm sinh",
+};
+
+export const profileDetailItems: ProfileDetailItem[] = [
+  { icon: "location", id: "location", label: "Vị trí yêu thích" },
+  { icon: "sport", id: "sport", label: "Môn thể thao và trình độ" },
+  { icon: "goal", id: "goal", label: "Mục tiêu" },
+  { icon: "schedule", id: "schedule", label: "Tần suất chơi" },
+];

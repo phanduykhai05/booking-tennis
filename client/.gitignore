@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# vite build + service worker sinh ở chế độ dev của vite-plugin-pwa
+dist/
+dev-dist/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.*
+.pnpm-debug.log*
+
+# env files
+.env*
+!.env.example
+
+# typescript
+*.tsbuildinfo
