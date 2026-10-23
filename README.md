@@ -76,6 +76,466 @@ NestJS**. Phía web **không còn dùng mock data** — mọi màn hình đọc 
 | Backend | NestJS 11, Prisma 7, class-validator, JWT, Swagger | [`server/`](server/) |
 | Cơ sở dữ liệu | PostgreSQL 18 | (schema ở [`server/prisma/schema.prisma`](server/prisma/schema.prisma)) |
 
+### 3.1. Cơ sở dữ liệu (ERD)
+
+Nguồn sự thật là [`server/prisma/schema.prisma`](server/prisma/schema.prisma); mục này tóm tắt lại để
+đọc nhanh. Đổi schema thì cập nhật cả sơ đồ dưới đây.
+
+```mermaid
+erDiagram
+    SportCategory ||--o{ Venue : "phân loại"
+
+    User ||--o{ Booking : "đặt"
+    User ||--o{ EventTicket : "mua"
+    User ||--o{ Payment : "trả"
+    User ||--o{ Notification : "nhận"
+    User ||--o{ PasswordReset : "yêu cầu"
+
+    Venue ||--o{ VenueBadge : "gắn nhãn"
+    Venue ||--o{ CourtGroup : "chia nhóm"
+    Venue ||--o{ Court : "có"
+    Venue ||--o{ PriceRule : "định giá"
+    Venue ||--o{ VenueEvent : "tổ chức"
+    Venue ||--o{ Booking : "nhận"
+
+    CourtGroup |o--o{ Court : "gom"
+    Court ||--o{ CourtBlock : "bị khoá"
+    Court ||--o{ Booking : "được đặt"
+    Court |o--o{ VenueEvent : "chiếm chỗ"
+
+    VenueEvent ||--o{ EventTicket : "bán"
+    Booking |o--o{ Payment : "thanh toán"
+    EventTicket |o--o{ Payment : "thanh toán"
+    Payment |o..o{ SepayTransaction : "khớp (logic)"
+
+    SportCategory {
+        string id PK
+        string label
+        string icon
+        int sortOrder
+    }
+    User {
+        string id PK
+        string phone UK
+        string email UK "tuỳ chọn"
+        string fullName
+        string passwordHash
+        UserRole role
+        UserStatus status
+    }
+    PasswordReset {
+        string id PK
+        string userId FK
+        string code
+        datetime expiresAt
+        datetime usedAt "null = chưa dùng"
+    }
+    Venue {
+        string id PK "slug"
+        string sportId FK
+        string name
+        string address
+        float latitude
+        float longitude
+        int openingMinute
+        int closingMinute
+        int slotMinutes
+        boolean isFeatured
+        VenueStatus status
+    }
+    VenueBadge {
+        string id PK
+        string venueId FK
+        string code
+        VenueBadgeTone tone
+    }
+    CourtGroup {
+        string id PK
+        string venueId FK
+        string name
+    }
+    Court {
+        string id PK
+        string venueId FK
+        string groupId FK "tuỳ chọn"
+        string name
+        int hourlyRate
+        CourtSurface surface
+        CourtStatus status
+    }
+    PriceRule {
+        string id PK
+        string venueId FK
+        int startMinute
+        int endMinute
+        int pricePerHour
+    }
+    CourtBlock {
+        string id PK
+        string courtId FK
+        date blockDate
+        int startMinute
+        int endMinute
+        CourtBlockKind kind
+    }
+    Booking {
+        string id PK
+        string code UK
+        string userId FK
+        string venueId FK
+        string courtId FK
+        date bookingDate
+        int startMinute
+        int endMinute
+        int totalPrice
+        BookingStatus status
+        PaymentStatus paymentStatus
+        BookingSource source
+    }
+    VenueEvent {
+        string id PK
+        string venueId FK
+        string courtId FK "tuỳ chọn"
+        date eventDate
+        int startMinute
+        int endMinute
+        int capacity
+        int soldCount
+        int price
+    }
+    EventTicket {
+        string id PK
+        string eventId FK
+        string userId FK
+        int quantity
+        int totalPrice
+        TicketStatus status
+    }
+    Payment {
+        string id PK
+        string transactionCode UK
+        string transferContent UK "nội dung CK SePay"
+        string userId FK
+        string bookingId FK "hoặc ticketId"
+        string ticketId FK "hoặc bookingId"
+        int amount
+        int paidAmount
+        PaymentMethod method
+        PaymentStatus status
+    }
+    SepayTransaction {
+        string id PK "id giao dịch SePay"
+        string paymentId "null = không khớp"
+        int amount
+    }
+    Notification {
+        string id PK
+        string userId FK
+        NotificationKind kind
+        boolean isRead
+    }
+    DiscoverPost {
+        string id PK
+        DiscoverPostType type
+        string venueName
+        datetime publishedAt
+    }
+    ActivityEvent {
+        string id PK
+        ActivityType type
+        string entityId "id lịch/sân/thanh toán"
+        datetime createdAt
+    }
+```
+
+> `DiscoverPost` và `ActivityEvent` không có khoá ngoại: bài Khám phá lưu tên sân dạng chữ,
+> `ActivityEvent.entityId` trỏ tới lịch, sân hoặc thanh toán tuỳ `type`. `SepayTransaction.paymentId`
+> cũng chỉ là tham chiếu logic (không ràng buộc), để vẫn lưu được khoản tiền không khớp giao dịch nào.
+
+#### Quan hệ và hành vi khi xoá
+
+| Bảng con → bảng cha | Khoá ngoại | Bắt buộc | Khi xoá bảng cha |
+|---|---|:---:|---|
+| `Venue` → `SportCategory` | `sportId` | ✓ | Chặn (mặc định) |
+| `PasswordReset` → `User` | `userId` | ✓ | Xoá theo (Cascade) |
+| `VenueBadge`, `CourtGroup`, `Court`, `PriceRule`, `VenueEvent` → `Venue` | `venueId` | ✓ | Xoá theo (Cascade) |
+| `Court` → `CourtGroup` | `groupId` | | Đặt null (SetNull) |
+| `CourtBlock` → `Court` | `courtId` | ✓ | Xoá theo (Cascade) |
+| `VenueEvent` → `Court` | `courtId` | | Đặt null (SetNull) |
+| `Booking` → `User` / `Venue` / `Court` | `userId`, `venueId`, `courtId` | ✓ | Chặn (Restrict) — không mất lịch sử đặt sân |
+| `Payment` → `Booking` | `bookingId` | | Xoá theo (Cascade) |
+| `Payment` → `EventTicket` | `ticketId` | | Xoá theo (Cascade) |
+| `Payment` → `User` | `userId` | ✓ | Chặn (Restrict) |
+| `EventTicket` → `VenueEvent` / `User` | `eventId`, `userId` | ✓ | Xoá theo (Cascade) |
+| `Notification` → `User` | `userId` | ✓ | Xoá theo (Cascade) |
+
+Mỗi `Payment` trả cho **đúng một** thứ: hoặc `bookingId`, hoặc `ticketId` (kiểm tra ở tầng service).
+
+#### Cấu trúc bảng
+
+Quy ước chung: `id` kiểu `cuid()` (trừ `SportCategory`, `Venue` dùng slug và `SepayTransaction`
+dùng id của SePay); giờ trong ngày lưu bằng **số phút từ 0h** (`startMinute`, `endMinute`, ví dụ
+`360` = 06:00); tiền lưu **số nguyên VNĐ**; cột `@db.Date` lưu ngày không có giờ.
+
+<details>
+<summary><b>Người dùng</b> — <code>User</code>, <code>PasswordReset</code>, <code>Notification</code></summary>
+
+**`User`**
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK, cuid | |
+| `phone` | String | unique | Đăng nhập bằng số điện thoại |
+| `email` | String? | unique | Đăng nhập bằng email (tuỳ chọn) |
+| `fullName` | String | | |
+| `passwordHash` | String | | bcrypt |
+| `role` | `UserRole` | mặc định `USER` | `ADMIN` vào được `/admin` |
+| `status` | `UserStatus` | mặc định `ACTIVE` | `INACTIVE` = bị khoá, token cũ mất tác dụng ngay |
+| `birthYear`, `gender`, `heightCm`, `weightKg`, `note` | Int? / String? | | Hồ sơ cá nhân |
+| `createdAt`, `updatedAt` | DateTime | | |
+
+**`PasswordReset`** — mã khôi phục mật khẩu
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | |
+| `userId` | String | FK → `User`, index | |
+| `code` | String | | 6 chữ số |
+| `expiresAt` | DateTime | | 15 phút sau khi tạo |
+| `usedAt` | DateTime? | | Đã dùng, hoặc bị huỷ khi nhập sai mã |
+| `createdAt` | DateTime | | |
+
+**`Notification`**
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | |
+| `userId` | String | FK → `User`, index (`userId`, `createdAt`) | |
+| `kind` | `NotificationKind` | | |
+| `title`, `message` | String | | |
+| `isRead` | Boolean | mặc định `false` | |
+| `createdAt` | DateTime | | |
+
+</details>
+
+<details>
+<summary><b>Sân</b> — <code>SportCategory</code>, <code>Venue</code>, <code>VenueBadge</code>, <code>CourtGroup</code>, <code>Court</code>, <code>PriceRule</code>, <code>CourtBlock</code></summary>
+
+**`SportCategory`** — bộ môn
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | Slug, ví dụ `pickleball` |
+| `label` | String | | Tên hiển thị |
+| `icon` | String | | Khoá icon ở client |
+| `sortOrder` | Int | mặc định `0` | |
+
+**`Venue`** — địa điểm (cụm sân)
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | Slug, dùng trong URL `/product/:slug` |
+| `sportId` | String | FK → `SportCategory`, index | |
+| `name`, `address`, `phone` | String | | |
+| `latitude`, `longitude` | Float | | Ghim trên bản đồ |
+| `openingMinute` / `closingMinute` | Int | mặc định `360` / `1320` | Giờ mở/đóng cửa |
+| `slotMinutes` | Int | mặc định `30` | Độ dài một ô trên lưới đặt lịch |
+| `amenities` | String[] | | Tiện ích |
+| `coverKey`, `logoKey`, `mark` | String | | Ảnh bìa, logo, chữ viết tắt |
+| `rating` | Float? | | |
+| `offerCount` | Int | mặc định `0` | Số ưu đãi đang chạy |
+| `isFeatured` | Boolean | mặc định `false` | Hiện ở trang Nổi bật |
+| `status` | `VenueStatus` | mặc định `ACTIVE` | |
+| `timezone` | String | mặc định `Asia/Bangkok` | |
+| `description` | String? | | |
+| `createdAt` | DateTime | | |
+
+**`VenueBadge`** — nhãn trên thẻ sân ("Đơn ngày", "Sự kiện")
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | |
+| `venueId` | String | FK → `Venue`; unique (`venueId`, `code`) | |
+| `code`, `label` | String | | |
+| `tone` | `VenueBadgeTone` | | Màu nhãn |
+| `sortOrder` | Int | mặc định `0` | |
+
+**`CourtGroup`** — nhóm sân trên lưới (ví dụ "Pickleball")
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | |
+| `venueId` | String | FK → `Venue`; unique (`venueId`, `name`) | |
+| `name` | String | | |
+| `sortOrder` | Int | mặc định `0` | |
+
+**`Court`** — từng sân con
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | |
+| `venueId` | String | FK → `Venue`, index | |
+| `groupId` | String? | FK → `CourtGroup`, index | |
+| `name` | String | | |
+| `hourlyRate` | Int | | Giá/giờ khi không có `PriceRule` khớp |
+| `surface` | `CourtSurface` | mặc định `HARD` | |
+| `isIndoor` | Boolean | mặc định `false` | |
+| `status` | `CourtStatus` | mặc định `AVAILABLE` | Chỉ `AVAILABLE` mới đặt được |
+| `sortOrder` | Int | mặc định `0` | |
+
+**`PriceRule`** — bảng giá theo khung giờ
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | |
+| `venueId` | String | FK → `Venue`, index | |
+| `startMinute`, `endMinute` | Int | | Khung giờ áp dụng |
+| `pricePerHour` | Int | | |
+| `label` | String | | |
+| `sortOrder` | Int | mặc định `0` | |
+
+**`CourtBlock`** — ô "Khoá"/"Sự kiện" trên lưới đặt lịch
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | |
+| `courtId` | String | FK → `Court`; index (`courtId`, `blockDate`) | |
+| `blockDate` | Date | | |
+| `startMinute`, `endMinute` | Int | | |
+| `kind` | `CourtBlockKind` | | |
+| `title` | String | | Lý do khoá |
+
+</details>
+
+<details>
+<summary><b>Đặt sân và sự kiện</b> — <code>Booking</code>, <code>VenueEvent</code>, <code>EventTicket</code></summary>
+
+**`Booking`** — một khung giờ trên một sân
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | |
+| `code` | String | unique | Mã lịch, dạng `TH<yyMMdd><4 ký tự>` |
+| `userId` | String | FK → `User`, index | |
+| `venueId` | String | FK → `Venue`; index (`venueId`, `bookingDate`) | |
+| `courtId` | String | FK → `Court`; index (`courtId`, `bookingDate`) | |
+| `bookingDate` | Date | | |
+| `startMinute`, `endMinute` | Int | | Không trùng lịch khác cùng sân (khoá theo sân + ngày khi tạo) |
+| `totalPrice` | Int | | Tính theo `PriceRule` |
+| `status` | `BookingStatus` | mặc định `PENDING` | |
+| `paymentStatus` | `PaymentStatus` | mặc định `UNPAID` | |
+| `source` | `BookingSource` | mặc định `ONLINE` | `COUNTER` = tạo tại quầy |
+| `note` | String? | | |
+| `createdAt`, `updatedAt` | DateTime | | |
+
+**`VenueEvent`** — sự kiện bán vé tại sân
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | |
+| `venueId` | String | FK → `Venue`; index (`venueId`, `eventDate`) | |
+| `courtId` | String? | FK → `Court`; index (`courtId`, `eventDate`) | Có thì sự kiện chiếm khung giờ trên lưới |
+| `courtLabel` | String | | Nhãn hiển thị ("Sân 1 - 2") |
+| `title` | String | | |
+| `eventDate` | Date | | |
+| `startMinute`, `endMinute` | Int | | |
+| `price` | Int | | Giá một vé |
+| `capacity` | Int | | Sức chứa |
+| `soldCount` | Int | mặc định `0` | Chỉ tính vé đã `PAID` |
+
+**`EventTicket`** — vé đã mua
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | |
+| `eventId` | String | FK → `VenueEvent`, index | |
+| `userId` | String | FK → `User`, index | |
+| `phone` | String | | Số liên hệ khi mua |
+| `quantity` | Int | | |
+| `totalPrice` | Int | | |
+| `status` | `TicketStatus` | mặc định `PAID` | `PENDING` = chờ SePay, giữ chỗ tới khi QR hết hạn |
+| `createdAt`, `updatedAt` | DateTime | | |
+
+</details>
+
+<details>
+<summary><b>Thanh toán</b> — <code>Payment</code>, <code>SepayTransaction</code></summary>
+
+**`Payment`**
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | |
+| `transactionCode` | String | unique | Mã giao dịch nội bộ |
+| `userId` | String | FK → `User`, index | |
+| `bookingId` | String? | FK → `Booking`, index | Hoặc `ticketId` |
+| `ticketId` | String? | FK → `EventTicket`, index | Hoặc `bookingId` |
+| `amount` | Int | | Số tiền phải trả |
+| `paidAmount` | Int | mặc định `0` | Cộng dồn, cho phép trả thiếu rồi bù |
+| `method` | `PaymentMethod` | | |
+| `status` | `PaymentStatus` | | `FAILED` = QR SePay quá hạn |
+| `transferContent` | String? | unique | Nội dung chuyển khoản in trên QR, webhook dò chuỗi này |
+| `gatewayRef` | String? | | Mã tham chiếu ngân hàng từ SePay |
+| `paidAt` | DateTime? | | |
+| `createdAt`, `updatedAt` | DateTime | | |
+
+**`SepayTransaction`** — mỗi khoản tiền SePay báo về
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | Id giao dịch phía SePay — chặn webhook gửi lại bị cộng tiền hai lần |
+| `paymentId` | String? | index | `null` = không khớp giao dịch nào, cần đối soát tay |
+| `amount` | Int | | |
+| `content` | String? | | Nội dung chuyển khoản gốc |
+| `createdAt` | DateTime | | |
+
+</details>
+
+<details>
+<summary><b>Nội dung và nhật ký</b> — <code>DiscoverPost</code>, <code>ActivityEvent</code></summary>
+
+**`DiscoverPost`** — bài ở trang Khám phá
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | |
+| `type` | `DiscoverPostType` | | |
+| `venueName` | String | | Tên sân dạng chữ, không phải khoá ngoại |
+| `labels` | String[] | | |
+| `publishedAt` | DateTime | index | |
+
+**`ActivityEvent`** — nhật ký hoạt động ở dashboard quản trị
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+|---|---|---|---|
+| `id` | String | PK | |
+| `type` | `ActivityType` | | |
+| `entityId` | String | | Id lịch/sân/thanh toán tuỳ `type` |
+| `message` | String | | |
+| `createdAt` | DateTime | index | |
+
+</details>
+
+#### Enum
+
+| Enum | Giá trị |
+|---|---|
+| `UserRole` | `ADMIN`, `USER` |
+| `UserStatus` | `ACTIVE`, `INACTIVE` |
+| `VenueStatus` | `ACTIVE`, `INACTIVE` |
+| `VenueBadgeTone` | `EVENT`, `SINGLE` |
+| `CourtStatus` | `AVAILABLE`, `INACTIVE`, `MAINTENANCE` |
+| `CourtSurface` | `CLAY`, `HARD`, `SYNTHETIC` |
+| `CourtBlockKind` | `EVENT`, `LOCKED` |
+| `BookingStatus` | `PENDING`, `CONFIRMED`, `CHECKED_IN`, `COMPLETED`, `CANCELLED` |
+| `BookingSource` | `ONLINE`, `COUNTER` |
+| `PaymentStatus` | `UNPAID`, `PARTIAL`, `PAID`, `FAILED`, `REFUNDED` |
+| `PaymentMethod` | `SEPAY`, `CASH`, `BANK_TRANSFER`, `CARD`, `E_WALLET` |
+| `TicketStatus` | `PENDING`, `PAID`, `CANCELLED` |
+| `NotificationKind` | `BOOKING`, `PROMOTION`, `SYSTEM` |
+| `DiscoverPostType` | `COURSE`, `EMPTY_COURT`, `EVENT`, `MEMBER`, `OFFER` |
+| `ActivityType` | `BOOKING_CREATED`, `BOOKING_UPDATED`, `COURT_UPDATED`, `PAYMENT_UPDATED` |
+
 ---
 
 ## 4. Yêu cầu môi trường
