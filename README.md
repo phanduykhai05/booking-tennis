@@ -14,7 +14,7 @@ lẫn server, nguyên tắc làm việc, luồng dữ liệu và mục đích c�
 |---------|--------|------|
 | Nhóm trưởng | Phan Duy Khải | N23DVCN026 |
 | Thành viên | Trần Văn Vĩnh Phúc | N23DVCN047 |
-| Thành viên | Gia Bảo | N23DVCN0__ *(cập nhật sau)* |
+| Thành viên | Gia Bảo | N23DVCN0003 |
 
 ---
 
